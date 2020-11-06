@@ -7,6 +7,7 @@ from refnx.analysis import Objective, CurveFitter
 
 from dynesty import NestedSampler
 from dynesty import plotting as dyplot
+from dynesty import utils    as dyfunc
 from multiprocessing import Pool, cpu_count
 
 class Data:
@@ -15,7 +16,7 @@ class Data:
     q_max  = 0.3
     dq     = 2
     scale  = 1
-    bkg    = 0
+    bkg    = 1e-7
     
     @staticmethod
     def generate():
@@ -62,9 +63,9 @@ class Data:
 
 
 class Fitting:
-    sld_bounds   = (4,6)
-    thick_bounds = (400,600)
-    rough_bounds = (7,9)
+    sld_bounds   = (2,10)
+    thick_bounds = (200,700)
+    rough_bounds = (6,10)
     
     def __init__(self, data):
         self.data  = ReflectDataset(data)
@@ -74,8 +75,8 @@ class Fitting:
     def __create_model():
         #Define the model to be fitted to the data here.
         air       = SLD(0, name="Air")
-        layer     = SLD(5, name="Layer 1")(thick=500, rough=8)
-        substrate = SLD(2.047, name="Substrate")(thick=0, rough=8)
+        layer     = SLD(2, name="Layer 1")(thick=250, rough=6)
+        substrate = SLD(2.047, name="Substrate")(thick=0, rough=10)
         
         layer.sld.real.setp(bounds=Fitting.sld_bounds, vary=True)
         layer.thick.setp(bounds=Fitting.thick_bounds, vary=True)
@@ -88,7 +89,6 @@ class Fitting:
     def __reset_objective(self):
         self.objective = Objective(self.model, self.data)
     
-        
     def fit_lbfgs(self):
         print("------------------- L-BFGS-B -------------------")
         self.__reset_objective()
@@ -114,12 +114,18 @@ class Fitting:
         self.__reset_objective()
         pool = Pool(cpu_count()-1)
         ndim = len(self.objective.varying_parameters())
+
         sampler = NestedSampler(self.logl, Fitting.prior_transform, ndim, pool=pool, queue_size=cpu_count())
-        sampler.run_nested()
-    
+        sampler.run_nested(dlogz=80)
         pool.close()
         pool.join()
-        dyplot.cornerplot(sampler.results, color='blue', quantiles=None, show_titles=True, max_n_ticks=3, truths=np.zeros(ndim), truth_color='black')
+        
+        results = sampler.results
+        samples, weights = results.samples, np.exp(results.logwt - results.logz[-1])
+        mean, cov = dyfunc.mean_and_cov(samples, weights) #Diagonal elements of covariance matrix, cov, contain parameter uncertainties
+        print(mean)
+        print(cov)
+        dyplot.cornerplot(results, color='blue', quantiles=None, show_titles=True, max_n_ticks=3, truths=np.zeros(ndim), truth_color='black')
     
     def logl(self, x):
         #Update the model
@@ -138,9 +144,10 @@ class Fitting:
     def prior_transform(u):
         x = np.array(u)
         old_range = (0, 1) #Uniform prior
-        x[0]   = Fitting.convert_range(u[0],  old_range, Fitting.sld_bounds)
-        x[1]   = Fitting.convert_range(u[1],  old_range, Fitting.thick_bounds)
-        x[2:]  = Fitting.convert_range(u[2:], old_range, Fitting.rough_bounds)
+        x[0] = Fitting.convert_range(u[0], old_range, Fitting.sld_bounds)
+        x[1] = Fitting.convert_range(u[1], old_range, Fitting.thick_bounds)
+        x[2] = Fitting.convert_range(u[2], old_range, Fitting.rough_bounds)
+        x[3] = Fitting.convert_range(u[3], old_range, Fitting.rough_bounds)
         return x
     
     @staticmethod
@@ -157,7 +164,7 @@ class Fitting:
         #        print(">>> Layer {0} - Thickness: {1:10.6f} | Error: {2:10.8f}".format(i+1, component.thick.value, component.thick.stderr))
         #    print(">>> Layer {0} - Roughness: {1:10.7f} | Error: {2:10.8f}".format(i+1, component.rough.value, component.rough.stderr))
         print(self.objective)
-        print()
+        print(self.objective.covar(), "\n")
         self.plot_objective()
     
     def plot_objective(self):
