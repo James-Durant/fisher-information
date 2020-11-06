@@ -20,10 +20,9 @@ class Data:
     @staticmethod
     def generate():
         air       = SLD(0)
-        layer1    = SLD(2.5)(thick=500, rough=8)
-        layer2    = SLD(5.0)(thick=100, rough=8)
+        layer     = SLD(5)(thick=500, rough=8)
         substrate = SLD(2.047)(thick=0, rough=8)
-        structure = air | layer1 | layer2 | substrate
+        structure = air | layer | substrate
         
         model = ReflectModel(structure, scale=Data.scale, dq=Data.dq, bkg=Data.bkg)
     
@@ -61,7 +60,12 @@ class Data:
             r_noisy.append(np.random.normal(loc=r_point, scale=normal_width)) #Using beam interp
         return r_noisy
 
+
 class Fitting:
+    sld_bounds   = (4,6)
+    thick_bounds = (400,600)
+    rough_bounds = (7,9)
+    
     def __init__(self, data):
         self.data  = ReflectDataset(data)
         self.model = Fitting.__create_model()
@@ -70,25 +74,20 @@ class Fitting:
     def __create_model():
         #Define the model to be fitted to the data here.
         air       = SLD(0, name="Air")
-        layer1    = SLD(0, name="Layer 1")(thick=500, rough=8)
-        layer2    = SLD(0, name="Layer 2")(thick=500, rough=8)
+        layer     = SLD(5, name="Layer 1")(thick=500, rough=8)
         substrate = SLD(2.047, name="Substrate")(thick=0, rough=8)
         
-        layer1.sld.real.setp(bounds=(1,3),  vary=True)
-        layer1.thick.setp(bounds=(400,600), vary=True)
-        layer1.rough.setp(bounds=(7,9),     vary=True)
+        layer.sld.real.setp(bounds=Fitting.sld_bounds, vary=True)
+        layer.thick.setp(bounds=Fitting.thick_bounds, vary=True)
+        layer.rough.setp(bounds=Fitting.rough_bounds, vary=True)
+        substrate.rough.setp(bounds=Fitting.rough_bounds, vary=True)
         
-        layer2.sld.real.setp(bounds=(4,6),  vary=True)
-        layer2.thick.setp(bounds=(20,200), vary=True)
-        #layer2.rough.setp(bounds=(7,9),     vary=True)
-        
-        substrate.rough.setp(bounds=(7,9), vary=True)
-        
-        structure = air | layer1 | layer2 | substrate
+        structure = air | layer | substrate
         return ReflectModel(structure, scale=1, dq=2, bkg=1e-7)
     
     def __reset_objective(self):
         self.objective = Objective(self.model, self.data)
+    
         
     def fit_lbfgs(self):
         print("------------------- L-BFGS-B -------------------")
@@ -115,12 +114,40 @@ class Fitting:
         self.__reset_objective()
         pool = Pool(cpu_count()-1)
         ndim = len(self.objective.varying_parameters())
-        sampler = NestedSampler(self.objective.logl, self.objective.prior_transform, ndim, pool=pool, queue_size=cpu_count())
-        sampler.run_nested(maxiter=5000)
+        sampler = NestedSampler(self.logl, Fitting.prior_transform, ndim, pool=pool, queue_size=cpu_count())
+        sampler.run_nested()
     
         pool.close()
         pool.join()
         dyplot.cornerplot(sampler.results, color='blue', quantiles=None, show_titles=True, max_n_ticks=3, truths=np.zeros(ndim), truth_color='black')
+    
+    def logl(self, x):
+        #Update the model
+        components = self.model.structure.components
+        layer = components[1]
+        layer.sld.real.value = x[0]
+        layer.thick.value    = x[1]
+        layer.rough.value    = x[2]
+        
+        substrate = components[2]
+        substrate.rough.value = x[3]
+        
+        return self.objective.logl()
+    
+    @staticmethod
+    def prior_transform(u):
+        x = np.array(u)
+        old_range = (0, 1) #Uniform prior
+        x[0]   = Fitting.convert_range(u[0],  old_range, Fitting.sld_bounds)
+        x[1]   = Fitting.convert_range(u[1],  old_range, Fitting.thick_bounds)
+        x[2:]  = Fitting.convert_range(u[2:], old_range, Fitting.rough_bounds)
+        return x
+    
+    @staticmethod
+    def convert_range(old_value, old_range, new_range):
+        (old_min, old_max) = old_range
+        (new_min, new_max) = new_range
+        return (((old_value - old_min) * (new_max - new_min)) / (old_max - old_min)) + new_min
     
     def display_results(self):
         #components = self.model.structure.components
