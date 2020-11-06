@@ -61,7 +61,6 @@ class Data:
             r_noisy.append(np.random.normal(loc=r_point, scale=normal_width)) #Using beam interp
         return r_noisy
 
-
 class Fitting:
     def __init__(self, data):
         self.data  = ReflectDataset(data)
@@ -70,18 +69,18 @@ class Fitting:
     @staticmethod
     def __create_model():
         #Define the model to be fitted to the data here.
-        air       = SLD(0)
-        layer1    = SLD(0)(thick=500, rough=5)
-        layer2    = SLD(0)(thick=500, rough=5)
-        substrate = SLD(2.047)(thick=0, rough=5)
+        air       = SLD(0, name="Air")
+        layer1    = SLD(0, name="Layer 1")(thick=500, rough=8)
+        layer2    = SLD(0, name="Layer 2")(thick=500, rough=8)
+        substrate = SLD(2.047, name="Substrate")(thick=0, rough=8)
         
-        layer1.sld.real.setp(bounds=(2,6),  vary=True)
-        layer1.thick.setp(bounds=(50,600), vary=True)
+        layer1.sld.real.setp(bounds=(1,3),  vary=True)
+        layer1.thick.setp(bounds=(400,600), vary=True)
         layer1.rough.setp(bounds=(7,9),     vary=True)
         
-        layer2.sld.real.setp(bounds=(2,6),  vary=True)
-        layer2.thick.setp(bounds=(50,600), vary=True)
-        layer2.rough.setp(bounds=(7,9),     vary=True)
+        layer2.sld.real.setp(bounds=(4,6),  vary=True)
+        layer2.thick.setp(bounds=(20,200), vary=True)
+        #layer2.rough.setp(bounds=(7,9),     vary=True)
         
         substrate.rough.setp(bounds=(7,9), vary=True)
         
@@ -99,7 +98,7 @@ class Fitting:
         fitter.fit('L-BFGS-B', verbose=False)
         self.display_results()
 
-    def fit_mcmc(self, burn=200, steps=5, nthin=100):
+    def fit_mcmc(self, burn=500, steps=100, nthin=50):
         print("--------------------- MCMC ---------------------")
         self.__reset_objective()
         fitter = CurveFitter(self.objective)
@@ -107,6 +106,7 @@ class Fitting:
         fitter.reset()
         fitter.sample(steps, nthin=nthin)
         self.display_results()
+        
         self.objective.corner()
         plt.show()
 
@@ -123,12 +123,13 @@ class Fitting:
         dyplot.cornerplot(sampler.results, color='blue', quantiles=None, show_titles=True, max_n_ticks=3, truths=np.zeros(ndim), truth_color='black')
     
     def display_results(self):
-        components = self.model.structure.components
-        for i, component in enumerate(components[1:]): #Skip over Air
-            if i != len(components)-2:
-                print(">>> Layer {0} - SLD:       {1:10.6f} | Error: {2:10.8f}".format(i+1, component.sld.real.value, component.sld.real.stderr))
-                print(">>> Layer {0} - Thickness: {1:10.6f} | Error: {2:10.8f}".format(i+1, component.thick.value,    component.thick.stderr))
-            print(">>> Layer {0} - Roughness: {1:10.7f} | Error: {2:10.8f}".format(i+1, component.rough.value,    component.rough.stderr))
+        #components = self.model.structure.components
+        #for i, component in enumerate(components[1:]): #Skip over Air
+        #    if i != len(components)-2:
+        #        print(">>> Layer {0} - SLD:       {1:10.6f} | Error: {2:10.8f}".format(i+1, component.sld.real.value, component.sld.real.stderr))
+        #        print(">>> Layer {0} - Thickness: {1:10.6f} | Error: {2:10.8f}".format(i+1, component.thick.value, component.thick.stderr))
+        #    print(">>> Layer {0} - Roughness: {1:10.7f} | Error: {2:10.8f}".format(i+1, component.rough.value, component.rough.stderr))
+        print(self.objective)
         print()
         self.plot_objective()
     
@@ -149,11 +150,9 @@ class Fitting:
         plt.legend()
         plt.show()
 
-
-
 if __name__ == "__main__":
     model = Fitting(Data.generate()) 
-    model.fit_lbfgs()
-    model.fit_mcmc()
-    #model.fit_nested()
+    #model.fit_lbfgs()
+    #model.fit_mcmc()
+    model.fit_nested()
     
