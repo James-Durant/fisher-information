@@ -104,8 +104,9 @@ class Fitting:
         fitter.sample(burn)
         fitter.reset()
         fitter.sample(steps, nthin=nthin)
-        self.display_results()
+        print(fitter.chain)
         
+        self.display_results()
         self.objective.corner()
         plt.show()
 
@@ -116,15 +117,16 @@ class Fitting:
         ndim = len(self.objective.varying_parameters())
 
         sampler = NestedSampler(self.logl, Fitting.prior_transform, ndim, pool=pool, queue_size=cpu_count())
-        sampler.run_nested(dlogz=80)
+        sampler.run_nested(dlogz=70)
         pool.close()
         pool.join()
         
         results = sampler.results
         samples, weights = results.samples, np.exp(results.logwt - results.logz[-1])
         mean, cov = dyfunc.mean_and_cov(samples, weights) #Diagonal elements of covariance matrix, cov, contain parameter uncertainties
-        print(mean)
+        self.logl(mean)
         print(cov)
+        self.plot_objective()
         dyplot.cornerplot(results, color='blue', quantiles=None, show_titles=True, max_n_ticks=3, truths=np.zeros(ndim), truth_color='black')
     
     def logl(self, x):
@@ -163,7 +165,7 @@ class Fitting:
         #        print(">>> Layer {0} - SLD:       {1:10.6f} | Error: {2:10.8f}".format(i+1, component.sld.real.value, component.sld.real.stderr))
         #        print(">>> Layer {0} - Thickness: {1:10.6f} | Error: {2:10.8f}".format(i+1, component.thick.value, component.thick.stderr))
         #    print(">>> Layer {0} - Roughness: {1:10.7f} | Error: {2:10.8f}".format(i+1, component.rough.value, component.rough.stderr))
-        print(self.objective)
+        #print(self.objective)
         print(self.objective.covar(), "\n")
         self.plot_objective()
     
