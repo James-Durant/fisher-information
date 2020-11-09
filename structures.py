@@ -20,7 +20,8 @@ def thin_layer_samples_1():
     layer2    = SLD(6, name="Layer 1")(thick=6,   rough=2)
     layer1    = SLD(4, name="Layer 2")(thick=200, rough=2)
     substrate = SLD(2.047, name="Substrate")(thick=0, rough=2)
-    return air | layer1 | layer2 | substrate
+    structure = air | layer1 | layer2 | substrate
+    return [structure]
 
 def thin_layer_samples_2():
     air       = SLD(0, name="Air")
@@ -28,7 +29,8 @@ def thin_layer_samples_2():
     layer2    = SLD(5, name="Layer 2")(thick=30,  rough=6)
     layer3    = SLD(6, name="Layer 3")(thick=6,   rough=2)
     substrate = SLD(2.047, name="Substrate")(thick=0, rough=2)
-    return air | layer1 | layer2 | layer3 | substrate
+    structure = air | layer1 | layer2 | layer3 | substrate
+    return [structure]
 
 def similar_sld_samples_1():
     air       = SLD(0,   name="Air")
@@ -36,14 +38,16 @@ def similar_sld_samples_1():
     layer2    = SLD(5.5, name="Layer 2")(thick=30, rough=6)
     layer3    = SLD(6.0, name="Layer 3")(thick=35, rough=2)
     substrate = SLD(2.047, name="Substrate")(thick=0, rough=2)
-    return air | layer1 | layer2 | layer3 | substrate
+    structure = air | layer1 | layer2 | layer3 | substrate
+    return [structure]
 
 def similar_sld_samples_2():
     air       = SLD(0,   name="Air")
     layer1    = SLD(0.9, name="Layer 1")(thick=80, rough=2)
     layer2    = SLD(1.0, name="Layer 2")(thick=50, rough=6)
     substrate = SLD(2.047, name="Substrate")(thick=0, rough=2)
-    return air | layer1 | layer2 | substrate
+    structure = air | layer1 | layer2 | substrate
+    return [structure]
 
 def many_param_samples():
     air       = SLD(0,   name="Air")
@@ -53,7 +57,8 @@ def many_param_samples():
     layer4    = SLD(3.2, name="Layer 4")(thick=40, rough=2)
     layer5    = SLD(4.0, name="Layer 5")(thick=18, rough=2)
     substrate = SLD(2.047, name="Substrate")(thick=0, rough=2)
-    return air | layer1 | layer2 | layer3 | layer4 | layer5 | substrate
+    structure = air | layer1 | layer2 | layer3 | layer4 | layer5 | substrate
+    return [structure]
 
 def sld_profile(structure, show=True):
     plt.plot(*structure.sld_profile())
@@ -67,8 +72,8 @@ if __name__ == "__main__":
     sld_profile(structure1, show=False)
     sld_profile(structure2)
     
-    sld_profile(thin_layer_samples_1())
-    sld_profile(thin_layer_samples_2())
-    sld_profile(similar_sld_samples_1())
-    sld_profile(similar_sld_samples_2())
-    sld_profile(many_param_samples())
+    sld_profile(*thin_layer_samples_1())
+    sld_profile(*thin_layer_samples_2())
+    sld_profile(*similar_sld_samples_1())
+    sld_profile(*similar_sld_samples_2())
+    sld_profile(*many_param_samples())
