@@ -17,8 +17,8 @@ def multiple_contrast_samples():
 
 def thin_layer_samples_1():
     air       = SLD(0, name="Air")
-    layer2    = SLD(6, name="Layer 1")(thick=6,   rough=2)
-    layer1    = SLD(4, name="Layer 2")(thick=200, rough=2)
+    layer1    = SLD(4, name="Layer 1")(thick=200, rough=2)
+    layer2    = SLD(6, name="Layer 2")(thick=6,   rough=2)
     substrate = SLD(2.047, name="Substrate")(thick=0, rough=2)
     structure = air | layer1 | layer2 | substrate
     return [structure]

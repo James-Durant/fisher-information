@@ -1,3 +1,4 @@
+h5py==3.1.0
 corner==2.1.0
 dynesty==1.0.1
 matplotlib==3.3.2

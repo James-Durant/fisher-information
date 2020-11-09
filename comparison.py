@@ -1,13 +1,15 @@
+import h5py
 import numpy as np
 import matplotlib.pyplot as plt
 
 from refnx.dataset  import ReflectDataset
-from refnx.reflect  import SLD, ReflectModel
+from refnx.reflect  import ReflectModel
 from refnx.analysis import Objective, GlobalObjective, CurveFitter
 
 from dynesty import NestedSampler
 from dynesty import plotting as dyplot
 from dynesty import utils    as dyfunc
+
 from multiprocessing import Pool, cpu_count
 
 from structures import multiple_contrast_samples, thin_layer_samples_1, thin_layer_samples_2
@@ -66,7 +68,6 @@ class Data:
             r_noisy.append(np.random.normal(loc=r_point, scale=normal_width)) #Using beam interp
         return r_noisy
 
-
 class Fitting:
     sld_bounds   = (0,6.2)
     thick_bounds = (0,220)
@@ -95,7 +96,6 @@ class Fitting:
         #Create a list of objectives for each model and use it to create a global objective.
         self.objective = GlobalObjective([Objective(model, data) for (model, data) 
                                           in zip(self.models, self.datasets)])
-    
     def fit_lbfgs(self):
         print("------------------- L-BFGS-B -------------------")
         self.__reset_objective()
@@ -111,7 +111,9 @@ class Fitting:
         fitter.sample(burn)
         fitter.reset()
         fitter.sample(steps, nthin=nthin)
-        print(fitter.chain)
+        
+        #with h5py.File("chains.h5", "w") as file:
+        #    file.create_dataset("chain", data=fitter.chain)
         
         self.display_results()
         self.objective.corner()
@@ -123,7 +125,7 @@ class Fitting:
         pool = Pool(cpu_count()-1)
         ndim = len(self.objective.varying_parameters())
 
-        sampler = NestedSampler(self.logl, Fitting.prior_transform, ndim, pool=pool, queue_size=cpu_count())
+        sampler = NestedSampler(self.logl, self.objective.prior_transform, ndim, pool=pool, queue_size=cpu_count())
         sampler.run_nested(dlogz=70)
         pool.close()
         pool.join()
@@ -138,32 +140,9 @@ class Fitting:
     
     def logl(self, x):
         #Update the model
-        components = self.model.structure.components
-        layer = components[1]
-        layer.sld.real.value = x[0]
-        layer.thick.value    = x[1]
-        layer.rough.value    = x[2]
-        
-        substrate = components[2]
-        substrate.rough.value = x[3]
-        
+        for i, parameter in enumerate(self.objective.varying_parameters()):
+            parameter.value = x[i]
         return self.objective.logl()
-    
-    @staticmethod
-    def prior_transform(u):
-        x = np.array(u)
-        old_range = (0, 1) #Uniform prior
-        x[0] = Fitting.convert_range(u[0], old_range, Fitting.sld_bounds)
-        x[1] = Fitting.convert_range(u[1], old_range, Fitting.thick_bounds)
-        x[2] = Fitting.convert_range(u[2], old_range, Fitting.rough_bounds)
-        x[3] = Fitting.convert_range(u[3], old_range, Fitting.rough_bounds)
-        return x
-    
-    @staticmethod
-    def convert_range(old_value, old_range, new_range):
-        (old_min, old_max) = old_range
-        (new_min, new_max) = new_range
-        return (((old_value - old_min) * (new_max - new_min)) / (old_max - old_min)) + new_min
     
     def display_results(self):
         #print(self.objective)
@@ -196,7 +175,7 @@ if __name__ == "__main__":
         similar_sld_samples_2
         many_param_samples
     """
-    structures = thin_layer_samples_2()
+    structures = multiple_contrast_samples()
     models, datasets = Data.generate(structures)
     
     model = Fitting(models, datasets) 
