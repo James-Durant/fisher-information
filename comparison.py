@@ -21,7 +21,7 @@ class Data:
     q_max  = 0.3
     dq     = 2
     scale  = 1
-    bkg    = 1e-7
+    bkg    = 1e-6
     
     @staticmethod
     def generate(structures):
@@ -33,8 +33,7 @@ class Data:
             models.append(model)
         
             q = np.logspace(np.log10(Data.q_min), np.log10(Data.q_max), Data.points)
-            r = Data.__add_noise(q, model(q))
-            r_error = [1e-10]*Data.points #Change this?            
+            r, r_error = Data.__add_noise(q, model(q))      
             datasets.append([q, r, r_error])
 
         return models, datasets
@@ -63,10 +62,12 @@ class Data:
         
         flux_density = np.interp(q, direct_beam[:, 0], direct_beam[:, 1]) #Not all Q values are the same
         r_noisy = []
+        r_error = []
         for i, r_point in zip(flux_density, r): #Beam interp against simulated reflectance.
             normal_width = r_point * constant / i
             r_noisy.append(np.random.normal(loc=r_point, scale=normal_width)) #Using beam interp
-        return r_noisy
+            r_error.append(normal_width)
+        return r_noisy, r_error
 
 class Fitting:
     sld_bounds   = (0,6.2)
@@ -81,7 +82,7 @@ class Fitting:
     def __vary_model(model):
         components = model.structure.components
         for i, component in enumerate(components[1:-1]): #Skip over Air/D20 and substrate
-            #Set the SLD, thickness and roughness to arbitrary initial values
+            #Set the SLD, thickness and roughness to arbitrary initial values (within their bounds).
             component.sld.real.value = (Fitting.sld_bounds[1]   - Fitting.sld_bounds[0])   / 2
             component.thick.value    = (Fitting.thick_bounds[1] - Fitting.thick_bounds[0]) / 2
             #component.rough.value    = (Fitting.rough_bounds[1] - Fitting.rough_bounds[0]) / 2
@@ -175,11 +176,11 @@ if __name__ == "__main__":
         similar_sld_samples_2
         many_param_samples
     """
-    structures = multiple_contrast_samples()
+    structures = thin_layer_samples_1()
     models, datasets = Data.generate(structures)
     
     model = Fitting(models, datasets) 
-    #model.fit_lbfgs()
-    model.fit_mcmc()
+    model.fit_lbfgs()
+    #model.fit_mcmc()
     #model.fit_nested()
     
