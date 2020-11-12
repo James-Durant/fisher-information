@@ -105,7 +105,7 @@ class Fitting:
         fitter.fit('L-BFGS-B')
         self.display_results()
 
-    def fit_mcmc(self, burn=400, steps=30, nthin=100):
+    def fit_mcmc(self, burn=400, steps=15, nthin=100):
         print("--------------------- MCMC ---------------------")
         self.__reset_objective()
         fitter = CurveFitter(self.objective)
