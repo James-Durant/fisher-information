@@ -1,4 +1,5 @@
 import numpy as np
+import time
 
 from refnx.dataset  import ReflectDataset
 from refnx.reflect  import SLD, ReflectModel
@@ -8,22 +9,8 @@ sld_bounds = (1,7)
 thick_bounds = (0,500)
 rough_bounds = (1,4)
 
-def thin_layer_samples_1():
-    air       = SLD(0, name="Air")
-    layer1    = SLD(4, name="Layer 1")(thick=200, rough=2)
-    layer1.sld.real.setp(vary=True, bounds=sld_bounds)
-    layer1.thick.setp(vary=True, bounds=thick_bounds)
-    #layer1.rough.setp(vary=True, bounds=rough_bounds)
-    
-    layer2    = SLD(6, name="Layer 2")(thick=6, rough=2)
-    layer2.sld.real.setp(vary=True, bounds=sld_bounds)
-    layer2.thick.setp(vary=True, bounds=thick_bounds)
-    #layer2.rough.setp(vary=True, bounds=rough_bounds)
-    
-    substrate = SLD(2.047, name="Substrate")(thick=0, rough=2)
-    #substrate.rough.setp(vary=True, bounds=rough_bounds)
-    structure = air | layer1 | layer2 | substrate
-    return structure
+from structures import multiple_contrast_samples, thin_layer_samples_1, thin_layer_samples_2
+from structures import similar_sld_samples_1, similar_sld_samples_2, many_param_samples
 
 class Data:
     points = 300
@@ -55,7 +42,7 @@ class Data:
             
             component.sld.real.setp(vary=True, bounds=sld_bounds)
             component.thick.setp(vary=True, bounds=thick_bounds)
-            #component.rough.setp(vary=True, bounds=rough_bounds)
+            component.rough.setp(vary=True, bounds=rough_bounds)
             
     
     @staticmethod
@@ -92,8 +79,7 @@ class Data:
     
 
 def gradient(model, parameter, q_point):
-    epsilon = parameter.value * 0.05 #5% step
-    
+    epsilon = parameter.value * 0.005 #0.5% step
     old = parameter.value
     
     x1 = parameter.value = old - epsilon #First point
@@ -106,8 +92,8 @@ def gradient(model, parameter, q_point):
     return (y2-y1) / (x2-x1)  #Return the gradient
         
 
-def calc_fisher():
-    structure = thin_layer_samples_1()
+def calc_fisher(structure):
+    start = time.time()
     model, data, flux = Data.generate(structure)
     objective = Objective(model, ReflectDataset(data))
     [q, r, r_error] = data
@@ -121,9 +107,24 @@ def calc_fisher():
     for i in range(n):
         for j in range(m):
             J[i,j] = gradient(model, xi[j], q[i])
+            print(J[i,j])
     
-    return np.dot(np.dot(J.T, M), J)
+    fisher_info = np.dot(np.dot(J.T, M), J)
+    end = time.time()
+    print("Calculation Time: {}".format(end-start))
+    return fisher_info
 
-if __name__ == "__main__":
-    fisher_info = calc_fisher()
-    print(fisher_info)
+if __name__ == "__main__": 
+    """
+    Functions for getting structures:
+        multiple_contrast_samples
+        thin_layer_samples_1
+        thin_layer_samples_2
+        similar_sld_samples_1
+        similar_sld_samples_2
+        many_param_samples
+    """
+    
+    structure = thin_layer_samples_1()
+    fisher_info = calc_fisher(*structure)
+    #print(fisher_info)
