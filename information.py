@@ -107,9 +107,9 @@ def calc_fisher(structure):
     for i in range(n):
         for j in range(m):
             J[i,j] = gradient(model, xi[j], q[i])
-            print(J[i,j])
     
     fisher_info = np.dot(np.dot(J.T, M), J)
+    print(fisher_info, "\n")
     end = time.time()
     print("Calculation Time: {}".format(end-start))
     return fisher_info
@@ -127,4 +127,3 @@ if __name__ == "__main__":
     
     structure = thin_layer_samples_1()
     fisher_info = calc_fisher(*structure)
-    #print(fisher_info)
