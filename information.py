@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 from refnx.dataset  import ReflectDataset
 from refnx.reflect  import ReflectModel
@@ -64,19 +65,19 @@ def add_noise(q, r, file="./directbeam_noise.dat", constant=100, bkg_rate=5e-7):
     return r_noisy, r_error, flux_density
     
 def gradient(model, parameter, q_point):
-    epsilon = parameter.value * 0.005 #0.5% step
+    step = parameter.value * 0.005 #0.5% step
     old = parameter.value
     
-    x1 = parameter.value = old - epsilon #First point
+    x1 = parameter.value = old - step #First point
     y1 = model(q_point) 
     
-    x2 = parameter.value = old + epsilon #Second point
+    x2 = parameter.value = old + step #Second point
     y2 = model(q_point) #Get new r value with changed model
     
     parameter.value = old #Reset parameter
     return (y2-y1) / (x2-x1)  #Return the gradient  
 
-def calc_fisher(structure):
+def fisher(structure):
     model, data, r, flux = generate(structure)
     q = data[0]
     
@@ -93,14 +94,34 @@ def calc_fisher(structure):
             J[i,j] = gradient(model, xi[j], q[i])
     
     M = np.diag(flux/r, k=0)
-    fisher_info = np.dot(np.dot(J.T, M), J)
+    g = np.dot(np.dot(J.T, M), J)
 
-    errors = 1 / np.diag(fisher_info)
+    errors = 1 / np.diag(g)
+    
+    
+    for i in range(m):
+        for j in range(m):
+            if i != j:
+                covariances(g, i, j)
 
-    print(fisher_info, "\n")
+    print(g, "\n")
     print(xi)
     print(errors)
-    return fisher_info
+    return g
+
+def covariances(fisher, i, j, k=2):
+    g = [[fisher[i,i], fisher[i,j]], [fisher[j,i], fisher[j,j]]]
+    
+    x = []
+    y = []
+    for theta in np.arange(0, 2*np.pi, 0.001):
+        X = np.array([np.sin(theta), np.cos(theta)])
+        epsilon = k / np.sqrt(np.dot(np.dot(X, g), X.T))
+        x.append(epsilon*np.sin(theta))
+        y.append(epsilon*np.cos(theta))
+        
+    plt.plot(x,y)
+    plt.show()
 
 if __name__ == "__main__": 
     """
@@ -114,4 +135,4 @@ if __name__ == "__main__":
     """
     
     structure = thin_layer_samples_1()
-    fisher_info = calc_fisher(*structure)
+    fisher_info = fisher(*structure)
