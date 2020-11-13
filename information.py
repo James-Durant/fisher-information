@@ -98,18 +98,16 @@ def fisher(structure):
 
     errors = 1 / np.diag(g)
     
-    
     for i in range(m):
-        for j in range(m):
-            if i != j:
-                covariances(g, i, j)
+        for j in range(i+1, m):
+            conﬁdence_ellipse(g, i, j)
 
     print(g, "\n")
     print(xi)
     print(errors)
     return g
 
-def covariances(fisher, i, j, k=2):
+def conﬁdence_ellipse(fisher, i, j, k=2):
     g = [[fisher[i,i], fisher[i,j]], [fisher[j,i], fisher[j,j]]]
     
     x = []
