@@ -83,8 +83,8 @@ class Fitting:
         components = model.structure.components
         for i, component in enumerate(components[1:-1]): #Skip over Air/D20 and substrate
             #Set the SLD, thickness and roughness to arbitrary initial values (within their bounds).
-            component.sld.real.value = (Fitting.sld_bounds[1]   - Fitting.sld_bounds[0])   / 2
-            component.thick.value    = (Fitting.thick_bounds[1] - Fitting.thick_bounds[0]) / 2
+            #component.sld.real.value = (Fitting.sld_bounds[1]   - Fitting.sld_bounds[0])   / 2
+            #component.thick.value    = (Fitting.thick_bounds[1] - Fitting.thick_bounds[0]) / 2
             #component.rough.value    = (Fitting.rough_bounds[1] - Fitting.rough_bounds[0]) / 2
             
             component.sld.real.setp(vary=True, bounds=Fitting.sld_bounds)
@@ -146,7 +146,7 @@ class Fitting:
         return self.objective.logl()
     
     def display_results(self):
-        #print(self.objective)
+        print(self.objective)
         print("Covariance Matrix:\n", self.objective.covar())
         self.plot_objective()
     
