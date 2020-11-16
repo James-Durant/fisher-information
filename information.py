@@ -95,20 +95,25 @@ def fisher(structure):
     
     M = np.diag(flux/r, k=0)
     g = np.dot(np.dot(J.T, M), J)
-
     errors = 1 / np.diag(g)
     
-    for i in range(m):
-        for j in range(i+1, m):
-            conﬁdence_ellipse(g, i, j)
-
     print(g, "\n")
-    print(xi)
     print(errors)
+    plot_ellipses(m, g, xi)
     return g
 
-def conﬁdence_ellipse(fisher, i, j, k=2):
-    g = [[fisher[i,i], fisher[i,j]], [fisher[j,i], fisher[j,j]]]
+def plot_ellipses(m, g, xi):
+    _, axes = plt.subplots(m, m, figsize=(15,15), dpi=300)
+    for i in range(m):
+        for j in range(m):
+            if i > j:
+                conﬁdence_ellipse(g, j, i, xi[j], xi[i], axes[i,j], i == m-1, j == 0)
+            else:
+                axes[i,j].set_visible(False)
+    plt.show()
+
+def conﬁdence_ellipse(fisher, i, j, param1, param2, axis, show_xlabel, show_ylabel, k=2):
+    g = [[fisher[i,i], fisher[i,j]], [fisher[j,i], fisher[j,j]]] #Is this right?
     
     x = []
     y = []
@@ -118,8 +123,14 @@ def conﬁdence_ellipse(fisher, i, j, k=2):
         x.append(epsilon*np.sin(theta))
         y.append(epsilon*np.cos(theta))
         
-    plt.plot(x,y)
-    plt.show()
+    x = np.array(x) + param1.value
+    y = np.array(y) + param2.value
+    
+    axis.plot(x,y)
+    if show_xlabel:
+        axis.set_xlabel(param1.name)
+    if show_ylabel:
+        axis.set_ylabel(param2.name)
 
 if __name__ == "__main__": 
     """

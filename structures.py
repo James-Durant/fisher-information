@@ -1,6 +1,14 @@
 from refnx.reflect import SLD
 import matplotlib.pyplot as plt
 
+def simple_model_sample():
+    air       = SLD(0, name="Air")
+    layer1    = SLD(2.5, name="Layer 1")(thick=500, rough=2)
+    layer2    = SLD(5.0, name="Layer 2")(thick=100, rough=2)
+    substrate = SLD(2.047, name="Substrate")(thick=0, rough=2)
+    structure = air | layer1 | layer2 | substrate
+    return [structure]
+
 def multiple_contrast_samples():
     air       = SLD(0,   name="Air")
     D2O       = SLD(6.3, name="D20")
