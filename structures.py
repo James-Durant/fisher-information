@@ -42,19 +42,19 @@ def thin_layer_samples_2():
 
 def similar_sld_samples_1():
     air       = SLD(0,   name="Air")
+    layer1    = SLD(0.9, name="Layer 1")(thick=80, rough=2)
+    layer2    = SLD(1.0, name="Layer 2")(thick=50, rough=6)
+    substrate = SLD(2.047, name="Substrate")(thick=0, rough=2)
+    structure = air | layer1 | layer2 | substrate
+    return [structure]
+
+def similar_sld_samples_2():
+    air       = SLD(0,   name="Air")
     layer1    = SLD(3.0, name="Layer 1")(thick=50, rough=2)
     layer2    = SLD(5.5, name="Layer 2")(thick=30, rough=6)
     layer3    = SLD(6.0, name="Layer 3")(thick=35, rough=2)
     substrate = SLD(2.047, name="Substrate")(thick=0, rough=2)
     structure = air | layer1 | layer2 | layer3 | substrate
-    return [structure]
-
-def similar_sld_samples_2():
-    air       = SLD(0,   name="Air")
-    layer1    = SLD(0.9, name="Layer 1")(thick=80, rough=2)
-    layer2    = SLD(1.0, name="Layer 2")(thick=50, rough=6)
-    substrate = SLD(2.047, name="Substrate")(thick=0, rough=2)
-    structure = air | layer1 | layer2 | substrate
     return [structure]
 
 def many_param_samples():
