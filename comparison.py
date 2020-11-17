@@ -11,8 +11,8 @@ from dynesty import utils    as dyfunc
 
 from multiprocessing import Pool, cpu_count
 
-#from structures import multiple_contrast_samples, thin_layer_samples_1, thin_layer_samples_2
-#from structures import similar_sld_samples_1, similar_sld_samples_2, many_param_samples
+from structures import multiple_contrast_samples, thin_layer_samples_1, thin_layer_samples_2
+from structures import similar_sld_samples_1, similar_sld_samples_2, many_param_samples
 
 class Data:
     points = 300
@@ -87,7 +87,7 @@ class Fitting:
         fitter.fit('L-BFGS-B')
         self.display_results()
 
-    def fit_mcmc(self, burn=400, steps=15, nthin=100):
+    def fit_mcmc(self, burn=1000, steps=30, nthin=100):
         print("--------------------- MCMC ---------------------")
         self.__reset_objective()
         fitter = CurveFitter(self.objective)
@@ -103,15 +103,14 @@ class Fitting:
     def fit_nested(self):
         print("--------------- Nested Sampling ----------------")
         self.__reset_objective()
-        #pool = Pool(cpu_count()-1)
+        pool = Pool(cpu_count()-1)
         ndim = len(self.objective.varying_parameters())
 
-        #sampler = NestedSampler(self.logl, self.objective.prior_transform, ndim, 
-        #                        pool=pool, queue_size=cpu_count())
-        sampler = NestedSampler(self.logl, self.objective.prior_transform, ndim)
+        sampler = NestedSampler(self.logl, self.objective.prior_transform, ndim, 
+                                pool=pool, queue_size=cpu_count())
         sampler.run_nested()
-        #pool.close()
-        #pool.join()
+        pool.close()
+        pool.join()
         
         results = sampler.results
         samples, weights = results.samples, np.exp(results.logwt - results.logz[-1])
@@ -147,15 +146,6 @@ class Fitting:
         plt.ylabel('Reflectivity (arb.)',         fontsize=11, weight='bold')
         plt.yscale('log')
         plt.show()
-        
-def similar_sld_samples_2():
-    air       = SLD(0,   name="Air")
-    layer1    = SLD(3.0, name="Layer 1")(thick=50, rough=2)
-    layer2    = SLD(5.5, name="Layer 2")(thick=30, rough=6)
-    layer3    = SLD(6.0, name="Layer 3")(thick=35, rough=2)
-    substrate = SLD(2.047, name="Substrate")(thick=0, rough=2)
-    structure = air | layer1 | layer2 | layer3 | substrate
-    return [structure]
 
 if __name__ == "__main__":
     """
@@ -167,11 +157,11 @@ if __name__ == "__main__":
         similar_sld_samples_2
         many_param_samples
     """
-    structures = similar_sld_samples_2()
+    structures = thin_layer_samples_1()
     models, datasets = Data.generate(structures)
     
     model = Fitting(models, datasets) 
     #model.fit_lbfgs()
-    #model.fit_mcmc()
-    model.fit_nested()
+    model.fit_mcmc()
+    #model.fit_nested()
     

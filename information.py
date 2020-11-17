@@ -14,9 +14,9 @@ Q_MAX  = 0.3
 DQ     = 2
 SCALE  = 1
 BKG    = 1e-6
-SLD_BOUNDS = (1,7)
-THICK_BOUNDS = (0,500)
-ROUGH_BOUNDS = (1,4)
+SLD_BOUNDS = (0,9)
+THICK_BOUNDS = (0,800)
+ROUGH_BOUNDS = (1,9)
     
 def generate(structure):
     model = ReflectModel(structure, scale=SCALE, dq=DQ, bkg=BKG)
@@ -30,22 +30,17 @@ def generate(structure):
     return model, data, r_model, flux_density
 
 def vary_model(model):
-    components = model.structure.components
-    for i, component in enumerate(components[1:-1]): #Skip over Air/D20 and substrate
-        #Set the SLD, thickness and roughness to arbitrary initial values (within their bounds).
-        #component.sld.real.value = (SLD_BOUNDS[1]   - SLD_BOUNDS[0])   / 2
-        #component.thick.value    = (THICK_BOUNDS[1] - THICK_BOUNDS[0]) / 2
-        #component.rough.value    = (ROUGH_BOUNDS[1] - ROUGH_BOUNDS[0]) / 2
+    for component in model.structure.components[1:-1]: #Skip over Air/D20 and substrate
+        sld_bounds = (component.sld.real.value*0.25, component.sld.real.value*1.75)
+        component.sld.real.setp(vary=True, bounds=sld_bounds)
         
-        component.sld.real.setp(vary=True, bounds=SLD_BOUNDS)
-        component.thick.setp(vary=True, bounds=THICK_BOUNDS)
-        #component.rough.setp(vary=True, bounds=ROUGH_BOUNDS)
-       
-def fit_objective(objective):
-    fitter = CurveFitter(objective)
-    fitter.fit('differential_evolution', polish=False)
-    fitter.fit('L-BFGS-B')
-       
+        thick_bounds = (component.thick.value*0.25, component.thick.value*1.75)
+        component.thick.setp(vary=True, bounds=thick_bounds)
+    
+        #Set the SLD and thickness to arbitrary initial values (within their bounds).
+        component.sld.real.value = sld_bounds[1]
+        component.thick.value    = thick_bounds[1]
+
 def add_noise(q, r, file="./directbeam_noise.dat", constant=100, bkg_rate=5e-7):
     #Try to load the beam sample file: exit the function if not found.
     direct_beam = np.loadtxt(file, delimiter=',')[:, 0:2]
@@ -63,7 +58,7 @@ def add_noise(q, r, file="./directbeam_noise.dat", constant=100, bkg_rate=5e-7):
         r_error.append(normal_width)
         
     return r_noisy, r_error, flux_density
-    
+
 def gradient(model, parameter, q_point):
     step = parameter.value * 0.005 #0.5% step
     old = parameter.value
@@ -82,10 +77,11 @@ def fisher(structure):
     q = data[0]
     
     objective = Objective(model, ReflectDataset(data))
-    #fit_objective(objective)
-     
-    xi = objective.varying_parameters()
+    fitter = CurveFitter(objective)
+    fitter.fit('differential_evolution', polish=False)
+    fitter.fit('L-BFGS-B')
     
+    xi = objective.varying_parameters()
     n = len(r)
     m = len(xi)
     J = np.zeros((n,m))
@@ -94,11 +90,8 @@ def fisher(structure):
             J[i,j] = gradient(model, xi[j], q[i])
     
     M = np.diag(flux/r, k=0)
-    g = np.dot(np.dot(J.T, M), J)
-    errors = 1 / np.diag(g)
-    
-    print(g, "\n")
-    print(errors)
+    g = np.dot(np.dot(J.T, M), J) 
+    #errors = 1 / np.diag(g)
     plot_ellipses(m, g, xi)
     return g
 
@@ -123,15 +116,15 @@ def conﬁdence_ellipse(fisher, i, j, param1, param2, axis, show_xlabel, show_yl
         x.append(epsilon*np.sin(theta))
         y.append(epsilon*np.cos(theta))
         
-    x = np.array(x) + param1.value
-    y = np.array(y) + param2.value
+    #x = np.array(x) + param1.value
+    #y = np.array(y) + param2.value
     
     axis.plot(x,y)
     if show_xlabel:
         axis.set_xlabel(param1.name)
     if show_ylabel:
         axis.set_ylabel(param2.name)
-
+        
 if __name__ == "__main__": 
     """
     Functions for getting structures:
@@ -145,3 +138,4 @@ if __name__ == "__main__":
     
     structure = thin_layer_samples_1()
     fisher_info = fisher(*structure)
+    #plot_errors(*structure)
