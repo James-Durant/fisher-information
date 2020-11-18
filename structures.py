@@ -15,6 +15,14 @@ def multiple_contrast_samples():
     structure_D2O = substrate | layer1 | layer2 | layer3 | layer4 | layer5 | D2O
     return structure_air, structure_D2O
 
+def easy_sample_1():
+    air       = SLD(0, name="Air")
+    layer1    = SLD(4, name="Layer 1")(thick=100, rough=2)
+    layer2    = SLD(8, name="Layer 2")(thick=150,   rough=2)
+    substrate = SLD(2.047, name="Substrate")(thick=0, rough=2)
+    structure = air | layer1 | layer2 | substrate
+    return [structure]
+
 def thin_layer_samples_1():
     air       = SLD(0, name="Air")
     layer1    = SLD(4, name="Layer 1")(thick=200, rough=2)
@@ -73,6 +81,7 @@ if __name__ == "__main__":
     sld_profile(structure2)
     
     sld_profile(*thin_layer_samples_1())
+    sld_profile(*easy_sample_1())
     sld_profile(*thin_layer_samples_2())
     sld_profile(*similar_sld_samples_1())
     sld_profile(*similar_sld_samples_2())
