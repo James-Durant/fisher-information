@@ -17,15 +17,15 @@ BKG    = 1e-6
 SLD_BOUNDS = (0,9)
 THICK_BOUNDS = (0,800)
 ROUGH_BOUNDS = (1,9)
-    
+
 def generate(structure):
     model = ReflectModel(structure, scale=SCALE, dq=DQ, bkg=BKG)
-    
+
     q = np.logspace(np.log10(Q_MIN), np.log10(Q_MAX), POINTS)
     r_model = model(q)
-    r_noisy, r_error, flux_density = add_noise(q, r_model)      
+    r_noisy, r_error, flux_density = add_noise(q, r_model)
     data = [q, r_noisy, r_error]
-    
+
     vary_model(model)
     return model, data, r_model, flux_density
 
@@ -33,10 +33,10 @@ def vary_model(model):
     for component in model.structure.components[1:-1]: #Skip over Air/D20 and substrate
         sld_bounds = (component.sld.real.value*0.25, component.sld.real.value*1.75)
         component.sld.real.setp(vary=True, bounds=sld_bounds)
-        
+
         thick_bounds = (component.thick.value*0.25, component.thick.value*1.75)
         component.thick.setp(vary=True, bounds=thick_bounds)
-    
+
         #Set the SLD and thickness to arbitrary initial values (within their bounds).
         component.sld.real.value = sld_bounds[1]
         component.thick.value    = thick_bounds[1]
@@ -49,39 +49,39 @@ def add_noise(q, r, file="./directbeam_noise.dat", constant=100, bkg_rate=5e-7):
     #Background signal always ADDs to the signal.
     #Sometimes background could be 0. In which case it does not contribute to the signal
     r = [r_point + max(np.random.normal(1, 0.5) * bkg_rate, 0) for r_point in r]
-    
+
     r_noisy = []
     r_error = []
     for i, r_point in zip(flux_density, r): #Beam interp against simulated reflectance.
         normal_width = r_point * constant / i
         r_noisy.append(np.random.normal(loc=r_point, scale=normal_width)) #Using beam interp
         r_error.append(normal_width)
-        
+
     return r_noisy, r_error, flux_density
 
 def gradient(model, parameter, q_point):
     step = parameter.value * 0.005 #0.5% step
     old = parameter.value
-    
+
     x1 = parameter.value = old - step #First point
-    y1 = model(q_point) 
-    
+    y1 = model(q_point)
+
     x2 = parameter.value = old + step #Second point
     y2 = model(q_point) #Get new r value with changed model
-    
+
     parameter.value = old #Reset parameter
-    return (y2-y1) / (x2-x1)  #Return the gradient  
+    return (y2-y1) / (x2-x1)  #Return the gradient
 
 def fisher(structure):
     model, data, r, flux = generate(structure)
     q = data[0]
-    
+
     objective = Objective(model, ReflectDataset(data))
     fitter = CurveFitter(objective)
     fitter.fit('differential_evolution', polish=False)
     fitter.fit('L-BFGS-B')
     print(objective)
-    
+
     xi = objective.varying_parameters()
     n = len(r)
     m = len(xi)
@@ -89,9 +89,9 @@ def fisher(structure):
     for i in range(n):
         for j in range(m):
             J[i,j] = gradient(model, xi[j], q[i])
-    
+
     M = np.diag(flux/r, k=0)
-    g = np.dot(np.dot(J.T, M), J) 
+    g = np.dot(np.dot(J.T, M), J)
     errors = 1 / np.sqrt(np.diag(g))
     print("Errors: ", errors)
     plot_ellipses(m, g, xi)
@@ -109,7 +109,7 @@ def plot_ellipses(m, g, xi):
 
 def confidence_ellipse(fisher, i, j, param1, param2, axis, show_xlabel, show_ylabel, k=2):
     g = [[fisher[i,i], fisher[i,j]], [fisher[j,i], fisher[j,j]]]
-    
+
     x = []
     y = []
     for theta in np.arange(0, 2*np.pi, 0.001):
@@ -117,16 +117,16 @@ def confidence_ellipse(fisher, i, j, param1, param2, axis, show_xlabel, show_yla
         epsilon = k / np.sqrt(np.dot(np.dot(X, g), X.T))
         x.append(epsilon*np.sin(theta))
         y.append(epsilon*np.cos(theta))
-        
+
     x = np.array(x) + param1.value
     y = np.array(y) + param2.value
-    
+
     axis.plot(x,y)
     if show_xlabel:
         axis.set_xlabel(param1.name)
     if show_ylabel:
         axis.set_ylabel(param2.name)
-        
-if __name__ == "__main__": 
+
+if __name__ == "__main__":
     structure = easy_sample_1()
     fisher_info = fisher(*structure)
