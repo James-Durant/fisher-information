@@ -12,7 +12,7 @@ from dynesty import utils    as dyfunc
 
 from multiprocessing import Pool, cpu_count
 
-from structures import multiple_contrast_sample, thin_layer_sample_1, thin_layer_sample_2
+from structures import multiple_contrast_sample, easy_sample_1, thin_layer_sample_1, thin_layer_sample_2
 from structures import similar_sld_sample_1, similar_sld_sample_2, many_param_sample
 
 class Data:
@@ -24,17 +24,23 @@ class Data:
     bkg    = 1e-6
 
     @staticmethod
-    def generate(structures):
+    def generate(save_path, structures):
         models = []
         datasets = []
 
-        for structure in structures:
+        for i, structure in enumerate(structures, 1):
             model = ReflectModel(structure, scale=Data.scale, dq=Data.dq, bkg=Data.bkg)
             models.append(model)
 
             q = np.logspace(np.log10(Data.q_min), np.log10(Data.q_max), Data.points)
             r, r_error = Data.__add_noise(q, model(q))
             datasets.append([q, r, r_error])
+            
+            data = np.zeros((Data.points, 3))
+            data[:,0] = q
+            data[:,1] = r
+            data[:,2] = r_error
+            np.savetxt(save_path+"/dataset{}.dat".format(i), data, delimiter=",")
 
         return models, datasets
 
@@ -59,9 +65,6 @@ class Data:
 class Fitting:
     def __init__(self, save_path, models, datasets):
         self.save_path = save_path
-        if not os.path.exists(save_path): #Create directory if not present.
-            os.makedirs(save_path)
-
         self.datasets = [ReflectDataset(data) for data in datasets]
         self.models   = models
         for model in models:
@@ -122,7 +125,7 @@ class Fitting:
         mean, cov = dyfunc.mean_and_cov(samples, weights) #Diagonal elements of covariance matrix, cov, contain parameter uncertainties
         self.logl(mean)
 
-        print("Covariance Matrix: \n", cov)
+        np.savetxt(self.save_path+"/covar_Nested-Sampling.dat", cov)
         self.plot_objective("Nested-Sampling")
         dyplot.cornerplot(results, color='blue', quantiles=None, show_titles=True, max_n_ticks=3, truths=np.zeros(ndim), truth_color='black')
         plt.savefig(self.save_path+"/corner_Nested-Sampling.png", dpi=300)
@@ -135,7 +138,7 @@ class Fitting:
 
     def display_results(self, fit_method):
         #print(self.objective)
-        print("Covariance Matrix:\n", self.objective.covar())
+        np.savetxt(self.save_path+"/covar_{}.dat".format(fit_method), self.objective.covar())
         self.plot_objective(fit_method)
 
     def plot_objective(self, fit_method):
@@ -165,9 +168,12 @@ if __name__ == "__main__":
         similar_sld_sample_2
         many_param_sample
     """
-    save_path = "./results/similar_sld_sample_2"
-    structures = similar_sld_sample_2()
-    models, datasets = Data.generate(structures)
+    save_path = "./results/easy_sample_1"
+    structures = easy_sample_1()
+    
+    if not os.path.exists(save_path): #Create directory if not present.
+        os.makedirs(save_path)
+    models, datasets = Data.generate(save_path, structures)
 
     model = Fitting(save_path, models, datasets)
     model.fit_lbfgs()
