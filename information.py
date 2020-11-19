@@ -5,8 +5,8 @@ from refnx.dataset  import ReflectDataset
 from refnx.reflect  import ReflectModel
 from refnx.analysis import Objective, CurveFitter
 
-from structures import multiple_contrast_samples, thin_layer_samples_1, thin_layer_samples_2
-from structures import similar_sld_samples_1, similar_sld_samples_2, many_param_samples
+from structures import easy_sample_1, multiple_contrast_sample, thin_layer_sample_1, thin_layer_sample_2
+from structures import similar_sld_sample_1, similar_sld_sample_2, many_param_sample
 
 POINTS = 300
 Q_MIN  = 0.005
@@ -80,6 +80,7 @@ def fisher(structure):
     fitter = CurveFitter(objective)
     fitter.fit('differential_evolution', polish=False)
     fitter.fit('L-BFGS-B')
+    print(objective)
     
     xi = objective.varying_parameters()
     n = len(r)
@@ -91,7 +92,8 @@ def fisher(structure):
     
     M = np.diag(flux/r, k=0)
     g = np.dot(np.dot(J.T, M), J) 
-    #errors = 1 / np.diag(g)
+    errors = 1 / np.sqrt(np.diag(g))
+    print("Errors: ", errors)
     plot_ellipses(m, g, xi)
     return g
 
@@ -100,13 +102,13 @@ def plot_ellipses(m, g, xi):
     for i in range(m):
         for j in range(m):
             if i > j:
-                conﬁdence_ellipse(g, j, i, xi[j], xi[i], axes[i,j], i == m-1, j == 0)
+                confidence_ellipse(g, j, i, xi[j], xi[i], axes[i,j], i == m-1, j == 0)
             else:
                 axes[i,j].set_visible(False)
     plt.show()
 
-def conﬁdence_ellipse(fisher, i, j, param1, param2, axis, show_xlabel, show_ylabel, k=2):
-    g = [[fisher[i,i], fisher[i,j]], [fisher[j,i], fisher[j,j]]] #Is this right?
+def confidence_ellipse(fisher, i, j, param1, param2, axis, show_xlabel, show_ylabel, k=2):
+    g = [[fisher[i,i], fisher[i,j]], [fisher[j,i], fisher[j,j]]]
     
     x = []
     y = []
@@ -116,8 +118,8 @@ def conﬁdence_ellipse(fisher, i, j, param1, param2, axis, show_xlabel, show_yl
         x.append(epsilon*np.sin(theta))
         y.append(epsilon*np.cos(theta))
         
-    #x = np.array(x) + param1.value
-    #y = np.array(y) + param2.value
+    x = np.array(x) + param1.value
+    y = np.array(y) + param2.value
     
     axis.plot(x,y)
     if show_xlabel:
@@ -126,16 +128,5 @@ def conﬁdence_ellipse(fisher, i, j, param1, param2, axis, show_xlabel, show_yl
         axis.set_ylabel(param2.name)
         
 if __name__ == "__main__": 
-    """
-    Functions for getting structures:
-        multiple_contrast_samples
-        thin_layer_samples_1
-        thin_layer_samples_2
-        similar_sld_samples_1
-        similar_sld_samples_2
-        many_param_samples
-    """
-    
-    structure = thin_layer_samples_1()
+    structure = easy_sample_1()
     fisher_info = fisher(*structure)
-    #plot_errors(*structure)

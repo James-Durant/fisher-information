@@ -1,7 +1,7 @@
 from refnx.reflect import SLD
 import matplotlib.pyplot as plt
 
-def multiple_contrast_samples():
+def multiple_contrast_sample():
     air       = SLD(0,   name="Air")
     D2O       = SLD(6.3, name="D20")
     layer1    = SLD(2.0, name="Layer 1")(thick=50, rough=6)
@@ -18,12 +18,12 @@ def multiple_contrast_samples():
 def easy_sample_1():
     air       = SLD(0, name="Air")
     layer1    = SLD(4, name="Layer 1")(thick=100, rough=2)
-    layer2    = SLD(8, name="Layer 2")(thick=150,   rough=2)
+    layer2    = SLD(8, name="Layer 2")(thick=150, rough=2)
     substrate = SLD(2.047, name="Substrate")(thick=0, rough=2)
     structure = air | layer1 | layer2 | substrate
     return [structure]
 
-def thin_layer_samples_1():
+def thin_layer_sample_1():
     air       = SLD(0, name="Air")
     layer1    = SLD(4, name="Layer 1")(thick=200, rough=2)
     layer2    = SLD(6, name="Layer 2")(thick=6,   rough=2)
@@ -31,7 +31,7 @@ def thin_layer_samples_1():
     structure = air | layer1 | layer2 | substrate
     return [structure]
 
-def thin_layer_samples_2():
+def thin_layer_sample_2():
     air       = SLD(0, name="Air")
     layer1    = SLD(4, name="Layer 1")(thick=200, rough=2)
     layer2    = SLD(5, name="Layer 2")(thick=30,  rough=6)
@@ -40,7 +40,7 @@ def thin_layer_samples_2():
     structure = air | layer1 | layer2 | layer3 | substrate
     return [structure]
 
-def similar_sld_samples_1():
+def similar_sld_sample_1():
     air       = SLD(0,   name="Air")
     layer1    = SLD(0.9, name="Layer 1")(thick=80, rough=2)
     layer2    = SLD(1.0, name="Layer 2")(thick=50, rough=6)
@@ -48,7 +48,7 @@ def similar_sld_samples_1():
     structure = air | layer1 | layer2 | substrate
     return [structure]
 
-def similar_sld_samples_2():
+def similar_sld_sample_2():
     air       = SLD(0,   name="Air")
     layer1    = SLD(3.0, name="Layer 1")(thick=50, rough=2)
     layer2    = SLD(5.5, name="Layer 2")(thick=30, rough=6)
@@ -57,7 +57,7 @@ def similar_sld_samples_2():
     structure = air | layer1 | layer2 | layer3 | substrate
     return [structure]
 
-def many_param_samples():
+def many_param_sample():
     air       = SLD(0,   name="Air")
     layer1    = SLD(2.0, name="Layer 1")(thick=50, rough=6)
     layer2    = SLD(1.7, name="Layer 2")(thick=15, rough=2)
@@ -76,13 +76,13 @@ def sld_profile(structure, show=True):
         plt.show()
 
 if __name__ == "__main__":
-    structure1, structure2 = multiple_contrast_samples()
+    structure1, structure2 = multiple_contrast_sample()
     sld_profile(structure1, show=False)
     sld_profile(structure2)
     
-    sld_profile(*thin_layer_samples_1())
+    sld_profile(*thin_layer_sample_1())
     sld_profile(*easy_sample_1())
-    sld_profile(*thin_layer_samples_2())
-    sld_profile(*similar_sld_samples_1())
-    sld_profile(*similar_sld_samples_2())
-    sld_profile(*many_param_samples())
+    sld_profile(*thin_layer_sample_2())
+    sld_profile(*similar_sld_sample_1())
+    sld_profile(*similar_sld_sample_2())
+    sld_profile(*many_param_sample())
