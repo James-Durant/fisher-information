@@ -12,8 +12,8 @@ from dynesty import utils    as dyfunc
 
 from multiprocessing import Pool, cpu_count
 
-from structures import multiple_contrast_samples, thin_layer_samples_1, thin_layer_samples_2
-from structures import similar_sld_samples_1, similar_sld_samples_2, many_param_samples
+from structures import multiple_contrast_sample, thin_layer_sample_1, thin_layer_sample_2
+from structures import similar_sld_sample_1, similar_sld_sample_2, many_param_sample
 
 class Data:
     points = 300
@@ -152,7 +152,7 @@ class Fitting:
         plt.xlabel("$\mathregular{Q\ (Å^{-1})}$", fontsize=11, weight='bold')
         plt.ylabel('Reflectivity (arb.)',         fontsize=11, weight='bold')
         plt.yscale('log')
-        plt.savefig(self.save_path+"./fit_{}.png".format(fit_method), dpi=300)
+        plt.savefig(self.save_path+"/fit_{}.png".format(fit_method), dpi=300)
 
 if __name__ == "__main__":
     """
