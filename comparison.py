@@ -44,23 +44,26 @@ class Data:
 
         return models, datasets
 
-    @staticmethod
-    def __add_noise(q, r, file="./directbeam_noise.dat", constant=100, bkg_rate=5e-7):
+    @staticmethod    
+    def __add_noise(q, r, file="./directbeam_noise.dat", noise_constant=5e5, bkg_rate=5e-7):
         #Try to load the beam sample file: exit the function if not found.
         direct_beam = np.loadtxt(file, delimiter=',')[:, 0:2]
-
+        flux_density = np.interp(q, direct_beam[:, 0], direct_beam[:, 1]) * noise_constant #Not all Q values are the same
+    
         #Background signal always ADDs to the signal.
         #Sometimes background could be 0. In which case it does not contribute to the signal
         r = [r_point + max(np.random.normal(1, 0.5) * bkg_rate, 0) for r_point in r]
-
-        flux_density = np.interp(q, direct_beam[:, 0], direct_beam[:, 1]) #Not all Q values are the same
+    
         r_noisy = []
         r_error = []
         for i, r_point in zip(flux_density, r): #Beam interp against simulated reflectance.
-            normal_width = r_point * constant / i
+            measured_flux = r_point*i
+            normal_width = 1 / (noise_constant*np.sqrt(measured_flux))
             r_noisy.append(np.random.normal(loc=r_point, scale=normal_width)) #Using beam interp
             r_error.append(normal_width)
+    
         return r_noisy, r_error
+
 
 class Fitting:
     def __init__(self, save_path, models, datasets):
@@ -177,5 +180,5 @@ if __name__ == "__main__":
 
     model = Fitting(save_path, models, datasets)
     model.fit_lbfgs()
-    model.fit_mcmc(burn=400, steps=15, nthin=100)
+    model.fit_mcmc(burn=400, steps=30, nthin=100)
     model.fit_nested()
