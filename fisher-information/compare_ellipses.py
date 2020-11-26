@@ -10,8 +10,8 @@ from refnx.analysis import Objective, CurveFitter
 from dynesty import NestedSampler
 from dynesty import plotting as dyplot
 
-from information import gradient
-from generate    import generate_noisy_single, plot_objective
+from information import calc_FIM
+from generate    import generate_noisy_single
 from structures  import thin_layer_sample_1, thin_layer_sample_2
 from structures  import similar_sld_sample_1, similar_sld_sample_2
 from structures  import easy_sample_1, many_param_sample
@@ -51,28 +51,18 @@ def fisher(structure, method="MCMC"):
         fig = sampler.sample()
     else:
         return
-    
-    #plot_objective(objective)
-    
+
     xi = objective.varying_parameters()
-    n = len(r)
-    m = len(xi)
-    J = np.zeros((n,m))
-    for i in range(n):
-        for j in range(m):
-            J[i,j] = gradient(model, xi[j], q[i])
+    g = calc_FIM(q, r, xi, flux, model)
+    plot_ellipses(g, xi, fig)
 
-    M = np.diag(flux/r, k=0)
-    g = np.dot(np.dot(J.T, M), J)
-    plot_ellipses(m, g, xi, fig)
-
-def plot_ellipses(m, g, xi, fig):
+def plot_ellipses(g, xi, fig):
     axes = np.reshape(np.array(fig.get_axes()), (len(xi), len(xi)))
-
+    m = len(xi)
     for i in range(m):
         for j in range(m):
             if i > j:
-                confidence_ellipse(g, j, i, xi[j], xi[i], axes[i,j], i == m-1, j == 0)
+                confidence_ellipse(g, j, i, xi[j], xi[i], axes[i,j], i==m-1, j==0)
             elif i == j:
                 continue
             else:
@@ -92,6 +82,7 @@ def confidence_ellipse(fisher, i, j, param1, param2, axis, show_xlabel, show_yla
 
     x = np.array(x) + param1.value
     y = np.array(y) + param2.value
+    
     axis.set_xlim(param1.value*0.99995, param1.value*1.00005)
     axis.set_ylim(param2.value*0.99995, param2.value*1.00005) 
     axis.plot(x,y, color='red')

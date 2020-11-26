@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from refnx.dataset  import ReflectDataset
 from refnx.analysis import Objective, CurveFitter
 
-from generate    import generate_noisy_single, plot_objective
+from generate    import generate_noisy_single
 from structures  import thin_layer_sample_1, thin_layer_sample_2
 from structures  import similar_sld_sample_1, similar_sld_sample_2
 from structures  import easy_sample_1, many_param_sample
@@ -25,7 +25,7 @@ def gradient(model, parameter, q_point, step=0.005):
     parameter.value = old #Reset parameter
     return (y2-y1) / (x2-x1) #Return the gradient
 
-def FIM(q, r, xi, flux, model):
+def calc_FIM(q, r, xi, flux, model):
     n = len(r)
     m = len(xi)
     J = np.zeros((n,m))
@@ -50,7 +50,7 @@ def compare_fit_variance(structure, n):
         xi = objective.varying_parameters()
         param_estimates.append([param.value for param in xi])
     
-    g = FIM(data[0], r, xi, flux, model)
+    g = calc_FIM(data[0], r, xi, flux, model)
     print("Fisher Information: ", np.diag(g))
     print("Inverse Fisher Information: ", 1 / np.diag(g))
     
@@ -62,7 +62,19 @@ def compare_errors(structure):
     fit_errors = []
     fisher_errors = []
     for noise_constant in noise_constants:
-        fit_error, fisher_error = fisher_information(structure, noise_constant)
+        model, data, r, flux = generate_noisy_single(structure, noise_constant)
+        q = data[0]
+
+        objective = Objective(model, ReflectDataset(data))
+        fitter = CurveFitter(objective)
+        fitter.fit('differential_evolution', polish=False, verbose=False)
+        fitter.fit('L-BFGS-B', verbose=False)
+    
+        xi = objective.varying_parameters()
+        fit_error = [param.stderr for param in xi]
+        g = calc_FIM(q, r, xi, flux, model)
+        fisher_error = 1 / np.sqrt(np.diag(g))
+        
         fit_errors.append(fit_error)
         fisher_errors.append(fisher_error)
         
@@ -80,21 +92,6 @@ def compare_errors(structure):
         plt.xscale('log')
         plt.show()
     
-def fisher_information(structure, noise_constant=5000):
-    model, data, r, flux = generate_noisy_single(structure, noise_constant)
-    q = data[0]
-
-    objective = Objective(model, ReflectDataset(data))
-    fitter = CurveFitter(objective)
-    fitter.fit('differential_evolution', polish=False, verbose=False)
-    fitter.fit('L-BFGS-B', verbose=False)
-    plot_objective(objective)
-    
-    xi = objective.varying_parameters()
-    fit_errors = [param.stderr for param in xi]
-    g = FIM(q, r, xi, flux, model)
-    fisher_errors = 1 / np.sqrt(np.diag(g))
-    return fit_errors, fisher_errors
     
 if __name__ == "__main__":
     """
