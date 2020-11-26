@@ -60,7 +60,7 @@ def vary_model(model):
         component.sld.real.value = np.random.uniform(*sld_bounds)
         component.thick.value    = np.random.uniform(*thick_bounds)
 
-def add_noise(q, r, file="../resources/directbeam_noise.dat", noise_constant=5000, bkg_rate=5e-7):
+def add_noise(q, r, file="../utils/directbeam_noise.dat", noise_constant=5000, bkg_rate=5e-7):
     #Try to load the beam sample file: exit the function if not found.
     direct_beam = np.loadtxt(file, delimiter=',')[:, 0:2]
     flux_density = np.interp(q, direct_beam[:, 0], direct_beam[:, 1]) * noise_constant #Not all Q values are the same
