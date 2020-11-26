@@ -111,4 +111,5 @@ if __name__ == "__main__":
         many_param_sample
     """
     structure = easy_sample_1()
+    fisher(*structure, method="MCMC")
     fisher(*structure, method="Nested-Sampling")
