@@ -1,1 +1,6 @@
-/__pycache__/
+/__pycache__
+/utils/__pycache__
+/fisher-information/__pycache__
+/model-selection/__pycache__
+/comparision/__pycache__
+/.spyproject

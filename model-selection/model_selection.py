@@ -1,5 +1,5 @@
-import numpy as np
-import matplotlib.pyplot as plt
+import sys
+sys.path.append("../utils") # Adds higher directory to python modules path.
 
 from refnx.dataset  import ReflectDataset
 from refnx.reflect  import SLD, ReflectModel
@@ -8,24 +8,11 @@ from refnx.analysis import Objective, CurveFitter
 from dynesty import NestedSampler
 from multiprocessing import Pool, cpu_count
 
-from structures import multiple_contrast_sample, easy_sample_1, thin_layer_sample_1, thin_layer_sample_2
-from structures import similar_sld_sample_1, similar_sld_sample_2, many_param_sample
+from generate import generate_noiseless, plot_objective, SCALE, DQ, BKG
 
-class Data:
-    points = 300
-    q_min  = 0.005
-    q_max  = 0.3
-    dq     = 2
-    scale  = 1
-    bkg    = 1e-6
-
-    @staticmethod
-    def generate(structure):
-        model = ReflectModel(structure, scale=Data.scale, dq=Data.dq, bkg=Data.bkg)
-        q = np.logspace(np.log10(Data.q_min), np.log10(Data.q_max), Data.points)
-        r = model(q)
-        r_error = [1e-6]*Data.points
-        return [q, r, r_error]
+from structures import thin_layer_sample_1, thin_layer_sample_2
+from structures import similar_sld_sample_1, similar_sld_sample_2
+from structures import easy_sample_1, many_param_sample
 
 class ModelSelection:
     def __init__(self, layer_bounds=(1,5), sld_bounds=(1,8), thick_bounds=(5,800), rough_bounds=(2,8),
@@ -50,10 +37,10 @@ class ModelSelection:
             structure = structure | layer             
             
         substrate = SLD(self.substrate_sld, name="Substrate")(thick=0, rough=self.default_rough)
-        #substrate.rough.setp(vary=True, bounds=ModelSelection.rough_bounds)
+        #substrate.rough.setp(vary=True, bounds=self.rough_bounds)
         
         structure = structure | substrate
-        return ReflectModel(structure, scale=Data.scale, dq=Data.dq, bkg=Data.bkg)
+        return ReflectModel(structure, scale=SCALE, dq=DQ, bkg=BKG)
     
     def select_model_logl(self, dataset, method='L-BFGS-B'):
         data = ReflectDataset(dataset)
@@ -68,7 +55,7 @@ class ModelSelection:
             objective = Objective(model, data)
             fitter = CurveFitter(objective)
             fitter.fit(method, verbose=False)
-            ModelSelection.__plot_objective(objective, layers)
+            plot_objective(objective)
             
             model_logl = objective.logl()
             logl.append(model_logl)
@@ -98,7 +85,7 @@ class ModelSelection:
             pool.close()
             pool.join()
             
-            ModelSelection.__plot_objective(self.objective, layers)
+            plot_objective(self.objective)
             model_logz = sampler.results.logz[-1]
             logz.append(model_logz)
             if model_logz < max_logz:
@@ -113,26 +100,9 @@ class ModelSelection:
         for i, parameter in enumerate(self.objective.varying_parameters()):
             parameter.value = x[i]
         return self.objective.logl()
-    
-    @staticmethod
-    def __plot_objective(objective, layers):
-        fig = plt.figure(figsize=[9,7], dpi=300)
-        ax = fig.add_subplot(111)
 
-        y, y_err, model = objective._data_transform(model=objective.generative())
-        # Add the data in a transformed fashion.
-        ax.errorbar(objective.data.x, y, y_err, label="data",
-                    color="blue", marker="o", ms=3, lw=0, elinewidth=1, capsize=1.5)
-        #Add the prediction/fit
-        ax.plot(objective.data.x, model, color="red", label="{}-layer fit".format(layers), zorder=20)
-
-        plt.xlabel("$\mathregular{Q\ (Å^{-1})}$", fontsize=11, weight='bold')
-        plt.ylabel('Reflectivity (arb.)',         fontsize=11, weight='bold')
-        plt.yscale('log')
-        plt.legend()
-        plt.show()
         
 if __name__ == "__main__":
     structure = easy_sample_1()
-    data = Data.generate(*structure)
-    model = ModelSelection(layer_bounds=(1,3), sld_bounds=(3.5,8.5), thick_bounds=(50,200)).select_model_logz(data)
+    data = generate_noiseless(*structure)
+    model = ModelSelection(layer_bounds=(1,5)).select_model_logl(data)

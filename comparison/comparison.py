@@ -1,9 +1,9 @@
-import os
+import os, sys
+sys.path.append("../utils") # Adds higher directory to python modules path.
 import numpy as np
 import matplotlib.pyplot as plt
 
 from refnx.dataset  import ReflectDataset
-from refnx.reflect  import SLD, ReflectModel
 from refnx.analysis import Objective, GlobalObjective, CurveFitter
 
 from dynesty import NestedSampler
@@ -12,58 +12,11 @@ from dynesty import utils    as dyfunc
 
 from multiprocessing import Pool, cpu_count
 
-from structures import multiple_contrast_sample, easy_sample_1, thin_layer_sample_1, thin_layer_sample_2
-from structures import similar_sld_sample_1, similar_sld_sample_2, many_param_sample
+from generate import generate_noisy_multiple, vary_model
 
-class Data:
-    points = 300
-    q_min  = 0.005
-    q_max  = 0.3
-    dq     = 2
-    scale  = 1
-    bkg    = 1e-6
-
-    @staticmethod
-    def generate(save_path, structures):
-        models = []
-        datasets = []
-
-        for i, structure in enumerate(structures, 1):
-            model = ReflectModel(structure, scale=Data.scale, dq=Data.dq, bkg=Data.bkg)
-            models.append(model)
-
-            q = np.logspace(np.log10(Data.q_min), np.log10(Data.q_max), Data.points)
-            r, r_error = Data.__add_noise(q, model(q))
-            datasets.append([q, r, r_error])
-            
-            data = np.zeros((Data.points, 3))
-            data[:,0] = q
-            data[:,1] = r
-            data[:,2] = r_error
-            np.savetxt(save_path+"/dataset{}.dat".format(i), data, delimiter=",")
-
-        return models, datasets
-
-    @staticmethod    
-    def __add_noise(q, r, file="./directbeam_noise.dat", noise_constant=5e5, bkg_rate=5e-7):
-        #Try to load the beam sample file: exit the function if not found.
-        direct_beam = np.loadtxt(file, delimiter=',')[:, 0:2]
-        flux_density = np.interp(q, direct_beam[:, 0], direct_beam[:, 1]) * noise_constant #Not all Q values are the same
-    
-        #Background signal always ADDs to the signal.
-        #Sometimes background could be 0. In which case it does not contribute to the signal
-        r = [r_point + max(np.random.normal(1, 0.5) * bkg_rate, 0) for r_point in r]
-    
-        r_noisy = []
-        r_error = []
-        for i, r_point in zip(flux_density, r): #Beam interp against simulated reflectance.
-            measured_flux = r_point*i
-            normal_width = 1 / (noise_constant*np.sqrt(measured_flux))
-            r_noisy.append(np.random.normal(loc=r_point, scale=normal_width)) #Using beam interp
-            r_error.append(normal_width)
-    
-        return r_noisy, r_error
-
+from structures import thin_layer_sample_1, thin_layer_sample_2
+from structures import similar_sld_sample_1, similar_sld_sample_2
+from structures import easy_sample_1, many_param_sample, multiple_contrast_sample
 
 class Fitting:
     def __init__(self, save_path, models, datasets):
@@ -71,20 +24,7 @@ class Fitting:
         self.datasets = [ReflectDataset(data) for data in datasets]
         self.models   = models
         for model in models:
-            Fitting.__vary_model(model)
-
-    @staticmethod
-    def __vary_model(model):
-        for component in model.structure.components[1:-1]: #Skip over Air/D20 and substrate
-            sld_bounds = (component.sld.real.value*0.75, component.sld.real.value*1.25)
-            component.sld.real.setp(vary=True, bounds=sld_bounds)
-
-            thick_bounds = (component.thick.value*0.75, component.thick.value*1.25)
-            component.thick.setp(vary=True, bounds=thick_bounds)
-
-            #Set the SLD and thickness to arbitrary initial values (within their bounds).
-            component.sld.real.value = sld_bounds[1]
-            component.thick.value    = thick_bounds[1]
+           vary_model(model)
 
     def __reset_objective(self):
         #Create a list of objectives for each model then use this list to create a global objective.
@@ -130,7 +70,7 @@ class Fitting:
 
         np.savetxt(self.save_path+"/covar_Nested-Sampling.dat", cov)
         self.plot_objective("Nested-Sampling")
-        dyplot.cornerplot(results, color='blue', quantiles=None, show_titles=True, max_n_ticks=3, truths=np.zeros(ndim), truth_color='black')
+        fig, _ = dyplot.cornerplot(results, color='blue', quantiles=None, show_titles=True, max_n_ticks=3, truths=np.zeros(ndim), truth_color='black')
         plt.savefig(self.save_path+"/corner_Nested-Sampling.png", dpi=300)
 
     def logl(self, x):
@@ -176,9 +116,9 @@ if __name__ == "__main__":
     
     if not os.path.exists(save_path): #Create directory if not present.
         os.makedirs(save_path)
-    models, datasets = Data.generate(save_path, structures)
+    models, datasets = generate_noisy_multiple(save_path, structures)
 
     model = Fitting(save_path, models, datasets)
     model.fit_lbfgs()
-    model.fit_mcmc(burn=400, steps=30, nthin=100)
+    model.fit_mcmc(burn=400, steps=15, nthin=100)
     model.fit_nested()
