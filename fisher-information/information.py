@@ -82,14 +82,10 @@ def compare_errors(structure):
     fisher_errors = np.array(fisher_errors)
     
     for i in range(fit_errors.shape[1]):
-        plt.plot(noise_constants, fit_errors[:,i])
-        plt.yscale('log')
-        plt.xscale('log')
+        plt.plot(np.log(noise_constants), np.log(fit_errors[:,i]))
         plt.show()
         
-        plt.plot(noise_constants, fisher_errors[:,i])
-        plt.yscale('log')
-        plt.xscale('log')
+        plt.plot(np.log(noise_constants), np.log(fisher_errors[:,i]))
         plt.show()
     
     
@@ -104,5 +100,5 @@ if __name__ == "__main__":
         many_param_sample
     """
     structure = easy_sample_1()
-    #compare_errors(*structure)
-    compare_fit_variance(*structure, 1000)
+    compare_errors(*structure)
+    #compare_fit_variance(*structure, 1000)

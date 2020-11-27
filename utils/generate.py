@@ -1,14 +1,15 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from refnx.reflect  import ReflectModel
+from refnx.reflect import ReflectModel
 
-POINTS = 300
-Q_MIN  = 0.005
-Q_MAX  = 0.3
-DQ     = 2
-SCALE  = 1
-BKG    = 1e-6
+POINTS   = 300
+Q_MIN    = 0.005
+Q_MAX    = 0.3
+DQ       = 2
+SCALE    = 1
+BKG      = 1e-6
+BKG_RATE = 5e-7
 
 def generate_noiseless(structure):
     model = ReflectModel(structure, scale=SCALE, dq=DQ, bkg=BKG)
@@ -60,14 +61,14 @@ def vary_model(model):
         component.sld.real.value = np.random.uniform(*sld_bounds)
         component.thick.value    = np.random.uniform(*thick_bounds)
 
-def add_noise(q, r, file="../utils/directbeam_noise.dat", noise_constant=5000, bkg_rate=5e-7):
+def add_noise(q, r, file="../utils/directbeam_q.dat", noise_constant=5000):
     #Try to load the beam sample file: exit the function if not found.
     direct_beam = np.loadtxt(file, delimiter=',')[:, 0:2]
     flux_density = np.interp(q, direct_beam[:, 0], direct_beam[:, 1]) * noise_constant #Not all Q values are the same
 
     #Background signal always ADDs to the signal.
     #Sometimes background could be 0. In which case it does not contribute to the signal
-    r = [r_point + max(np.random.normal(1, 0.5) * bkg_rate, 0) for r_point in r]
+    r = [r_point + max(np.random.normal(1, 0.5) * BKG_RATE, 0) for r_point in r]
 
     r_noisy = []
     r_error = []
