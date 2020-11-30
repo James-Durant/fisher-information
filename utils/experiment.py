@@ -13,6 +13,8 @@ from structures import easy_sample_1, many_param_sample
 from structures import thin_layer_sample_1, thin_layer_sample_2
 from structures import similar_sld_sample_1, similar_sld_sample_2
 
+POINTS = 259
+
 def simulate(structure, angle, ax, time=1, file="../utils/directbeam_wavelength.dat"):
     theta = angle*np.pi/180 #Angle in radians
     model = ReflectModel(structure, scale=SCALE, dq=DQ, bkg=BKG)
@@ -22,7 +24,9 @@ def simulate(structure, angle, ax, time=1, file="../utils/directbeam_wavelength.
     wavelengths  = direct_beam[:,0]
     flux_density = direct_beam[:,1]*time
     
-    for i in range(len(direct_beam)):
+    flux_density, wavelengths = np.histogram(wavelengths, POINTS, weights=flux_density)
+    
+    for i in range(POINTS):
         wavelength = wavelengths[i]
         flux       = flux_density[i]
         
@@ -57,10 +61,10 @@ def simulate(structure, angle, ax, time=1, file="../utils/directbeam_wavelength.
     
     
 if __name__ == "__main__":
-    structure = thin_layer_sample_1()
+    structure = easy_sample_1()
     fig = plt.figure(figsize=[9,7])
     ax = fig.add_subplot(111)
-    for angle in [0.7, 1.5]:
+    for angle in [0.7, 2]:
         simulate(*structure, angle, ax, time=1)
     plt.show()
         
