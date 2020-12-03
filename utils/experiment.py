@@ -8,9 +8,7 @@ from structures import easy_sample_1, many_param_sample, multiple_contrast_sampl
 from structures import thin_layer_sample_1, thin_layer_sample_2
 from structures import similar_sld_sample_1, similar_sld_sample_2
 
-def simulate(structure, angle, ax=None, points=200, time=1, file="../utils/directbeam_wavelength.dat"):
-    model = ReflectModel(structure, scale=SCALE, dq=DQ, bkg=BKG)
-    
+def simulate(structure, angle, ax=None, points=200, time=1, file="../utils/directbeam_wavelength.dat"):    
     direct_beam  = np.loadtxt(file, delimiter=',')
     wavelengths  = direct_beam[:,0]
     flux_density = direct_beam[:,1]*time*((angle/0.3)**2) #Fix this
@@ -22,8 +20,10 @@ def simulate(structure, angle, ax=None, points=200, time=1, file="../utils/direc
     
     #Get the bin centres
     q_binned = [(q_bin_edges[i] + q_bin_edges[i+1]) / 2 for i in range(points)]
-
     r, r_errors = [], []
+    
+    model = ReflectModel(structure, scale=SCALE, dq=DQ, bkg=BKG)
+    
     for i in range(points):
         q_point = q_binned[i]
         flux    = flux_binned[i]
@@ -56,7 +56,7 @@ if __name__ == "__main__":
     ax = fig.add_subplot(111)
     for structure in structures:
         for angle in [0.7, 2]:
-            simulate(structure, angle, ax=ax, points=100, time=0.8)
+            simulate(structure, angle, ax=ax, points=200, time=0.8)
     plt.show()
         
     

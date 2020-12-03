@@ -68,20 +68,25 @@ def many_param_sample():
     structure = air | layer1 | layer2 | layer3 | layer4 | layer5 | substrate
     return [structure]
 
-def sld_profile(structure, show=True):
-    plt.plot(*structure.sld_profile())
-    plt.ylabel('SLD /$10^{-6} \AA^{-2}$')
-    plt.xlabel('distance / $\AA$')
-    if show:
-        plt.show()
+def sld_profile(structure, ax=None):
+    if ax is None:
+        plt.figure(dpi=600)
+        plt.plot(*structure.sld_profile())
+    else:
+        ax.plot(*structure.sld_profile())
+        
+    plt.ylabel("$\mathregular{SLD\ (10^{-6} \AA^{-2})}$")
+    plt.xlabel("$\mathregular{Distance\ (\AA)}$")
 
 if __name__ == "__main__":
     structure1, structure2 = multiple_contrast_sample()
-    sld_profile(structure1, show=False)
-    sld_profile(structure2)
+    ax = plt.figure(dpi=600).add_subplot(111)
+    sld_profile(structure1, ax)
+    sld_profile(structure2, ax)
+    plt.show()
 
-    sld_profile(*thin_layer_sample_1())
     sld_profile(*easy_sample_1())
+    sld_profile(*thin_layer_sample_1())
     sld_profile(*thin_layer_sample_2())
     sld_profile(*similar_sld_sample_1())
     sld_profile(*similar_sld_sample_2())
