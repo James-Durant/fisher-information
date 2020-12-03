@@ -2,6 +2,7 @@
 “Enough is enough!” – a framework for stopping experiments with sufficient statistics.
 
 ## About The Project
+To do
 
 ### Built With
 * Python3
@@ -23,9 +24,11 @@
 You should now be able to run the code.
 
 ### Usage
+To do
 
 ## Contact
 Jos Cooper     - jos.cooper@stfc.ac.uk\
 James Durant   - james.durant@stfc.ac.uk
 
 ## Acknowledgements
+To do
