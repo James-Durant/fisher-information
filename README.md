@@ -1,7 +1,16 @@
 # enough-is-enough
 “Enough is enough!” – a framework for stopping experiments with sufficient statistics.
 
-## Installation
+## About The Project
+
+### Built With
+* Python3
+* refnx
+* dynesty
+* corner.py
+
+## Getting Started
+### Installation
 1. To replicate the development environment with the [`Anaconda`](https://www.anaconda.com/products/individual) distribution, first create an empty conda environment by running: <br /> ```conda create --name enough```
 
 2. To activate the environment, run: ```conda activate enough```
@@ -11,8 +20,12 @@
 4. Run the following to install the required packages from the [requirements.txt](/requirements.txt) file: <br />
    ```pip install -r requirements.txt```
 
-You should be able to run the code.
+You should now be able to run the code.
+
+### Usage
 
 ## Contact
 Jos Cooper     - jos.cooper@stfc.ac.uk\
 James Durant   - james.durant@stfc.ac.uk
+
+## Acknowledgements
