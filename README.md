@@ -29,6 +29,7 @@ To do
 ## Contact
 Jos Cooper     - jos.cooper@stfc.ac.uk\
 James Durant   - james.durant@stfc.ac.uk
+Lucas Wilkins  - Lucas.Wilkins.Email@gmail.com
 
 ## Acknowledgements
 To do
