@@ -1,22 +1,18 @@
 import os, sys
-sys.path.append("../utils") # Adds higher directory to python modules path.
+sys.path.append("../simulation") # Adds higher directory to python modules path.
+
 import numpy as np
 import matplotlib.pyplot as plt
 
 from refnx.dataset  import ReflectDataset
 from refnx.analysis import Objective, GlobalObjective, CurveFitter
 
+from multiprocessing import Pool, cpu_count
 from dynesty import NestedSampler
 from dynesty import plotting as dyplot
 from dynesty import utils    as dyfunc
 
-from multiprocessing import Pool, cpu_count
-
-from generate import generate_noisy_multiple, vary_model
-
-from structures import thin_layer_sample_1, thin_layer_sample_2
-from structures import similar_sld_sample_1, similar_sld_sample_2
-from structures import easy_sample_1, many_param_sample, multiple_contrast_sample
+from simulate import simulate_noisy, vary_model
 
 class Fitting:
     def __init__(self, save_path, models, datasets):
@@ -101,22 +97,25 @@ class Fitting:
         plt.savefig(self.save_path+"/fit_{}.png".format(fit_method), dpi=300)
 
 if __name__ == "__main__":
-    """
-    Functions for getting structures:
-        multiple_contrast_sample
-        easy_sample_1
-        thin_layer_sample_1
-        thin_layer_sample_2
-        similar_sld_sample_1
-        similar_sld_sample_2
-        many_param_sample
-    """
-    save_path = "./results/easy_sample_1"
-    structures = easy_sample_1()
+    from structures import similar_sld_sample_1, similar_sld_sample_2
+    from structures import thin_layer_sample_1,  thin_layer_sample_2
+    from structures import easy_sample, many_param_sample, multiple_contrast_sample
+    
+    save_path = "./results/easy_sample"
+    structures = easy_sample()
     
     if not os.path.exists(save_path): #Create directory if not present.
         os.makedirs(save_path)
-    models, datasets = generate_noisy_multiple(save_path, structures)
+        
+    angle  = 0.7
+    points = 200
+    time   = 100
+    
+    models, datasets = [], []
+    for structure in structures:
+        model, q, r, r_error, _ = simulate_noisy(structure, angle, points, time, save_path)
+        models.append(model)
+        datasets.append([q,r,r_error])
 
     model = Fitting(save_path, models, datasets)
     model.fit_lbfgs()

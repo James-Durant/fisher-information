@@ -1,5 +1,5 @@
 import sys
-sys.path.append("../utils") # Adds higher directory to python modules path.
+sys.path.append("../simulation") # Adds higher directory to python modules path.
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -10,11 +10,8 @@ from refnx.analysis import Objective, CurveFitter
 from dynesty import NestedSampler
 from dynesty import plotting as dyplot
 
+from simulate    import simulate_noisy, vary_model
 from information import calc_FIM
-from generate    import generate_noisy_single
-from structures  import thin_layer_sample_1, thin_layer_sample_2
-from structures  import similar_sld_sample_1, similar_sld_sample_2
-from structures  import easy_sample_1, many_param_sample
 
 class Sampler:
     def __init__(self, objective):
@@ -34,10 +31,10 @@ class Sampler:
             parameter.value = x[i]
         return self.objective.logl()
 
-def fisher(structure, method="MCMC"):
-    model, data, r, flux = generate_noisy_single(structure)
-    q = data[0]
-    objective = Objective(model, ReflectDataset(data))
+def fisher(structure, angle, points, time, method="MCMC"):
+    model, q, r, r_error, flux = simulate_noisy(structure, angle, points, time)
+    vary_model(model)
+    objective = Objective(model, ReflectDataset([q, r, r_error]))
     
     if method == "MCMC":
         fitter = CurveFitter(objective)
@@ -92,15 +89,14 @@ def confidence_ellipse(fisher, i, j, param1, param2, axis, show_xlabel, show_yla
         axis.set_ylabel(param2.name)
         
 if __name__ == "__main__":
-    """
-    Functions for getting structures:
-        easy_sample_1
-        thin_layer_sample_1
-        thin_layer_sample_2
-        similar_sld_sample_1
-        similar_sld_sample_2
-        many_param_sample
-    """
-    structure = easy_sample_1()
-    fisher(*structure, method="MCMC")
-    fisher(*structure, method="Nested-Sampling")
+    from structures import similar_sld_sample_1, similar_sld_sample_2
+    from structures import thin_layer_sample_1,  thin_layer_sample_2
+    from structures import easy_sample, many_param_sample
+    
+    structure = easy_sample()
+    angle      = 0.7
+    time       = 100000
+    points     = 200
+    
+    fisher(*structure, angle, points, time, method="Nested-Sampling")
+    fisher(*structure, angle, points, time, method="MCMC")
