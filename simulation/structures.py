@@ -69,17 +69,25 @@ def many_param_sample():
     return [structure]
 
 def sld_profile(structure, ax=None):
+    """Plots the SLD profile for a given `structure`.
+
+    Args:
+        structure (refnx.reflect.Structure): the structure to plot the SLD profile of.
+        ax (matplotlib.pyplot.axis): an existing plot to add the SLD profile to.
+
+    """
     if ax is None:
-        plt.figure(dpi=600)
+        plt.figure(dpi=600) #Create a new figure and add the SLD profile to it.
         plt.plot(*structure.sld_profile())
     else:
-        ax.plot(*structure.sld_profile())
-        
+        ax.plot(*structure.sld_profile()) #Add the SLD profile to the existing plot.
+
     plt.ylabel("$\mathregular{SLD\ (10^{-6} \AA^{-2})}$")
     plt.xlabel("$\mathregular{Distance\ (\AA)}$")
 
 if __name__ == "__main__":
     structure1, structure2 = multiple_contrast_sample()
+    #Plot the two contrasts on the same axis.
     ax = plt.figure(dpi=600).add_subplot(111)
     sld_profile(structure1, ax)
     sld_profile(structure2, ax)
