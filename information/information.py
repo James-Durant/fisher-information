@@ -10,7 +10,7 @@ from refnx.analysis import Objective, CurveFitter
 from simulate import simulate_noisy, vary_model, plot_objective
 
 def calc_FIM(q, r, xi, flux, model):
-    """Calculates the Fisher information matrix for given data and model.
+    """Calculates the Fisher information matrix for given a dataset and model.
 
     Args:
         q (numpy.ndarray): array of Q values.
@@ -53,7 +53,7 @@ def gradient(model, parameter, q_point, step=0.005):
     old = parameter.value
 
     x1 = parameter.value = old - step #First point
-    y1 = model(q_point) #Get new r value with altered model
+    y1 = model(q_point) #Get new r value with altered model.
 
     x2 = parameter.value = old + step #Second point
     y2 = model(q_point)
@@ -112,7 +112,7 @@ def compare_errors(structure, angle, points, time_constants):
     """
     fit_errors, fisher_errors = [], []
     for i, time_constant in enumerate(time_constants, 1):
-        print(">>> Fitting {0}/{1}...".format(i, len(time_constants))) #Display progress.
+        print(">>> Fitting {0}/{1}...".format(i, len(time_constants))) #Display progress
 
         #Simulate the experiment using the given angle, number of points and time.
         model, q, r, r_error, flux = simulate_noisy(structure, angle, points, time_constant)

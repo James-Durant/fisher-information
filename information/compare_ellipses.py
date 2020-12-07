@@ -130,22 +130,23 @@ def confidence_ellipse(fisher, i, j, param1, param2, axis, show_xlabel, show_yla
     #Retrieve the elements of the FIM for the given parameters.
     g = [[fisher[i,i], fisher[i,j]], [fisher[j,i], fisher[j,j]]]
 
-    #Calculate the values of the confidence ellipse.
-    x, y = [], []
-    for theta in np.arange(0, 2*np.pi, 0.001):
-        X = np.array([np.sin(theta), np.cos(theta)])
-        epsilon = k / np.sqrt(np.dot(np.dot(X, g), X.T))
-        x.append(epsilon*np.sin(theta))
-        y.append(epsilon*np.cos(theta))
-
-    #Move the confidence ellipse to be centred on the parameter estimates
-    x = np.array(x) + param1.value
-    y = np.array(y) + param2.value
+    for k in [1,2,3,4]:
+        #Calculate the values of the confidence ellipse.
+        x, y = [], []
+        for theta in np.arange(0, 2*np.pi, 0.001):
+            X = np.array([np.sin(theta), np.cos(theta)])
+            epsilon = k / np.sqrt(np.dot(np.dot(X, g), X.T))
+            x.append(epsilon*np.sin(theta))
+            y.append(epsilon*np.cos(theta))
+    
+        #Move the confidence ellipse to be centred on the parameter estimates
+        x = np.array(x) + param1.value
+        y = np.array(y) + param2.value
+        axis.plot(x,y)
 
     #Adjust the x and y axes so the corner plot contours and new ellipse can be seen.
-    axis.set_xlim(param1.value*0.99995, param1.value*1.00005)
-    axis.set_ylim(param2.value*0.99995, param2.value*1.00005)
-    axis.plot(x,y, color='red')
+    axis.set_xlim(param1.value*0.995, param1.value*1.005)
+    axis.set_ylim(param2.value*0.995, param2.value*1.005)
     if show_xlabel:
         axis.set_xlabel(param1.name)
     if show_ylabel:
@@ -158,7 +159,7 @@ if __name__ == "__main__":
 
     structure = easy_sample()
     angle      = 0.7
-    time       = 100000
+    time       = 100
     points     = 200
 
     fisher(*structure, angle, points, time, method="Nested-Sampling")

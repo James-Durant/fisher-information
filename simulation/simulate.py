@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from refnx.reflect import ReflectModel
+from refnx.reflect import SLD, ReflectModel
 
 DQ       = 2
 SCALE    = 1
@@ -28,14 +28,14 @@ def simulate_noisy(structure, angle, points, time, save_path=None, directbeam_fi
         flux_binned (numpy.ndarray): flux associated with each Q value.
 
     """
-    #Load the directbeam_wavelength.dat file
+    #Load the directbeam_wavelength.dat file.
     direct_beam  = np.loadtxt(directbeam_file, delimiter=',')
     wavelengths  = direct_beam[:,0] # 1st column is wavelength, 2nd is flux.
     #Adjust flux by the time constant and measurement angle.
     flux_density = direct_beam[:,1]*time*np.power(angle/0.3, 2)
 
     theta = angle*np.pi/180 #Covert angle from degrees into radians.
-    q = 4*np.pi*np.sin(theta) / wavelengths #Calculate Q values
+    q = 4*np.pi*np.sin(theta) / wavelengths #Calculate Q values.
 
     #Bin Q values in equally log-spaced bins using flux as weighting.
     log_q = np.logspace(np.log10(np.min(q)), np.log10(np.max(q)), points+1)
@@ -47,7 +47,7 @@ def simulate_noisy(structure, angle, points, time, save_path=None, directbeam_fi
 
     model = ReflectModel(structure, scale=SCALE, dq=DQ, bkg=BKG)
 
-    for i in range(points): #Iterate over the desired number of points (bins)
+    for i in range(points): #Iterate over the desired number of points (bins).
         q_point = q_binned[i]
         flux    = flux_binned[i]
 
@@ -69,7 +69,7 @@ def simulate_noisy(structure, angle, points, time, save_path=None, directbeam_fi
         ax.set_xlabel("$\mathregular{Q\ (Å^{-1})}$", fontsize=11, weight='bold')
         ax.set_ylabel('Reflectivity (arb.)',         fontsize=11, weight='bold')
         ax.set_yscale('log')
-        ax.set_xlim(0, 0.25)
+        #ax.set_xlim(0, 0.25)
 
     if save_path: #Save the q, r and error values as a 3-column CSV file.
         data = np.zeros((points, 3))
@@ -88,7 +88,7 @@ def vary_model(model):
         model (refnx.reflect.ReflectModel): the model to vary.
 
     """
-    #Skip over Air/D20 and substrate
+    #Skip over Air/D20 and substrate.
     for component in model.structure.components[1:-1]:
         #Use a bound of 50% above and below the ground truth value.
         sld_bounds   = (component.sld.real.value*0.5, component.sld.real.value*1.5)
@@ -115,7 +115,7 @@ def plot_objective(objective):
     #Add the data in a transformed fashion.
     y, y_err, model = objective._data_transform(model=objective.generative())
     ax.errorbar(objective.data.x, y, y_err, marker="o", ms=3, lw=0, elinewidth=1, capsize=1.5)
-    #Add the prediction/fit
+    #Add the prediction/fit.
     ax.plot(objective.data.x, model, color="red", zorder=20)
 
     plt.xlabel("$\mathregular{Q\ (Å^{-1})}$", fontsize=11, weight='bold')
@@ -123,11 +123,48 @@ def plot_objective(objective):
     plt.yscale('log')
     plt.show()
 
+def compare_to_real():
+    fig1 = plt.figure(figsize=[9,7])
+    ax1 = fig1.add_subplot(111)
+    
+    #Plot the first angle dataset
+    data1 = np.loadtxt("Fringey_03_1uA.dat", delimiter='    ')
+    ax1.errorbar(data1[:,0], data1[:,1], data1[:,2], marker="o", ms=3, lw=0, elinewidth=1, capsize=1.5, label="Fringey_03_1uA.dat")
+    
+    #Plot the second angle dataset
+    data2 = np.loadtxt("Fringey_07_1uA.dat", delimiter='    ')
+    ax1.errorbar(data2[:,0], data2[:,1], data2[:,2], marker="o", ms=3, lw=0, elinewidth=1, capsize=1.5, label="Fringey_07_1uA.dat")
+    
+    plt.xlabel("$\mathregular{Q\ (Å^{-1})}$", fontsize=11, weight='bold')
+    plt.ylabel('Reflectivity (arb.)',         fontsize=11, weight='bold')
+    plt.legend()
+    plt.yscale('log')
+    plt.show()
+
+
+    fig2 = plt.figure(figsize=[9,7])
+    ax2  = fig2.add_subplot(111)
+    
+    #Define the model for the real dataset.
+    air       = SLD(0, name="Air")
+    layer1    = SLD(4.07,  name="Layer 1 - Au")(thick=168.4, rough=5.9)
+    layer2    = SLD(8.665, name="Layer 2 - Py")(thick=135.5, rough=10)
+    substrate = SLD(2.06,  name="Substrate - Si")(thick=0,   rough=9)
+    structure = air | layer1 | layer2 | substrate
+    
+    #Simulate two noisy datasets with different angles corresponding to the datasets above.
+    simulate_noisy(structure, 0.3, 100, 1, ax=ax2)
+    simulate_noisy(structure, 0.7, 100, 1, ax=ax2)
+    plt.show()
+
 if __name__ == "__main__":
     from structures import thin_layer_sample_1,  thin_layer_sample_2
     from structures import similar_sld_sample_1, similar_sld_sample_2
     from structures import easy_sample, many_param_sample, multiple_contrast_sample
 
+    compare_to_real()
+
+"""
     fig = plt.figure(figsize=[9,7])
     ax  = fig.add_subplot(111)
 
@@ -141,3 +178,4 @@ if __name__ == "__main__":
         for angle in angles:
             simulate_noisy(structure, angle, points, time, ax=ax)
     plt.show()
+"""
