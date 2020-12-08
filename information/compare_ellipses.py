@@ -9,6 +9,7 @@ from refnx.analysis import Objective, CurveFitter
 
 from dynesty import NestedSampler
 from dynesty import plotting as dyplot
+from dynesty import utils    as dyfunc
 
 from simulate    import simulate_noisy, vary_model
 from information import calc_FIM
@@ -36,6 +37,12 @@ class Sampler:
         """
         self.sampler.run_nested()
         results = self.sampler.results
+        
+        #Calculate the parameter means.
+        weights = np.exp(results.logwt - results.logz[-1])
+        mean, _ = dyfunc.mean_and_cov(results.samples, weights)
+        self.logl(mean) #Update objective to use mean parameter values.
+        
         fig, _ = dyplot.cornerplot(results, color='blue', quantiles=None, show_titles=True, max_n_ticks=3, truths=np.zeros(self.ndim), truth_color='black')
         return fig
 
@@ -129,8 +136,8 @@ def confidence_ellipse(fisher, i, j, param1, param2, axis, show_xlabel, show_yla
     """
     #Retrieve the elements of the FIM for the given parameters.
     g = [[fisher[i,i], fisher[i,j]], [fisher[j,i], fisher[j,j]]]
-
-    for k in [1,2,3,4]:
+    
+    for k in [1,2,3]:
         #Calculate the values of the confidence ellipse.
         x, y = [], []
         for theta in np.arange(0, 2*np.pi, 0.001):
@@ -142,11 +149,11 @@ def confidence_ellipse(fisher, i, j, param1, param2, axis, show_xlabel, show_yla
         #Move the confidence ellipse to be centred on the parameter estimates
         x = np.array(x) + param1.value
         y = np.array(y) + param2.value
-        axis.plot(x,y)
+        axis.plot(x,y, color='r')
 
     #Adjust the x and y axes so the corner plot contours and new ellipse can be seen.
-    axis.set_xlim(param1.value*0.995, param1.value*1.005)
-    axis.set_ylim(param2.value*0.995, param2.value*1.005)
+    #axis.set_xlim(param1.value*0.995, param1.value*1.005)
+    #axis.set_ylim(param2.value*0.995, param2.value*1.005)
     if show_xlabel:
         axis.set_xlabel(param1.name)
     if show_ylabel:
@@ -158,9 +165,9 @@ if __name__ == "__main__":
     from structures import easy_sample, many_param_sample
 
     structure = easy_sample()
-    angle      = 0.7
+    angle      = 2
     time       = 100
-    points     = 200
+    points     = 100
 
     fisher(*structure, angle, points, time, method="Nested-Sampling")
-    fisher(*structure, angle, points, time, method="MCMC")
+    #fisher(*structure, angle, points, time, method="MCMC")
