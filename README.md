@@ -5,7 +5,7 @@
 To do
 
 ### Built With
-* Python3
+* [`Python`](https://www.python.org/)
 * [`refnx`](https://refnx.readthedocs.io/en/latest/)
 * [`dynesty`](https://dynesty.readthedocs.io/en/latest/)
 * [`corner.py`](https://corner.readthedocs.io/en/latest/)
