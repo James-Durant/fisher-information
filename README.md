@@ -6,9 +6,9 @@ To do
 
 ### Built With
 * Python3
-* refnx
-* dynesty
-* corner.py
+* [`refnx`](https://refnx.readthedocs.io/en/latest/)
+* [`dynesty`](https://dynesty.readthedocs.io/en/latest/)
+* [`corner.py`](https://corner.readthedocs.io/en/latest/)
 
 ## Getting Started
 ### Installation
