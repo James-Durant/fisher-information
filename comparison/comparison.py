@@ -27,7 +27,7 @@ class Fitting:
     def __init__(self, save_path, models, datasets):
         if not os.path.exists(save_path): #Create directory if not present.
             os.makedirs(save_path)
-            
+
         self.save_path = save_path
         self.datasets = [ReflectDataset(data) for data in datasets]
         self.models   = models
@@ -148,7 +148,7 @@ class Fitting:
 
 
 def run_experiment(structures, points, angle_times, save_path):
-    """Simulates an experiment for a given structure over a number of angles, 
+    """Simulates an experiment for a given structure over a number of angles,
        each having its own measurement time.
 
     Args:
@@ -173,12 +173,12 @@ def run_experiment(structures, points, angle_times, save_path):
             #Simulate the experiment
             time = angle_times[angle]
             model, q_anlge, r_angle, r_error_angle, _ = simulate_noisy(structure, angle, points, time)
-        
+
             #Combine the q, r and r_error values with the data of other angles.
             q += q_anlge
             r += r_angle
             r_error += r_error_angle
-        
+
         #Save combined dataset to .dat file
         data = np.zeros((len(angle_times)*points, 3))
         data[:,0] = q
@@ -186,10 +186,10 @@ def run_experiment(structures, points, angle_times, save_path):
         data[:,2] = r_error
         data = data[data[:,0].argsort()] #Sort by Q
         np.savetxt(save_path+"/contrast_{}.dat".format(i), data, delimiter=",")
-        
+
         models.append(model)
         datasets.append([data[:,0], data[:,1], data[:,2]])
-    
+
     return models, datasets
 
 if __name__ == "__main__":
@@ -201,7 +201,7 @@ if __name__ == "__main__":
     points      = 75          #Number of points per angle.
     angle_times = {0.3: 5, 0.7: 10, 2.0: 40} #Measurement time for each angle.
     save_path   = "./results/"+structure.__name__
-    
+
     models, datasets = run_experiment(structure(), points, angle_times, save_path)
 
     #Fit the simulated data using L-BFGS-B, MCMC and/or nested sampling.
@@ -209,5 +209,3 @@ if __name__ == "__main__":
     fitter.fit_lbfgs()
     fitter.fit_mcmc(burn=400, steps=15, nthin=100)
     fitter.fit_nested()
-
-

@@ -74,7 +74,7 @@ def plot_all_sld_profiles(save_path):
 
     Args:
         save_path (string): path to the directory to save the SLD profiles to.
-        
+
     """
     #Plot and save SLD profiles for each single contrast structure.
     for structure_func in [similar_sld_sample_1, similar_sld_sample_2,
@@ -85,13 +85,13 @@ def plot_all_sld_profiles(save_path):
         plt.plot(*structure.sld_profile()) #Plot SLD profile.
         plt.xlabel("$\mathregular{Distance\ (\AA)}$")
         plt.ylabel("$\mathregular{SLD\ (10^{-6} \AA^{-2})}$")
-        
+
         #Save the SLD profile figure.
         structure_save_path = save_path+structure_func.__name__
         if not os.path.exists(structure_save_path):
             os.makedirs(structure_save_path)
         plt.savefig(structure_save_path+"/sld_profile.png", dpi=600)
-        
+
     #Plot the two contrasts on the same axis.
     structure1, structure2 = multiple_contrast_sample()
     fig = plt.figure()
@@ -100,7 +100,7 @@ def plot_all_sld_profiles(save_path):
     ax.plot(*structure2.sld_profile())
     ax.set_xlabel("$\mathregular{Distance\ (\AA)}$")
     ax.set_ylabel("$\mathregular{SLD\ (10^{-6} \AA^{-2})}$")
-    fig.savefig(save_path+"multiple_contrast_sample/sld_profile.png", dpi=600)  
+    fig.savefig(save_path+"multiple_contrast_sample/sld_profile.png", dpi=600)
 
 if __name__ == "__main__":
     save_path = "../comparison/results/"

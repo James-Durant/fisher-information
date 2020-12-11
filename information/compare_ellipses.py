@@ -37,12 +37,12 @@ class Sampler:
         """
         self.sampler.run_nested()
         results = self.sampler.results
-        
+
         #Calculate the parameter means.
         weights = np.exp(results.logwt - results.logz[-1])
         mean, _ = dyfunc.mean_and_cov(results.samples, weights)
         self.logl(mean) #Update objective to use mean parameter values.
-        
+
         fig, _ = dyplot.cornerplot(results, color='blue', quantiles=None, show_titles=True, max_n_ticks=3, truths=np.zeros(self.ndim), truth_color='black')
         return fig
 
@@ -119,8 +119,8 @@ def plot_ellipses(g, xi, fig):
                 continue #Leave diagonal plots as they are.
             else:
                 axes[i,j].set_visible(False) #Remove all other plots.
-                
-    axes[m-1,m-1].set_xlabel(xi[i].name)             
+
+    axes[m-1,m-1].set_xlabel(xi[i].name)
 
 def confidence_ellipse(fisher, i, j, param1, param2, axis, show_xlabel, show_ylabel):
     """Plots the confidence ellipse between `param1` and `param2`.
@@ -138,7 +138,7 @@ def confidence_ellipse(fisher, i, j, param1, param2, axis, show_xlabel, show_yla
     """
     #Retrieve the elements of the FIM for the given parameters.
     g = [[fisher[i,i], fisher[i,j]], [fisher[j,i], fisher[j,j]]]
-    
+
     #Iterative over k: the number of standard deviations.
     for k in [1,2,3]:
         #Calculate the values of the confidence ellipse.
@@ -148,7 +148,7 @@ def confidence_ellipse(fisher, i, j, param1, param2, axis, show_xlabel, show_yla
             epsilon = k / np.sqrt(np.dot(np.dot(X, g), X.T))
             x.append(epsilon*np.sin(theta))
             y.append(epsilon*np.cos(theta))
-    
+
         #Move the confidence ellipse to be centred on the parameter estimates.
         x = np.array(x) + param1.value
         y = np.array(y) + param2.value
@@ -168,10 +168,10 @@ if __name__ == "__main__":
     angle     = 0.7
     time      = 100
     points    = 100
-    
+
     save_path = "./results/"+structure.__name__
     if not os.path.exists(save_path):
-        os.makedirs(save_path) 
+        os.makedirs(save_path)
 
     #Overlay the Fisher confidence ellipses on the MCMC and nested sampling corner plots.
     fisher(*structure(), angle, points, time, save_path, method="Nested-Sampling")

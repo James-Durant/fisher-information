@@ -88,7 +88,7 @@ def compare_fit_variance(structure, angle, points, time, save_path, n=1000):
         objective = Objective(model, ReflectDataset([q, r, r_error]))
         fitter = CurveFitter(objective)
         fitter.fit('L-BFGS-B', verbose=False)
-        
+
         #plot_objective(objective)
 
         xi = objective.varying_parameters() #Get the parameter estimates.
@@ -99,9 +99,9 @@ def compare_fit_variance(structure, angle, points, time, save_path, n=1000):
 
     g = calc_FIM(q, r, xi, flux, model) #Calculate the Fisher information matrix.
     inv_fisher = 1 / np.diag(g)
-  
-    #Save the results to .txt file. 
-    with open(save_path+"/variance_comparison.txt", "w") as file: 
+
+    #Save the results to .txt file.
+    with open(save_path+"/variance_comparison.txt", "w") as file:
         file.write("Variance in Parameter Estimation:\n")
         file.write(str(param_vars)+"\n"*2)
         file.write("Inverse Fisher Information:\n")
@@ -173,7 +173,7 @@ if __name__ == "__main__":
     structure = easy_sample #Choose structure here.
     points    = 100
     angle     = 0.7
-    
+
     save_path = "./results/"+structure.__name__
     if not os.path.exists(save_path):
         os.makedirs(save_path)
@@ -184,5 +184,3 @@ if __name__ == "__main__":
     time = 100
     fits = 1000
     compare_fit_variance(*structure(), angle, points, time, save_path, n=fits)
-
-    
