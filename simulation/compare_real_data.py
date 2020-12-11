@@ -73,11 +73,11 @@ if __name__ == "__main__":
     plot_real_all(data_path+"QCS_all.dat", save_path)
     plot_real_angles(data_path, real_data, save_path)
 
-    angles = {0.3: (90, 1), #Angle: (Points, Time)
-              0.4: (90, 1),
-              0.5: (90, 1),
-              0.6: (90, 1),
-              0.7: (90, 1),
-              2.0: (90, 1)
+    angles = {0.3: (84, 1), #Angle: (Points, Time)
+              0.4: (49, 1),
+              0.5: (55, 1),
+              0.6: (64, 1),
+              0.7: (75, 1),
+              2.0: (53, 1)
              }
     plot_simulated_angles(angles, save_path)
