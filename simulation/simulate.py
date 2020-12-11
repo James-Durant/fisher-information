@@ -8,7 +8,7 @@ SCALE    = 1
 BKG      = 1e-6
 BKG_RATE = 5e-7
 
-def simulate_noisy(structure, angle, points, time, save_path=None, directbeam_file="../simulation/directbeam_wavelength.dat", ax=None):
+def simulate_noisy(structure, angle, points, time, directbeam_file="../simulation/directbeam_wavelength.dat", ax=None):
     """Simulates an experiment on a given `structure` with added realistic noise.
 
     Args:
@@ -16,7 +16,6 @@ def simulate_noisy(structure, angle, points, time, save_path=None, directbeam_fi
         angle (float): the measurement angle for the simulation.
         points (int): the number of points to use when binning.
         time (int): the amount of time to count for during the experiment.
-        save_path (string): a file path to a directory to save the experiment data to.
         directbeam_file (string): the file path to the directbeam_wavelength.dat file.
         ax (matplotlib.pyplot.axis): axis to plot the simulated data on.
 
@@ -71,13 +70,6 @@ def simulate_noisy(structure, angle, points, time, save_path=None, directbeam_fi
         ax.set_yscale('log')
         #ax.set_xlim(0, 0.25)
 
-    if save_path: #Save the q, r and error values as a 3-column CSV file.
-        data = np.zeros((points, 3))
-        data[:,0] = q_binned
-        data[:,1] = r
-        data[:,2] = r_errors
-        np.savetxt(save_path+"/data.dat", data, delimiter=",")
-
     return model, q_binned, r, r_errors, flux_binned
 
 def vary_model(model):
@@ -127,34 +119,43 @@ def compare_to_real():
     fig1 = plt.figure(figsize=[9,7])
     ax1 = fig1.add_subplot(111)
     
-    #Plot the first angle dataset
-    data1 = np.loadtxt("Fringey_03_1uA.dat", delimiter='    ')
-    ax1.errorbar(data1[:,0], data1[:,1], data1[:,2], marker="o", ms=3, lw=0, elinewidth=1, capsize=1.5, label="Fringey_03_1uA.dat")
+    data1 = np.loadtxt("QCS_03_1uA.dat", delimiter='    ')
+    #data2 = np.loadtxt("QCS_04_1uA.dat", delimiter='    ')
+    #data3 = np.loadtxt("QCS_05_1uA.dat", delimiter='    ')
+    #data4 = np.loadtxt("QCS_06_1uA.dat", delimiter='    ')
+    data5 = np.loadtxt("QCS_07_1uA.dat", delimiter='    ')
     
-    #Plot the second angle dataset
-    data2 = np.loadtxt("Fringey_07_1uA.dat", delimiter='    ')
-    ax1.errorbar(data2[:,0], data2[:,1], data2[:,2], marker="o", ms=3, lw=0, elinewidth=1, capsize=1.5, label="Fringey_07_1uA.dat")
+    ax1.errorbar(data1[:,0], data1[:,1], data1[:,2], marker="o", ms=3, lw=0, elinewidth=1, capsize=1.5)
+    #ax1.errorbar(data2[:,0], data2[:,1], data2[:,2], marker="o", ms=3, lw=0, elinewidth=1, capsize=1.5)
+    #ax1.errorbar(data3[:,0], data3[:,1], data3[:,2], marker="o", ms=3, lw=0, elinewidth=1, capsize=1.5)
+    #ax1.errorbar(data4[:,0], data4[:,1], data4[:,2], marker="o", ms=3, lw=0, elinewidth=1, capsize=1.5)
+    ax1.errorbar(data5[:,0], data5[:,1], data5[:,2], marker="o", ms=3, lw=0, elinewidth=1, capsize=1.5)
     
+    ax1.set_xlim(0, 0.1)
+    ax1.set_ylim(1e-7, 2)
     plt.xlabel("$\mathregular{Q\ (Å^{-1})}$", fontsize=11, weight='bold')
     plt.ylabel('Reflectivity (arb.)',         fontsize=11, weight='bold')
-    plt.legend()
     plt.yscale('log')
     plt.show()
-
-
+    
     fig2 = plt.figure(figsize=[9,7])
-    ax2  = fig2.add_subplot(111)
+    ax2 = fig2.add_subplot(111)
     
     #Define the model for the real dataset.
     air       = SLD(0, name="Air")
-    layer1    = SLD(4.07,  name="Layer 1 - Au")(thick=168.4, rough=5.9)
-    layer2    = SLD(8.665, name="Layer 2 - Py")(thick=135.5, rough=10)
-    substrate = SLD(2.06,  name="Substrate - Si")(thick=0,   rough=9)
+    layer1    = SLD(1.795,  name="Layer 1 - Si")(thick=790.7,   rough=24.5)
+    layer2    = SLD(6.385,  name="Layer 2 - Cu")(thick=297.9,   rough=3.5)
+    substrate = SLD(3.354,  name="Substrate - Quartz")(thick=0, rough=12.9)
     structure = air | layer1 | layer2 | substrate
     
     #Simulate two noisy datasets with different angles corresponding to the datasets above.
-    simulate_noisy(structure, 0.3, 100, 1, ax=ax2)
-    simulate_noisy(structure, 0.7, 100, 1, ax=ax2)
+    simulate_noisy(structure, 0.3, 80, 1, ax=ax2)
+    #simulate_noisy(structure, 0.4, 80, 1, ax=ax2)
+    #simulate_noisy(structure, 0.5, 80, 1, ax=ax2)
+    #simulate_noisy(structure, 0.6, 80, 1, ax=ax2)
+    simulate_noisy(structure, 0.7, 80, 1, ax=ax2)
+    ax2.set_xlim(0, 0.1)
+    ax2.set_ylim(1e-7, 2)
     plt.show()
 
 if __name__ == "__main__":

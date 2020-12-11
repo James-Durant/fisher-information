@@ -26,8 +26,7 @@ def calc_FIM(q, r, xi, flux, model):
     n = len(r)
     m = len(xi)
     J = np.zeros((n,m))
-    #Calculate the gradient of the model reflectivity (r) with every
-    #model parameter (ξ) for every model data point.
+    #Calculate the gradient of the model reflectivity with every model parameter for every model data point.
     for i in range(n):
         for j in range(m):
             J[i,j] = gradient(model, xi[j], q[i])
@@ -88,6 +87,8 @@ def compare_fit_variance(structure, angle, points, time, n=1000):
         objective = Objective(model, ReflectDataset([q, r, r_error]))
         fitter = CurveFitter(objective)
         fitter.fit('L-BFGS-B', verbose=False)
+        
+        #plot_objective(objective)
 
         xi = objective.varying_parameters() #Get the parameter estimates.
         param_estimates.append([param.value for param in xi])
@@ -121,8 +122,7 @@ def compare_errors(structure, angle, points, time_constants):
         #Fit the data using differential evolution / L-BFGS-B
         objective = Objective(model, ReflectDataset([q, r, r_error]))
         fitter = CurveFitter(objective)
-        fitter.fit('differential_evolution', polish=False, verbose=False)
-        fitter.fit('L-BFGS-B', verbose=False)
+        fitter.fit('differential_evolution', verbose=False)
         #plot_objective(objective)
 
         xi = objective.varying_parameters()
@@ -138,7 +138,7 @@ def compare_errors(structure, angle, points, time_constants):
     fit_fig    = plt.figure(num=1, dpi=600)
     fit_ax     = fit_fig.add_subplot(111)
     fit_ax.set_xlabel("Log Time Constant")
-    fit_ax.set_ylabel("Log L-BFGS-B Error")
+    fit_ax.set_ylabel("Log Fitting Error")
 
     #Plot of log Fisher errors against log time constants.
     fisher_errors = np.array(fisher_errors)
@@ -163,10 +163,10 @@ if __name__ == "__main__":
     from structures import easy_sample, many_param_sample
 
     structure = easy_sample()
-    points    = 200
+    points    = 80
     angle     = 0.7
 
-    time_constants = 10**np.arange(0.5, 5, 0.5, dtype=float)
+    time_constants = 10**np.arange(0.5, 5, 0.2, dtype=float)
     compare_errors(*structure, angle, points, time_constants)
 
     time = 100

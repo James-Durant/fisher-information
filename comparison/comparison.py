@@ -138,6 +138,7 @@ class Fitting:
             ax.plot(objective.data.x, model, color="red", zorder=20)
 
         plt.xlabel("$\mathregular{Q\ (Å^{-1})}$", fontsize=11, weight='bold')
+        plt.xlim(0,0.25)
         plt.ylabel('Reflectivity (arb.)',         fontsize=11, weight='bold')
         plt.yscale('log')
         plt.savefig(self.save_path+"/fit_{}.png".format(fit_method), dpi=600)
@@ -147,24 +148,37 @@ if __name__ == "__main__":
     from structures import thin_layer_sample_1,  thin_layer_sample_2
     from structures import easy_sample, many_param_sample, multiple_contrast_sample
 
-    save_path = "./results/easy_sample"
-    structures = easy_sample()
+    save_path = "./results/similar_sld_sample_2"
+    structures = similar_sld_sample_2()
 
     if not os.path.exists(save_path):
         os.makedirs(save_path) #Create directory if not present.
 
-    angle  = 0.7
-    points = 200
-    time   = 100
-
+    points = 75 #Number of points per angle
     models, datasets = [], []
-    #For each contrast, simulate an experiement using the given angle, number of points and time.
-    for structure in structures:
-        model, q, r, r_error, _ = simulate_noisy(structure, angle, points, time, save_path)
+    #For each contrast, simulate an experiement using 3 angles with different measurement times.
+    for i, structure in enumerate(structures, 1):
+        model, q1, r1, r_error1, _ = simulate_noisy(structure, 0.3, points, 5)
+        _,     q2, r2, r_error2, _ = simulate_noisy(structure, 0.7, points, 10)
+        _,     q3, r3, r_error3, _ = simulate_noisy(structure, 2.0, points, 40)
+        
+        q = np.concatenate((q1, q2, q3))
+        r = np.concatenate((r1, r2, r3))
+        r_error = np.concatenate((r_error1, r_error2, r_error3))
+        
+        #Save dataset to .dat file
+        data = np.zeros((3*points, 3))
+        data[:,0] = q
+        data[:,1] = r
+        data[:,2] = r_error
+        data = data[data[:,0].argsort()] #Sort by Q
+        np.savetxt(save_path+"/contrast_{}.dat".format(i), data, delimiter=",")
+        
         models.append(model)
-        datasets.append([q,r,r_error])
+        datasets.append([data[:,0], data[:,1], data[:,2]])
 
-    model = Fitting(save_path, models, datasets)
-    model.fit_lbfgs()
-    model.fit_mcmc(burn=400, steps=15, nthin=100)
-    model.fit_nested()
+    #Fit the simulated data using L-BFGS-B, MCMC and/or nested sampling.
+    fitter = Fitting(save_path, models, datasets)
+    fitter.fit_lbfgs()
+    #fitter.fit_mcmc(burn=400, steps=15, nthin=100)
+    fitter.fit_nested()

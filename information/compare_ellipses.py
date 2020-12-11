@@ -117,9 +117,11 @@ def plot_ellipses(g, xi, fig):
                 continue #Leave diagonal plots as they are.
             else:
                 axes[i,j].set_visible(False) #Remove all other plots.
+                
+    axes[m-1,m-1].set_xlabel(xi[i].name)             
     plt.show()
 
-def confidence_ellipse(fisher, i, j, param1, param2, axis, show_xlabel, show_ylabel, k=1):
+def confidence_ellipse(fisher, i, j, param1, param2, axis, show_xlabel, show_ylabel):
     """Plots the confidence ellipse between `param1` and `param2`.
 
     Args:
@@ -131,12 +133,12 @@ def confidence_ellipse(fisher, i, j, param1, param2, axis, show_xlabel, show_yla
         axis (matplotlib.pyplot.axis): the subplot of the corner plot to plot on.
         show_xlabel (Boolean): whether to display the x-axis label.
         show_ylabel (Boolean): whether to display the y-axis label.
-        k (int): the number of standard deviations.
 
     """
     #Retrieve the elements of the FIM for the given parameters.
     g = [[fisher[i,i], fisher[i,j]], [fisher[j,i], fisher[j,j]]]
     
+    #Iterative over k: the number of standard deviations.
     for k in [1,2,3]:
         #Calculate the values of the confidence ellipse.
         x, y = [], []
@@ -164,9 +166,9 @@ if __name__ == "__main__":
     from structures import thin_layer_sample_1,  thin_layer_sample_2
     from structures import easy_sample, many_param_sample
 
-    structure = easy_sample()
-    angle      = 2
-    time       = 100
+    structure = similar_sld_sample_1()
+    angle      = 0.7
+    time       = 1000
     points     = 100
 
     fisher(*structure, angle, points, time, method="Nested-Sampling")
