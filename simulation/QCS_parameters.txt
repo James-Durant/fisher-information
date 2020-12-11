@@ -1,3 +1,0 @@
-Substrate = Quartz SLD = 3.354 R=12.4
-Cu : SLD = 0.6385 t = 297.9 R = 3
-Si : SLD = 1.795 t = 790.7 R = 15

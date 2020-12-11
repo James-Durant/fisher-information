@@ -1,4 +1,4 @@
-import sys
+import os, sys
 sys.path.append("../simulation") # Adds higher directory to python modules path.
 
 import numpy as np
@@ -60,7 +60,7 @@ class Sampler:
             parameter.value = x[i] #Update the model with given parameter values.
         return self.objective.logl()
 
-def fisher(structure, angle, points, time, method="MCMC"):
+def fisher(structure, angle, points, time, save_path, method="MCMC"):
     """Fits a model for a given `structure` using a given `method`, calculates
        the Fisher information and plots the Fisher confidence ellipses against
        the `method`'s corner plot.
@@ -70,7 +70,8 @@ def fisher(structure, angle, points, time, method="MCMC"):
         angle (float): measurement angle to use in the experiment simulation.
         points (int): number of points to obtain from binning in the experiment simulation.
         time (int): how long to measure for in the experiment simulation.
-        method (string): either 'MCMC' or 'Nested-Sampling'
+        save_path(string): path to directory for saving figure.
+        method (string): either 'MCMC' or 'Nested-Sampling'.
 
     """
     #Simulate an experiment using the given angle, number of points and time.
@@ -95,6 +96,7 @@ def fisher(structure, angle, points, time, method="MCMC"):
     xi = objective.varying_parameters()
     g = calc_FIM(q, r, xi, flux, model)
     plot_ellipses(g, xi, fig)
+    plt.savefig(save_path+"/confidence_ellipses_"+method+".png", dpi=600)
 
 def plot_ellipses(g, xi, fig):
     """Plots the Fisher confidence ellipses against the corner plot of either an
@@ -119,7 +121,6 @@ def plot_ellipses(g, xi, fig):
                 axes[i,j].set_visible(False) #Remove all other plots.
                 
     axes[m-1,m-1].set_xlabel(xi[i].name)             
-    plt.show()
 
 def confidence_ellipse(fisher, i, j, param1, param2, axis, show_xlabel, show_ylabel):
     """Plots the confidence ellipse between `param1` and `param2`.
@@ -148,14 +149,11 @@ def confidence_ellipse(fisher, i, j, param1, param2, axis, show_xlabel, show_yla
             x.append(epsilon*np.sin(theta))
             y.append(epsilon*np.cos(theta))
     
-        #Move the confidence ellipse to be centred on the parameter estimates
+        #Move the confidence ellipse to be centred on the parameter estimates.
         x = np.array(x) + param1.value
         y = np.array(y) + param2.value
         axis.plot(x,y, color='r')
 
-    #Adjust the x and y axes so the corner plot contours and new ellipse can be seen.
-    #axis.set_xlim(param1.value*0.995, param1.value*1.005)
-    #axis.set_ylim(param2.value*0.995, param2.value*1.005)
     if show_xlabel:
         axis.set_xlabel(param1.name)
     if show_ylabel:
@@ -166,10 +164,15 @@ if __name__ == "__main__":
     from structures import thin_layer_sample_1,  thin_layer_sample_2
     from structures import easy_sample, many_param_sample
 
-    structure = similar_sld_sample_1()
-    angle      = 0.7
-    time       = 1000
-    points     = 100
+    structure = easy_sample #Choose structure here.
+    angle     = 0.7
+    time      = 100
+    points    = 100
+    
+    save_path = "./results/"+structure.__name__
+    if not os.path.exists(save_path):
+        os.makedirs(save_path) 
 
-    fisher(*structure, angle, points, time, method="Nested-Sampling")
-    #fisher(*structure, angle, points, time, method="MCMC")
+    #Overlay the Fisher confidence ellipses on the MCMC and nested sampling corner plots.
+    fisher(*structure(), angle, points, time, save_path, method="Nested-Sampling")
+    fisher(*structure(), angle, points, time, save_path, method="MCMC")

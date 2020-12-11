@@ -1,4 +1,4 @@
-import sys, copy
+import os, sys, copy
 sys.path.append("../simulation") #Adds higher directory to python modules path.
 
 import numpy as np
@@ -45,7 +45,7 @@ def gradient(model, parameter, q_point, step=0.005):
         step (float): the step size to take when calculating the gradient.
 
     Returns:
-        float: a two-point gradient.
+        float: the two-point gradient.
 
     """
     step = parameter.value * step #0.5% step by default
@@ -60,7 +60,7 @@ def gradient(model, parameter, q_point, step=0.005):
     parameter.value = old #Reset parameter
     return (y2-y1) / (x2-x1) #Return the gradient
 
-def compare_fit_variance(structure, angle, points, time, n=1000):
+def compare_fit_variance(structure, angle, points, time, save_path, n=1000):
     """Compares the multiplicative inverse Fisher information (variance) with
        variance in parameter estimation using traditional fitting for `n` fits.
 
@@ -69,6 +69,7 @@ def compare_fit_variance(structure, angle, points, time, n=1000):
         angle (float): measurement angle to use in the experiment simulation.
         points (int): number of points to obtain from binning in the experiment simulation.
         time (int): how long to measure for in the experiment simulation.
+        save_path (string): path to directory to save Fisher and fit variances.
         n (int): number of fits to run.
 
     """
@@ -93,15 +94,20 @@ def compare_fit_variance(structure, angle, points, time, n=1000):
         xi = objective.varying_parameters() #Get the parameter estimates.
         param_estimates.append([param.value for param in xi])
 
-    g = calc_FIM(q, r, xi, flux, model) #Calculate the Fisher information matrix.
-    print("Fisher Information: ", np.diag(g))
-    print("Inverse Fisher Information: ", 1 / np.diag(g))
-
     #Calculate the variances in parameter estimates from `n` fits.
-    variances = np.var(np.array(param_estimates), axis=0)
-    print("Parameter Estimation Variances: ", variances)
+    param_vars = np.var(np.array(param_estimates), axis=0)
 
-def compare_errors(structure, angle, points, time_constants):
+    g = calc_FIM(q, r, xi, flux, model) #Calculate the Fisher information matrix.
+    inv_fisher = 1 / np.diag(g)
+  
+    #Save the results to .txt file. 
+    with open(save_path+"/variance_comparison.txt", "w") as file: 
+        file.write("Variance in Parameter Estimation:\n")
+        file.write(str(param_vars)+"\n"*2)
+        file.write("Inverse Fisher Information:\n")
+        file.write(str(inv_fisher))
+
+def compare_errors(structure, angle, points, time_constants, save_path):
     """Compares traditional fitting errors and Fisher errors with increasing time.
 
     Args:
@@ -109,6 +115,7 @@ def compare_errors(structure, angle, points, time_constants):
         angle (float): measurement angle to use in the experiment simulation.
         points (int): number of points to obtain from binning in the experiment simulation.
         time_constants (numpy.ndarray): array of time constants to use for the comparison.
+        save_path(string): path to directory for saving figures.
 
     """
     fit_errors, fisher_errors = [], []
@@ -155,19 +162,27 @@ def compare_errors(structure, angle, points, time_constants):
 
     fit_ax.legend()
     fisher_ax.legend()
-    plt.show()
+    fit_fig.savefig(save_path+"/fit_errors_with_time.png", dpi=600)
+    fisher_fig.savefig(save_path+"/fisher_errors_with_time.png", dpi=600)
 
 if __name__ == "__main__":
     from structures import similar_sld_sample_1, similar_sld_sample_2
     from structures import thin_layer_sample_1,  thin_layer_sample_2
     from structures import easy_sample, many_param_sample
 
-    structure = easy_sample()
-    points    = 80
+    structure = easy_sample #Choose structure here.
+    points    = 100
     angle     = 0.7
+    
+    save_path = "./results/"+structure.__name__
+    if not os.path.exists(save_path):
+        os.makedirs(save_path)
 
     time_constants = 10**np.arange(0.5, 5, 0.2, dtype=float)
-    compare_errors(*structure, angle, points, time_constants)
+    compare_errors(*structure(), angle, points, time_constants, save_path)
 
     time = 100
-    #compare_fit_variance(*structure, angle, points, time, n=100)
+    fits = 1000
+    compare_fit_variance(*structure(), angle, points, time, save_path, n=fits)
+
+    

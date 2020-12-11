@@ -1,3 +1,4 @@
+import os
 from refnx.reflect import SLD
 import matplotlib.pyplot as plt
 
@@ -68,34 +69,39 @@ def many_param_sample():
     structure = air | layer1 | layer2 | layer3 | layer4 | layer5 | substrate
     return [structure]
 
-def sld_profile(structure, ax=None):
-    """Plots the SLD profile for a given `structure`.
+def plot_all_sld_profiles(save_path):
+    """Plots the SLD profile for all structures in this file.
 
     Args:
-        structure (refnx.reflect.Structure): the structure to plot the SLD profile of.
-        ax (matplotlib.pyplot.axis): an existing plot to add the SLD profile to.
-
+        save_path (string): path to the directory to save the SLD profiles to.
+        
     """
-    if ax is None:
-        plt.figure(dpi=600) #Create a new figure and add the SLD profile to it.
-        plt.plot(*structure.sld_profile())
-    else:
-        ax.plot(*structure.sld_profile()) #Add the SLD profile to the existing plot.
-
-    plt.ylabel("$\mathregular{SLD\ (10^{-6} \AA^{-2})}$")
-    plt.xlabel("$\mathregular{Distance\ (\AA)}$")
+    #Plot and save SLD profiles for each single contrast structure.
+    for structure_func in [similar_sld_sample_1, similar_sld_sample_2,
+                           thin_layer_sample_1,  thin_layer_sample_2,
+                           easy_sample,          many_param_sample]:
+        structure = structure_func()[0]
+        plt.figure()
+        plt.plot(*structure.sld_profile()) #Plot SLD profile.
+        plt.xlabel("$\mathregular{Distance\ (\AA)}$")
+        plt.ylabel("$\mathregular{SLD\ (10^{-6} \AA^{-2})}$")
+        
+        #Save the SLD profile figure.
+        structure_save_path = save_path+structure_func.__name__
+        if not os.path.exists(structure_save_path):
+            os.makedirs(structure_save_path)
+        plt.savefig(structure_save_path+"/sld_profile.png", dpi=600)
+        
+    #Plot the two contrasts on the same axis.
+    structure1, structure2 = multiple_contrast_sample()
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    ax.plot(*structure1.sld_profile())
+    ax.plot(*structure2.sld_profile())
+    ax.set_xlabel("$\mathregular{Distance\ (\AA)}$")
+    ax.set_ylabel("$\mathregular{SLD\ (10^{-6} \AA^{-2})}$")
+    fig.savefig(save_path+"multiple_contrast_sample/sld_profile.png", dpi=600)  
 
 if __name__ == "__main__":
-    structure1, structure2 = multiple_contrast_sample()
-    #Plot the two contrasts on the same axis.
-    ax = plt.figure(dpi=600).add_subplot(111)
-    sld_profile(structure1, ax)
-    sld_profile(structure2, ax)
-    plt.show()
-
-    sld_profile(*easy_sample())
-    sld_profile(*thin_layer_sample_1())
-    sld_profile(*thin_layer_sample_2())
-    sld_profile(*similar_sld_sample_1())
-    sld_profile(*similar_sld_sample_2())
-    sld_profile(*many_param_sample())
+    save_path = "../comparison/results/"
+    plot_all_sld_profiles(save_path)

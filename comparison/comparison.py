@@ -25,6 +25,9 @@ class Fitting:
 
     """
     def __init__(self, save_path, models, datasets):
+        if not os.path.exists(save_path): #Create directory if not present.
+            os.makedirs(save_path)
+            
         self.save_path = save_path
         self.datasets = [ReflectDataset(data) for data in datasets]
         self.models   = models
@@ -138,36 +141,46 @@ class Fitting:
             ax.plot(objective.data.x, model, color="red", zorder=20)
 
         plt.xlabel("$\mathregular{Q\ (Å^{-1})}$", fontsize=11, weight='bold')
-        plt.xlim(0,0.25)
+        plt.xlim(0, 0.25)
         plt.ylabel('Reflectivity (arb.)',         fontsize=11, weight='bold')
         plt.yscale('log')
         plt.savefig(self.save_path+"/fit_{}.png".format(fit_method), dpi=600)
 
-if __name__ == "__main__":
-    from structures import similar_sld_sample_1, similar_sld_sample_2
-    from structures import thin_layer_sample_1,  thin_layer_sample_2
-    from structures import easy_sample, many_param_sample, multiple_contrast_sample
 
-    save_path = "./results/similar_sld_sample_2"
-    structures = similar_sld_sample_2()
+def run_experiment(structures, points, angle_times, save_path):
+    """Simulates an experiment for a given structure over a number of angles, 
+       each having its own measurement time.
 
-    if not os.path.exists(save_path):
-        os.makedirs(save_path) #Create directory if not present.
+    Args:
+        structures (list): list of refnx.reflect.struture objects corresponding to each contrast.
+        points (int): number of points to simulate per measurement angle.
+        angle_times (dict): dictionary measurement times per angle.
+        save_path (string): path to directory to save each contrast's data to.
 
-    points = 75 #Number of points per angle
+    Returns:
+       models (list): list of refnx.reflect.ReflectModel objects, one for each contrast.
+       datasets (list): list of [q,r,r_error] lists for each contrast.
+
+    """
+    if not os.path.exists(save_path): #Create directory if not present.
+        os.makedirs(save_path)
+
     models, datasets = [], []
-    #For each contrast, simulate an experiement using 3 angles with different measurement times.
+    #For each contrast, simulate an experiment using angles with different measurement times.
     for i, structure in enumerate(structures, 1):
-        model, q1, r1, r_error1, _ = simulate_noisy(structure, 0.3, points, 5)
-        _,     q2, r2, r_error2, _ = simulate_noisy(structure, 0.7, points, 10)
-        _,     q3, r3, r_error3, _ = simulate_noisy(structure, 2.0, points, 40)
+        q, r, r_error = [], [], []
+        for angle in angle_times:
+            #Simulate the experiment
+            time = angle_times[angle]
+            model, q_anlge, r_angle, r_error_angle, _ = simulate_noisy(structure, angle, points, time)
         
-        q = np.concatenate((q1, q2, q3))
-        r = np.concatenate((r1, r2, r3))
-        r_error = np.concatenate((r_error1, r_error2, r_error3))
+            #Combine the q, r and r_error values with the data of other angles.
+            q += q_anlge
+            r += r_angle
+            r_error += r_error_angle
         
-        #Save dataset to .dat file
-        data = np.zeros((3*points, 3))
+        #Save combined dataset to .dat file
+        data = np.zeros((len(angle_times)*points, 3))
         data[:,0] = q
         data[:,1] = r
         data[:,2] = r_error
@@ -176,9 +189,25 @@ if __name__ == "__main__":
         
         models.append(model)
         datasets.append([data[:,0], data[:,1], data[:,2]])
+    
+    return models, datasets
+
+if __name__ == "__main__":
+    from structures import similar_sld_sample_1, similar_sld_sample_2
+    from structures import thin_layer_sample_1,  thin_layer_sample_2
+    from structures import easy_sample, many_param_sample, multiple_contrast_sample
+
+    structure   = easy_sample #Choose structure here.
+    points      = 75          #Number of points per angle.
+    angle_times = {0.3: 5, 0.7: 10, 2.0: 40} #Measurement time for each angle.
+    save_path   = "./results/"+structure.__name__
+    
+    models, datasets = run_experiment(structure(), points, angle_times, save_path)
 
     #Fit the simulated data using L-BFGS-B, MCMC and/or nested sampling.
     fitter = Fitting(save_path, models, datasets)
     fitter.fit_lbfgs()
-    #fitter.fit_mcmc(burn=400, steps=15, nthin=100)
+    fitter.fit_mcmc(burn=400, steps=15, nthin=100)
     fitter.fit_nested()
+
+

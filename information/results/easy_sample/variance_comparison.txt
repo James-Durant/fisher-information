@@ -1,0 +1,5 @@
+Variance in Parameter Estimation:
+[3.60631164e-03 3.28991466e-05 7.12438376e-03 8.75453330e-07]
+
+Inverse Fisher Information:
+[3.31203847e-03 1.39645438e-05 2.68582732e-03 2.35109420e-06]

@@ -163,9 +163,8 @@ if __name__ == "__main__":
     from structures import similar_sld_sample_1, similar_sld_sample_2
     from structures import easy_sample, many_param_sample, multiple_contrast_sample
 
-    compare_to_real()
+    #compare_to_real()
 
-"""
     fig = plt.figure(figsize=[9,7])
     ax  = fig.add_subplot(111)
 
@@ -179,4 +178,3 @@ if __name__ == "__main__":
         for angle in angles:
             simulate_noisy(structure, angle, points, time, ax=ax)
     plt.show()
-"""
