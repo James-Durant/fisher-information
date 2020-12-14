@@ -12,6 +12,9 @@ def H2O_SMW_D2O_contrast_sample():
     SMW =  2.07
     D2O =  6.35
     
+    substrate  = SLD(2.047, name="Silicon Substrate"  )(thick=0, rough=2)
+    SiO2_layer = SLD(3.41,  name="Silicon Oxide Layer")(thick=8, rough=3)
+    
     name = "Water Layer"
     water_layer_thick = Parameter(6, name=name+" - Thick")
     water_layer_rough = Parameter(5, name=name+" - Rough")
@@ -45,18 +48,17 @@ def H2O_SMW_D2O_contrast_sample():
     SMW_bulk_water = SLD(SMW, name=name)
     D2O_bulk_water = SLD(D2O, name=name)
     
-    substrate = SLD(2.047, name="Silicon Substrate")(thick=0, rough=5)
-    
-    H2O_structure = substrate | H2O_water_layer | H2O_inner_headgroups | H2O_chain_region | H2O_outer_headgroups | H2O_bulk_water
-    SMW_structure = substrate | SMW_water_layer | SMW_inner_headgroups | SMW_chain_region | SMW_outer_headgroups | SMW_bulk_water
-    D2O_structure = substrate | D2O_water_layer | D2O_inner_headgroups | D2O_chain_region | D2O_outer_headgroups | D2O_bulk_water
+    H2O_structure = substrate | SiO2_layer | H2O_water_layer | H2O_inner_headgroups | H2O_chain_region | H2O_outer_headgroups | H2O_bulk_water
+    SMW_structure = substrate | SiO2_layer | SMW_water_layer | SMW_inner_headgroups | SMW_chain_region | SMW_outer_headgroups | SMW_bulk_water
+    D2O_structure = substrate | SiO2_layer | D2O_water_layer | D2O_inner_headgroups | D2O_chain_region | D2O_outer_headgroups | D2O_bulk_water
     
     H2O_structure.name = "H2O"
     SMW_structure.name = "SMW"
     D2O_structure.name = "D2O"
     
     for param in [water_layer_thick, water_layer_rough,  inner_headgroups_thick, inner_headgroups_rough,
-                 chain_region_thick, chain_region_rough, outer_headgroups_thick, outer_headgroups_rough, substrate.rough]:
+                 chain_region_thick, chain_region_rough, outer_headgroups_thick, outer_headgroups_rough,
+                 SiO2_layer.thick, SiO2_layer.rough]:
         param.setp(vary=True, bounds=(param.value*0.5, param.value*1.5))
     
     return H2O_structure, SMW_structure, D2O_structure
@@ -99,14 +101,13 @@ def fit_models(models, datasets):
         # Add the data in a transformed fashion.
         y, y_err, model = objective._data_transform(model=objective.generative())
         ax.errorbar(objective.data.x, y, y_err, marker="o", ms=3, lw=0,  elinewidth=1,
-                    capsize=1.5, label=model.structure.name+" Simulated")
+                    capsize=1.5, label=objective.model.structure.name+" Simulated")
         #Add the fit
-        ax.plot(objective.data.x, model, color="red", zorder=20,
-                label=model.structure.name+" Fitted")
+        ax.plot(objective.data.x, model, color="red", zorder=20)
 
     plt.xlabel("$\mathregular{Q\ (Å^{-1})}$", fontsize=11, weight='bold')
-    plt.xlim(0, 0.3)
     plt.ylabel('Reflectivity (arb.)',         fontsize=11, weight='bold')
+    plt.xlim(0, 0.3)
     plt.yscale('log')
     plt.legend()
     plt.show()
@@ -116,8 +117,8 @@ def plot_sld_profile(structures):
     for structure in structures:
         plt.plot(*structure.sld_profile(), label=structure.name) #Plot SLD profile.
     
-    plt.xlabel("$\mathregular{Distance\ (\AA)}$")
-    plt.ylabel("$\mathregular{SLD\ (10^{-6} \AA^{-2})}$")
+    plt.xlabel("$\mathregular{Distance\ (\AA)}$",         fontsize=11, weight='bold')
+    plt.ylabel("$\mathregular{SLD\ (10^{-6} \AA^{-2})}$", fontsize=11, weight='bold')
     plt.legend()
     plt.show()
 
@@ -134,8 +135,8 @@ def plot_models(models, q_min=0.005, q_max=0.3, points=300):
     plt.show()
 
 if __name__ == "__main__":
-    angle_times = {0.8: (120, 1), #Angle: (Points, Time)
-                   3.2: (120, 1)} 
+    angle_times = {0.8: (50, 1), #Angle: (Points, Time)
+                   3.2: (50, 1)} 
     bkg = 1e-7
     dq  = 3
     
