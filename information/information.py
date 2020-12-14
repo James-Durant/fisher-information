@@ -75,7 +75,7 @@ def compare_fit_variance(structure, angle, points, time, save_path, n=1000):
     """
     param_estimates = []
     for i in range(n): #Fit `n` times.
-        if i > 0 and i % 100 == 0: #Display progress every 100 fits.
+        if i > 0 and i % 10 == 0: #Display progress every 100 fits.
             print("{0}/{1}...".format(i, n))
 
         #Copy the structure to avoid using previous fits' results.
@@ -84,10 +84,10 @@ def compare_fit_variance(structure, angle, points, time, save_path, n=1000):
         model, q, r, r_error, flux = simulate_noisy(structure_copy, angle, points, time)
         vary_model(model) #Vary the model and initialise parameters to random values.
 
-        #Fit the model using L-BFGS-B.
+        #Fit the model using differential evolution.
         objective = Objective(model, ReflectDataset([q, r, r_error]))
         fitter = CurveFitter(objective)
-        fitter.fit('L-BFGS-B', verbose=False)
+        fitter.fit('differential_evolution', verbose=False)
 
         #plot_objective(objective)
 
@@ -99,6 +99,9 @@ def compare_fit_variance(structure, angle, points, time, save_path, n=1000):
 
     g = calc_FIM(q, r, xi, flux, model) #Calculate the Fisher information matrix.
     inv_fisher = 1 / np.diag(g)
+
+    print("Variance in Parameter Estimation:", param_vars)
+    print("Inverse Fisher Information:", inv_fisher)
 
     #Save the results to .txt file.
     with open(save_path+"/variance_comparison.txt", "w") as file:
@@ -182,5 +185,5 @@ if __name__ == "__main__":
     compare_errors(*structure(), angle, points, time_constants, save_path)
 
     time = 100
-    fits = 1000
+    fits = 100
     compare_fit_variance(*structure(), angle, points, time, save_path, n=fits)

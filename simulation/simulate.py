@@ -3,9 +3,9 @@ import matplotlib.pyplot as plt
 
 from refnx.reflect import ReflectModel
 
-DQ       = 2
+DQ       = 3
 SCALE    = 1
-BKG      = 1e-6
+BKG      = 1e-7
 BKG_RATE = 5e-7
 
 def simulate_noisy(structure, angle, points, time, directbeam_file="../simulation/directbeam_wavelength.dat"):
