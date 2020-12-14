@@ -44,9 +44,10 @@ def H2O_SMW_D2O_contrast_sample():
     D2O_outer_headgroups = SLD(0.76*0.5+D2O*0.5, name=name)(thick=outer_headgroups_thick, rough=outer_headgroups_rough)
 
     name = "Bulk Water"
-    H2O_bulk_water = SLD(H2O, name=name)
-    SMW_bulk_water = SLD(SMW, name=name)
-    D2O_bulk_water = SLD(D2O, name=name)
+    bulk_water_rough = Parameter(5, name=name+" - Rough")
+    H2O_bulk_water = SLD(H2O, name=name)(rough=bulk_water_rough)
+    SMW_bulk_water = SLD(SMW, name=name)(rough=bulk_water_rough)
+    D2O_bulk_water = SLD(D2O, name=name)(rough=bulk_water_rough)
     
     H2O_structure = substrate | SiO2_layer | H2O_water_layer | H2O_inner_headgroups | H2O_chain_region | H2O_outer_headgroups | H2O_bulk_water
     SMW_structure = substrate | SiO2_layer | SMW_water_layer | SMW_inner_headgroups | SMW_chain_region | SMW_outer_headgroups | SMW_bulk_water
@@ -56,9 +57,12 @@ def H2O_SMW_D2O_contrast_sample():
     SMW_structure.name = "SMW"
     D2O_structure.name = "D2O"
     
-    for param in [water_layer_thick, water_layer_rough,  inner_headgroups_thick, inner_headgroups_rough,
-                 chain_region_thick, chain_region_rough, outer_headgroups_thick, outer_headgroups_rough,
-                 SiO2_layer.thick, SiO2_layer.rough]:
+    for param in [SiO2_layer.thick,       SiO2_layer.rough,
+                  water_layer_thick,      water_layer_rough,  
+                  inner_headgroups_thick, inner_headgroups_rough,
+                  chain_region_thick,     chain_region_rough, 
+                  outer_headgroups_thick, outer_headgroups_rough,
+                                          bulk_water_rough]:
         param.setp(vary=True, bounds=(param.value*0.5, param.value*1.5))
     
     return H2O_structure, SMW_structure, D2O_structure
