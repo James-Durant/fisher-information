@@ -11,15 +11,15 @@ from dynesty import NestedSampler
 from dynesty import plotting as dyplot
 from dynesty import utils    as dyfunc
 
-from simulate    import simulate_noisy, vary_model
-from information import calc_FIM
+from simulate import simulate_single_contrast, vary_model
+from fisher_information import calc_FIM
 
 class Sampler:
     """The Sampler class contains the code nested sampling.
 
     Attributes:
         objective (refnx.analysis.Objective): the objective to fit.
-        ndim (int): the dimensionalilty of the problem.
+        ndim (int): the dimensionalilty of the sampling problem.
         sampler (dynesty.NestedSampler): a dynesty static nested sampler.
 
     """
@@ -60,23 +60,24 @@ class Sampler:
             parameter.value = x[i] #Update the model with given parameter values.
         return self.objective.logl()
 
-def fisher(structure, angle, points, time, save_path, method="MCMC"):
+def fisher(structure, angle_times, save_path, method):
     """Fits a model for a given `structure` using a given `method`, calculates
        the Fisher information and plots the Fisher confidence ellipses against
-       the `method`'s corner plot.
+       the method's corner plot.
 
     Args:
         structure (refnx.reflect.Structure): the structure to simulate the experiment for.
-        angle (float): measurement angle to use in the experiment simulation.
-        points (int): number of points to obtain from binning in the experiment simulation.
-        time (int): how long to measure for in the experiment simulation.
-        save_path(string): path to directory for saving figure.
-        method (string): either 'MCMC' or 'Nested-Sampling'.
+        angle_times (dict): dictionary of times and number of points for each measurement angle.
+        save_path (string): path to directory for saving figure.
+        method (string): either 'MCMC' or 'nested_sampling'.
 
     """
-    #Simulate an experiment using the given angle, number of points and time.
-    model, q, r, r_error, flux = simulate_noisy(structure, angle, points, time)
+    #Simulate an experiment using the given angles, number of points and times.
+    model, data = simulate_single_contrast(structure, angle_times)
     vary_model(model) #Vary the SLD and thickness of each layer and set them to random values.
+
+    #Retrieve data from simulation dataset and create objective to fit.
+    q, r, r_error, flux = data[:,0], data[:,1], data[:,2], data[:,3]
     objective = Objective(model, ReflectDataset([q, r, r_error]))
 
     if method == "MCMC":
@@ -86,7 +87,7 @@ def fisher(structure, angle, points, time, save_path, method="MCMC"):
         fitter.reset()
         fitter.sample(30, nthin=100)
         fig = objective.corner()
-    elif method == "Nested-Sampling":
+    elif method == "nested_sampling":
         sampler = Sampler(objective)
         fig = sampler.sample()
     else:
@@ -94,9 +95,9 @@ def fisher(structure, angle, points, time, save_path, method="MCMC"):
 
     #Calculate the Fisher information matrix, g, and plot the confidence ellipses.
     xi = objective.varying_parameters()
-    g = calc_FIM(q, r, xi, flux, model)
+    g  = calc_FIM(q, xi, flux, model)
     plot_ellipses(g, xi, fig)
-    plt.savefig(save_path+"/confidence_ellipses_"+method+".png", dpi=600)
+    fig.savefig(save_path+"/confidence_ellipses_"+method+".png", dpi=600)
 
 def plot_ellipses(g, xi, fig):
     """Plots the Fisher confidence ellipses against the corner plot of either an
@@ -113,7 +114,7 @@ def plot_ellipses(g, xi, fig):
     m = len(xi)
     for i in range(m):
         for j in range(m):
-            if i > j: #Plot the confidence ellipise on the plots below the diagonal.
+            if i > j: #Plot the confidence ellipse on the plots below the diagonal.
                 confidence_ellipse(g, j, i, xi[j], xi[i], axes[i,j], i==m-1, j==0)
             elif i == j:
                 continue #Leave diagonal plots as they are.
@@ -164,15 +165,14 @@ if __name__ == "__main__":
     from structures import thin_layer_sample_1,  thin_layer_sample_2
     from structures import easy_sample, many_param_sample
 
-    structure = easy_sample #Choose structure here.
-    angle     = 0.7
-    time      = 100
-    points    = 100
+    structure   = easy_sample #Choose structure here.
+    angle_times = {0.7: (70, 5), #Angle: (Points, Time)
+                   2.0: (70, 20)}
 
     save_path = "./results/"+structure.__name__
-    if not os.path.exists(save_path):
+    if not os.path.exists(save_path): #Create directory if not present.
         os.makedirs(save_path)
 
     #Overlay the Fisher confidence ellipses on the MCMC and nested sampling corner plots.
-    fisher(*structure(), angle, points, time, save_path, method="Nested-Sampling")
-    fisher(*structure(), angle, points, time, save_path, method="MCMC")
+    fisher(*structure(), angle_times, save_path, "nested_sampling")
+    fisher(*structure(), angle_times, save_path, "MCMC")

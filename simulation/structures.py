@@ -81,26 +81,31 @@ def plot_all_sld_profiles(save_path):
                            thin_layer_sample_1,  thin_layer_sample_2,
                            easy_sample,          many_param_sample]:
         structure = structure_func()[0]
-        plt.figure()
-        plt.plot(*structure.sld_profile()) #Plot SLD profile.
-        plt.xlabel("$\mathregular{Distance\ (\AA)}$")
-        plt.ylabel("$\mathregular{SLD\ (10^{-6} \AA^{-2})}$")
+        fig = plt.figure(figsize=[9,7], dpi=600)
+        ax  = fig.add_subplot(111)
+        ax.plot(*structure.sld_profile()) #Plot SLD profile.
+        ax.set_xlabel("$\mathregular{Distance\ (\AA)}$", fontsize=11, weight='bold')
+        ax.set_ylabel("$\mathregular{SLD\ (10^{-6} \AA^{-2})}$", fontsize=11, weight='bold')
 
         #Save the SLD profile figure.
         structure_save_path = save_path+structure_func.__name__
         if not os.path.exists(structure_save_path):
             os.makedirs(structure_save_path)
-        plt.savefig(structure_save_path+"/sld_profile.png", dpi=600)
+        fig.savefig(structure_save_path+"/sld_profile.png", dpi=600)
 
     #Plot the two contrasts on the same axis.
     structure1, structure2 = multiple_contrast_sample()
-    fig = plt.figure()
-    ax = fig.add_subplot(111)
+    fig = plt.figure(figsize=[9,7], dpi=600)
+    ax  = fig.add_subplot(111)
     ax.plot(*structure1.sld_profile())
     ax.plot(*structure2.sld_profile())
-    ax.set_xlabel("$\mathregular{Distance\ (\AA)}$")
-    ax.set_ylabel("$\mathregular{SLD\ (10^{-6} \AA^{-2})}$")
-    fig.savefig(save_path+"multiple_contrast_sample/sld_profile.png", dpi=600)
+    ax.set_xlabel("$\mathregular{Distance\ (\AA)}$", fontsize=11, weight='bold')
+    ax.set_ylabel("$\mathregular{SLD\ (10^{-6} \AA^{-2})}$", fontsize=11, weight='bold')
+    
+    structure_save_path = save_path+"multiple_contrast_sample"
+    if not os.path.exists(structure_save_path):
+        os.makedirs(structure_save_path)
+    fig.savefig(structure_save_path+"/sld_profile.png", dpi=600)
 
 if __name__ == "__main__":
     save_path = "../comparison/results/"
