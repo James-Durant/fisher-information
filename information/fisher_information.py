@@ -71,7 +71,7 @@ def compare_fit_variance(structure, angle_times, save_path, n=1000):
         n (int): number of fits to run.
 
     """
-    param_estimates = []
+    param_estimates, inv_fisher_infos = [], []
     for i in range(n): #Fit `n` times.
         if i % 10 == 0: #Display progress every 10 fits.
             print("{0}/{1}...".format(i, n))
@@ -89,21 +89,14 @@ def compare_fit_variance(structure, angle_times, save_path, n=1000):
 
         xi = objective.varying_parameters() #Get the parameter estimates.
         param_estimates.append([param.value for param in xi])
+        
+        g = calc_FIM(q, xi, flux, model) #Calculate the Fisher information matrix.
+        inv_fisher_infos.append(1 / np.diag(g))
 
     #Calculate the variances in parameter estimates from `n` fits.
     param_vars = np.var(np.array(param_estimates), axis=0)
-
-    #Calculate the Fisher information matrix from the ground truth model.
-    model, data = simulate_single_contrast(*structure(), angle_times)
-    q, flux = data[:,0], data[:,3]
-    xi = []    
-    for component in model.structure.components[1:-1]:
-        xi.append(component.sld.real)
-        xi.append(component.thick)
-    
-    g = calc_FIM(q, xi, flux, model) #Calculate the Fisher information matrix.
-    inv_fisher = 1 / np.diag(g)
-
+    #Calculate the mean inverse Fisher information for each parameter.
+    inv_fisher = np.mean(np.array(inv_fisher_infos), axis=0)
     print("Variance in Parameter Estimation:", param_vars)
     print("Inverse Fisher Information:", inv_fisher)
 
@@ -192,4 +185,4 @@ if __name__ == "__main__":
     times = 10**np.arange(0.5, 5, 0.2, dtype=float)
     #compare_errors(structure, angle_times, times, save_path)
 
-    compare_fit_variance(structure, angle_times, save_path, n=200)
+    compare_fit_variance(structure, angle_times, save_path, n=500)
