@@ -1,5 +1,5 @@
 import os, sys
-sys.path.append("../simulation") # Adds higher directory to python modules path.
+sys.path.append("../simulation") #Adds directory to Python modules path.
 
 import numpy as np
 import matplotlib.pyplot as plt

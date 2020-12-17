@@ -1,8 +1,7 @@
 import os, sys
-sys.path.append("../simulation") # Adds higher directory to python modules path.
+sys.path.append("../simulation") # Adds directory to Python modules path.
 
 import numpy as np
-import matplotlib.pyplot as plt
 
 from refnx.dataset  import ReflectDataset
 from refnx.analysis import Objective, CurveFitter
@@ -11,8 +10,8 @@ from dynesty import NestedSampler
 from dynesty import plotting as dyplot
 from dynesty import utils    as dyfunc
 
+from fisher   import calc_FIM
 from simulate import simulate_single_contrast, vary_model
-from fisher_information import calc_FIM
 
 class Sampler:
     """The Sampler class contains the code nested sampling.

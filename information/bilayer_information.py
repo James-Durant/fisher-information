@@ -1,5 +1,5 @@
 import os, sys
-sys.path.append("../simulation") #Adds higher directory to python modules path.
+sys.path.append("../simulation") #Adds directory to Python modules path.
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -8,8 +8,8 @@ from refnx.dataset  import ReflectDataset
 from refnx.reflect  import SLD
 from refnx.analysis import Objective
 
+from fisher   import calc_FIM
 from simulate import simulate_single_contrast
-from fisher_information import calc_FIM
 
 def bilayer_contrast_sample(contrast):
     """Creates a lipid bilayer sample using given `contrast` SLD.
@@ -79,7 +79,7 @@ def plot_contrast_information(contrasts, angle_times, bkg, dq, save_path):
     information = np.array(information)
     fig = plt.figure(figsize=[9,7], dpi=600)
     ax  = fig.add_subplot(111)
-    for i in range(5): #Plot the Fisher information values for each thickness parameter.
+    for i in range(len(names)): #Plot the Fisher information values for each thickness parameter.
         ax.plot(contrasts, information[:,i], label=names[i])
 
     ax.set_xlabel("$\mathregular{Contrast\ SLD\ (10^{-6} \AA^{-2})}$", fontsize=11, weight='bold')
