@@ -1,5 +1,5 @@
-# enough-is-enough
-“Enough is enough!” – a framework for stopping experiments with sufficient statistics.
+# fisher-information
+A framework for applying the Fisher information to neutron reflectometry.
 
 ## About The Project
 To do
