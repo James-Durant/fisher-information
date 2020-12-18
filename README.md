@@ -12,9 +12,9 @@ To do
 
 ## Getting Started
 ### Installation
-1. To replicate the development environment with the [`Anaconda`](https://www.anaconda.com/products/individual) distribution, first create an empty conda environment by running: <br /> ```conda create --name enough```
+1. To replicate the development environment with the [`Anaconda`](https://www.anaconda.com/products/individual) distribution, first create an empty conda environment by running: <br /> ```conda create --name fisher```
 
-2. To activate the environment, run: ```conda activate enough```
+2. To activate the environment, run: ```conda activate fisher```
 
 3. Install pip by running: ```conda install pip```
 
