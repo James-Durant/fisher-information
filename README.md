@@ -10,8 +10,7 @@ To do
 * [`dynesty`](https://dynesty.readthedocs.io/en/latest/)
 * [`corner.py`](https://corner.readthedocs.io/en/latest/)
 
-## Getting Started
-### Installation
+## Installation
 1. To replicate the development environment with the [`Anaconda`](https://www.anaconda.com/products/individual) distribution, first create an empty conda environment by running: <br /> ```conda create --name fisher```
 
 2. To activate the environment, run: ```conda activate fisher```
@@ -22,9 +21,6 @@ To do
    ```pip install -r requirements.txt```
 
 You should now be able to run the code.
-
-### Usage
-To do
 
 ## Contact
 Jos Cooper     - jos.cooper@stfc.ac.uk\
