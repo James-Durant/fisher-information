@@ -24,34 +24,40 @@ def compare_errors(structure, angle_points, times, save_path):
     """
     fit_errors, fisher_errors = [], []
     for i, time in enumerate(times, 1):
-        print(">>> Fitting {0}/{1}...".format(i, len(times))) #Display progress
+        #Calculate the fit and Fisher errors for 10 simulations using the same measurement time.
+        fit_errors_time, fisher_errors_time = [], []
+        for _ in range(10):
+            #Create dictionary of number of points and measurement time for each angle.
+            angle_times = {angle: (angle_points[angle], time) for angle in angle_points}
+            model, data = simulate_single_contrast(*structure(), angle_times) #Simulate the experiment.
+            vary_model(model) #Vary the SLD and thickness of each layer and set them to random values.
+    
+            q, r, r_error, flux = data[:,0], data[:,1], data[:,2], data[:,3]
+    
+            #Fit the data using differential evolution.
+            objective = Objective(model, ReflectDataset([q, r, r_error]))
+            fitter = CurveFitter(objective)
+            fitter.fit('differential_evolution', verbose=False)
+    
+            xi = objective.varying_parameters()
+            fit_error = [param.stderr for param in xi] #Get the fitting errors.
+            g = calc_FIM(q, xi, flux, model)
+            fisher_error = 1 / np.sqrt(np.diag(g)) #Calculate the Fisher errors.
+            
+            fit_errors_time.append(fit_error)
+            fisher_errors_time.append(fisher_error)
 
-        #Create dictionary of number of points and measurement time for each angle.
-        angle_times = {angle: (angle_points[angle], time) for angle in angle_points}
-        model, data = simulate_single_contrast(*structure(), angle_times) #Simulate the experiment.
-        vary_model(model) #Vary the SLD and thickness of each layer and set them to random values.
-
-        q, r, r_error, flux = data[:,0], data[:,1], data[:,2], data[:,3]
-
-        #Fit the data using differential evolution.
-        objective = Objective(model, ReflectDataset([q, r, r_error]))
-        fitter = CurveFitter(objective)
-        fitter.fit('differential_evolution', verbose=False)
-
-        xi = objective.varying_parameters()
-        fit_error = [param.stderr for param in xi] #Get the fitting errors.
-        g = calc_FIM(q, xi, flux, model)
-        fisher_error = 1 / np.sqrt(np.diag(g)) #Calculate the Fisher errors.
-
-        fit_errors.append(fit_error)
-        fisher_errors.append(fisher_error)
+        #Use the mean of the 10 errors for the time point on the plot.
+        fit_errors.append(np.mean(fit_errors_time, axis=0))
+        fisher_errors.append(np.mean(fisher_errors_time, axis=0))
+        print(">>> Fitting {0}/{1}...".format(i*10, len(times)*10)) #Display progress
 
     names = [param.name for param in xi]
     plot_errors(times, np.array(fit_errors), np.array(fisher_errors), names)
 
 def plot_errors(times, fit_errors, fisher_errors, names):
     """Plots log time against log fitting error and log Fisher error for each parameter
-       and performs linear regression to caluclate the gradient in each case.
+       and performs linear regression to calculate the gradient in each case.
 
     Args:
         times (numpy.ndarray): array of times for which the errors were calculated using.
@@ -108,5 +114,5 @@ if __name__ == "__main__":
 
     angle_points = {0.7: 70, #Angle: Points
                     2.0: 70}
-    times = 10**np.arange(0.5, 5.5, 0.1, dtype=float)
+    times = 10**np.arange(0.5, 5.5, 1, dtype=float)
     compare_errors(structure, angle_points, times, save_path)

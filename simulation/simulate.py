@@ -50,7 +50,7 @@ def simulate_single_contrast(structure, angle_times, dq=2, bkg=1e-7, bkg_rate=1e
 
     return model, data
 
-def simulate_multiple_contrasts(structures, angle_times, dq=2, bkg=1e-7, bkg_rate=5e-7, save_path=None,):
+def simulate_multiple_contrasts(structures, angle_times, dq=2, bkg=1e-7, bkg_rate=1e-6, save_path=None,):
     """Simulates a multiple contrast experiment measured using a number of different angles.
 
     Args:
@@ -77,7 +77,7 @@ def simulate_multiple_contrasts(structures, angle_times, dq=2, bkg=1e-7, bkg_rat
 
     return models, datasets
 
-def run_experiment(model, angle, points, time, bkg_rate=5e-7, q_min=None, q_max=None, directbeam_file="../simulation/directbeam_wavelength.dat"):
+def run_experiment(model, angle, points, time, bkg_rate=1e-6, q_min=None, q_max=None, directbeam_file="../simulation/data/directbeam_wavelength.dat"):
     """Simulates an experiment for a given `model` with added noise.
 
     Args:
@@ -122,15 +122,14 @@ def run_experiment(model, angle, points, time, bkg_rate=5e-7, q_min=None, q_max=
     r, r_errors, counts = [], [], []
     for i in range(points): #Iterate over the desired number of points (bins).
         flux_point  = flux_binned[i]
+        r_point     = reflectance[i]
+        count_point = flux_point * time
 
+        #Add background noise and get the measured reflected count for the bin.
+        count_noisy = np.random.poisson((r_point*flux_point + bkg_rate) * time)
+        
         #Point has zero reflectivity if there is no flux.
-        if flux_point > 0:
-            r_point     = reflectance[i]
-            count_point = flux_point * time
-
-            #Add background noise and get the measured reflected count for the bin.
-            count_noisy = np.random.poisson((r_point*flux_point + bkg_rate) * time)
-
+        if count_noisy > 0:
             #Convert from count space to reflectivity space.
             r_noisy = count_noisy / count_point
             r_error = np.sqrt(count_noisy) / count_point
@@ -138,12 +137,11 @@ def run_experiment(model, angle, points, time, bkg_rate=5e-7, q_min=None, q_max=
             r.append(r_noisy)
             r_errors.append(r_error)
             counts.append(count_noisy / r_noisy) #Incident neutrons in the bin
-            
         else:
             r.append(0)
             r_errors.append(0)
-            counts.append(0)
-            
+            counts.append(0) #Incident neutrons in the bin
+
     return q_binned, r, r_errors, counts
 
 def vary_model(model):
@@ -168,11 +166,12 @@ def vary_model(model):
         component.sld.real.value = np.random.uniform(*sld_bounds)
         component.thick.value    = np.random.uniform(*thick_bounds)
 
-def plot_objective(objective):
+def plot_objective(objective, show_fit=True):
     """Plots the fit of a given `objective` against the objective's data.
 
     Args:
         objective (refnx.analysis.Objective): the objective to plot.
+        show_fit (Boolean): whether to display the objective fit or not.
 
     """
     fig = plt.figure(figsize=[9,7], dpi=600)
@@ -180,9 +179,11 @@ def plot_objective(objective):
 
     #Add the data in a transformed fashion.
     y, y_err, model = objective._data_transform(model=objective.generative())
-    ax.errorbar(objective.data.x, y, y_err, marker="o", ms=3, lw=0, elinewidth=1, capsize=1.5)
-    #Add the prediction/fit.
-    #ax.plot(objective.data.x, model, color="red", zorder=20)
+    ax.errorbar(objective.data.x, y, y_err, color="black",
+                marker="o", ms=3, lw=0, elinewidth=1, capsize=1.5)
+    
+    if show_fit: #Add the prediction/fit.
+        ax.plot(objective.data.x, model, color="red", zorder=20)
 
     ax.set_xlabel("$\mathregular{Q\ (Å^{-1})}$", fontsize=11, weight='bold')
     ax.set_ylabel('Reflectivity (arb.)',         fontsize=11, weight='bold')
@@ -206,4 +207,4 @@ if __name__ == "__main__":
 
     model, data   = simulate_single_contrast(*structure(), angle_times)
     q, r, r_error = data[:,0], data[:,1], data[:,2]
-    plot_objective(Objective(model, ReflectDataset([q, r, r_error])))
+    plot_objective(Objective(model, ReflectDataset([q, r, r_error])), show_fit=False)

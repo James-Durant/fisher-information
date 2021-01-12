@@ -12,7 +12,7 @@ from dynesty import plotting as dyplot
 from dynesty import utils    as dyfunc
 
 from fisher   import calc_FIM
-from simulate import simulate_single_contrast, vary_model
+from simulate import simulate_single_contrast, vary_model, plot_objective
 
 class Sampler:
     """The Sampler class contains the code nested sampling.
@@ -60,44 +60,47 @@ class Sampler:
             parameter.value = x[i] #Update the model with given parameter values.
         return self.objective.logl()
 
-def fisher(structure, angle_times, save_path, method):
-    """Fits a model for a given `structure` using a given `method`, calculates
-       the Fisher information and plots the Fisher confidence ellipses against
-       the method's corner plot.
+def compare_ellipses(structure, angle_times, save_path):
+    """Fits a model for a given `structure` using MCMC and nested sampling,
+       calculates the Fisher information and plots the Fisher confidence ellipses 
+       against the corner plots.
 
     Args:
         structure (refnx.reflect.Structure): the structure to simulate the experiment for.
         angle_times (dict): dictionary of times and number of points for each measurement angle.
         save_path (string): path to directory for saving figure.
-        method (string): either 'MCMC' or 'nested_sampling'.
 
     """
     #Simulate an experiment using the given angles, number of points and times.
     model, data = simulate_single_contrast(structure, angle_times)
-    vary_model(model) #Vary the SLD and thickness of each layer and set them to random values.
 
     #Retrieve data from simulation dataset and create objective to fit.
     q, r, r_error, flux = data[:,0], data[:,1], data[:,2], data[:,3]
     objective = Objective(model, ReflectDataset([q, r, r_error]))
+    vary_model(model)
+    
+    fig1 = plot_objective(objective, show_fit=False)
+    fig1.savefig(save_path+"/reflectivity_curve.png", dpi=600)
 
-    if method == "MCMC":
-        fitter = CurveFitter(objective)
-        fitter.fit('differential_evolution')
-        fitter.sample(400)
-        fitter.reset()
-        fitter.sample(30, nthin=100)
-        fig = objective.corner()
-    elif method == "nested_sampling":
-        sampler = Sampler(objective)
-        fig = sampler.sample()
-    else:
-        return
-
-    #Calculate the Fisher information matrix, g, and plot the confidence ellipses.
+    #Perform MCMC sampling and get the resulting corner plot.
+    fitter = CurveFitter(objective)
+    fitter.fit('differential_evolution')
+    fitter.sample(400)
+    fitter.reset()
+    fitter.sample(30, nthin=100)
+    fig2 = objective.corner()
+    xi = objective.varying_parameters()
+    g  = calc_FIM(q, xi, flux, model) #Calculate the Fisher information matrix
+    plot_ellipses(g, xi, fig2) #Plot confidence ellipses on corner plots.
+    fig2.savefig(save_path+"/confidence_ellipses_MCMC.png", dpi=600)
+    
+    #Perform nested sampling and overlay confidence ellipses on corner plot.
+    sampler = Sampler(objective)
+    fig3 = sampler.sample()
     xi = objective.varying_parameters()
     g  = calc_FIM(q, xi, flux, model)
-    plot_ellipses(g, xi, fig)
-    fig.savefig(save_path+"/confidence_ellipses_"+method+".png", dpi=600)
+    plot_ellipses(g, xi, fig3)
+    fig3.savefig(save_path+"/confidence_ellipses_nested_sampling.png", dpi=600)
 
 def plot_ellipses(g, xi, fig):
     """Plots the Fisher confidence ellipses against the corner plot of either an
@@ -174,5 +177,4 @@ if __name__ == "__main__":
         os.makedirs(save_path)
 
     #Overlay the Fisher confidence ellipses on the MCMC and nested sampling corner plots.
-    fisher(*structure(), angle_times, save_path, "nested_sampling")
-    fisher(*structure(), angle_times, save_path, "MCMC")
+    compare_ellipses(*structure(), angle_times, save_path)

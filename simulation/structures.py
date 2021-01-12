@@ -108,10 +108,10 @@ def plot_reflectivity_curves(save_path):
 
     #Plot and save reflectivity curves for the multiple contrast sample.
     structure1, structure2 = multiple_contrast_sample()
-    fig = reflectivity_curve(structure1)
-    fig = reflectivity_curve(structure2)
-    save_plot(fig, save_path+"multiple_contrast_sample", "reflectivity_contrast_1")
-    save_plot(fig, save_path+"multiple_contrast_sample", "reflectivity_contrast_2")
+    fig1 = reflectivity_curve(structure1)
+    fig2 = reflectivity_curve(structure2)
+    save_plot(fig1, save_path+"multiple_contrast_sample", "reflectivity_contrast_1")
+    save_plot(fig2, save_path+"multiple_contrast_sample", "reflectivity_contrast_2")
 
 def sld_profile(structure, colour='black', label=None):
     """Plots an SLD profile for a given `structure`.

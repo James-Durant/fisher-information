@@ -1,4 +1,5 @@
-import os
+import os, sys
+sys.path.append("../simulation") #Adds directory to Python modules path.
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -52,16 +53,15 @@ def plot_measured_angles(data_path, files, save_path):
     ax.legend()
     fig.savefig(save_path+"/measured_reflectivity.png", dpi=600)
 
-def plot_simulated_angles(angle_times, dq, bkg, bkg_rate, q_min, q_max, save_path):
+def plot_simulated_angles(angle_times, dq, bkg, q_min, q_max, save_path):
     """Simulates experiments for the QCS sample for a given set of angles.
 
     Args:
         angle_times (dict): dictionary of number of points and measurement times for each measured angle.
         dq (float): value to use for the model's instrument resolution parameter.
         bkg (float): value to use for the model's background parameter.
-        bkg_rate (float): level of background noise to add.
-        q_min (float): minimum Q value value for range of simulation.
-        q_max (float): maximum Q value value for range of simulation.
+        q_min (float): minimum Q value for range of simulation.
+        q_max (float): maximum Q value for range of simulation.
         save_path (string): directory to save the plot to.
 
     """
@@ -80,7 +80,7 @@ def plot_simulated_angles(angle_times, dq, bkg, bkg_rate, q_min, q_max, save_pat
     for angle in angle_times:
         points, time = angle_times[angle]
         model = ReflectModel(structure, scale=1, dq=dq, bkg=bkg)
-        q, r, r_error, _ = run_experiment(model, angle, points, time, bkg_rate, q_min, q_max)
+        q, r, r_error, _ = run_experiment(model, angle, points, time, q_min=q_min, q_max=q_max)
 
         #Plot Q values against reflectivity with associated reflectivity error bars.
         ax.errorbar(q, r, r_error, marker="o", ms=3, lw=0, elinewidth=1,
@@ -106,7 +106,7 @@ def plot_measured_all(data_path, dq, bkg, save_path):
     #Plot the fit of the measured dataset and save it.
     objective = Objective(model, data)
     fig = plot_objective(objective)
-    fig.savefig(save_path+"/measured_fitted.png", dpi=600)
+    fig.savefig(save_path+"/measured_fit.png", dpi=600)
 
 class Sampler:
     """The Sampler class contains the code nested sampling.
@@ -204,9 +204,8 @@ if __name__ == "__main__":
                      "QCS_06_1uA.dat", "QCS_07_1uA.dat", "QCS_20_1uA.dat"]
     dq  = 2.5
     bkg = 8e-7
-    bkg_rate = 5e-6
 
-    #sample_measured_data(data_path+"QCS_all.dat", dq, bkg, save_path)
+    sample_measured_data(data_path+"QCS_all.dat", dq, bkg, save_path)
     plot_measured_all(data_path+"QCS_all.dat", dq, bkg, save_path)
     plot_measured_angles(data_path, measured_data, save_path)
 
@@ -218,4 +217,4 @@ if __name__ == "__main__":
                     0.7: (187, 1),
                     2.0: (187, 1)}
 
-    plot_simulated_angles(angle_times, dq, bkg, bkg_rate, q_min, q_max, save_path)
+    plot_simulated_angles(angle_times, dq, bkg, q_min, q_max, save_path)
