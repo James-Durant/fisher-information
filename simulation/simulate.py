@@ -78,7 +78,7 @@ def simulate_multiple_contrasts(structures, angle_times, dq=2, bkg=1e-7, bkg_rat
     return models, datasets
 
 def run_experiment(model, angle, points, time, bkg_rate=5e-7, q_min=None, q_max=None, directbeam_file="../simulation/directbeam_wavelength.dat"):
-    """Simulates an experiment for a given `model` with added realistic noise.
+    """Simulates an experiment for a given `model` with added noise.
 
     Args:
         model (refnx.reflect.ReflectModel): the model to simulate the experiment with.
@@ -103,7 +103,7 @@ def run_experiment(model, angle, points, time, bkg_rate=5e-7, q_min=None, q_max=
     #Adjust flux by measurement angle.
     direct_flux = direct_beam[:,1] * pow(angle/0.3, 2)
 
-    theta = angle*np.pi / 180 #Covert angle from degrees into radians.
+    theta = angle*np.pi / 180 #Convert angle from degrees into radians.
     q = 4*np.pi*np.sin(theta) / wavelengths #Calculate Q values.
 
     if q_min is None:
@@ -123,7 +123,8 @@ def run_experiment(model, angle, points, time, bkg_rate=5e-7, q_min=None, q_max=
     for i in range(points): #Iterate over the desired number of points (bins).
         flux_point  = flux_binned[i]
 
-        if flux_point:
+        #Point has zero reflectivity if there is no flux.
+        if flux_point > 0:
             r_point     = reflectance[i]
             count_point = flux_point * time
 
@@ -133,13 +134,16 @@ def run_experiment(model, angle, points, time, bkg_rate=5e-7, q_min=None, q_max=
             #Convert from count space to reflectivity space.
             r_noisy = count_noisy / count_point
             r_error = np.sqrt(count_noisy) / count_point
+            
+            r.append(r_noisy)
+            r_errors.append(r_error)
+            counts.append(count_noisy / r_noisy) #Incident neutrons in the bin
+            
         else:
-            r_noisy, r_error, count_noisy = 0, 0, 0
-
-        r.append(r_noisy)
-        r_errors.append(r_error)
-        counts.append(count_noisy)
-
+            r.append(0)
+            r_errors.append(0)
+            counts.append(0)
+            
     return q_binned, r, r_errors, counts
 
 def vary_model(model):

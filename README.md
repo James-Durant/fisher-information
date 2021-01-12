@@ -1,5 +1,5 @@
 # fisher-information
-A framework for applying the Fisher information to neutron reflectometry.
+A framework for applying the Fisher information metric to neutron reflectometry.
 
 ## About The Project
 To do

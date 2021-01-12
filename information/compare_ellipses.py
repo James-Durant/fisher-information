@@ -1,5 +1,6 @@
 import os, sys
 sys.path.append("../simulation") # Adds directory to Python modules path.
+sys.path.append("./")
 
 import numpy as np
 
@@ -126,7 +127,7 @@ def confidence_ellipse(fisher, i, j, param1, param2, axis, show_xlabel, show_yla
     """Plots the confidence ellipse between `param1` and `param2`.
 
     Args:
-        fisher (numpy.ndarray): the Fisher information matrix (FIM).
+        fisher (numpy.ndarray): the Fisher information matrix.
         i (int): index of `param1` in the FIM.
         j (int): index of `param2` in the FIM.
         param1 (refnx.analysis.Parameter): the first parameter corresponding to `i`.
