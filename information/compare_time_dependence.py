@@ -45,7 +45,7 @@ def compare_errors(structure, angle_points, times, save_path):
 
         fit_errors.append(fit_error)
         fisher_errors.append(fisher_error)
-        
+
     names = [param.name for param in xi]
     plot_errors(times, np.array(fit_errors), np.array(fisher_errors), names)
 
@@ -78,15 +78,15 @@ def plot_errors(times, fit_errors, fisher_errors, names):
         #Take the log of the fitting and Fisher errors and reshape for linear regression.
         log_fit    = np.log(fit_errors[:,i]).reshape(-1,1)
         log_fisher = np.log(fisher_errors[:,i]).reshape(-1,1)
-        
+
         #Create linear regressors to calculate the gradient of lines.
         fit_reg    = LinearRegression().fit(log_time, log_fit)
         fisher_reg = LinearRegression().fit(log_time, log_fisher)
-        
+
         #Round the gradients to 3dp.
         fit_m    = np.format_float_positional(fit_reg.coef_[0][0],    precision=3, unique=False, trim='k')
         fisher_m = np.format_float_positional(fisher_reg.coef_[0][0], precision=3, unique=False, trim='k')
-        
+
         #Plot log time against log error for the parameter.
         fit_ax.plot(log_time,    log_fit,    label=names[i]+", m="+fit_m)
         fisher_ax.plot(log_time, log_fisher, label=names[i]+", m="+fisher_m)

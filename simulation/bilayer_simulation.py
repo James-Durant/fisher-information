@@ -160,7 +160,7 @@ if __name__ == "__main__":
     save_path = "./results/bilayer_contrast_sample"
     if not os.path.exists(save_path):
         os.makedirs(save_path)
-    
+
     angle_times = {0.7: (70, 5), #Angle: (Points, Time)
                    2.0: (70, 20)}
     bkg = 1e-7

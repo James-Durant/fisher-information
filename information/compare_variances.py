@@ -38,7 +38,7 @@ def compare_fit_variance(structure, angle_times, save_path, n=1000):
 
         xi = objective.varying_parameters() #Get the parameter estimates.
         param_estimates.append([param.value for param in xi])
-        
+
         g = calc_FIM(q, xi, flux, model) #Calculate the Fisher information matrix.
         inv_fisher_infos.append(1 / np.diag(g))
 
