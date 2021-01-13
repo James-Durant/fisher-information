@@ -53,13 +53,14 @@ def plot_measured_angles(data_path, files, save_path):
     ax.legend()
     fig.savefig(save_path+"/measured_reflectivity.png", dpi=600)
 
-def plot_simulated_angles(angle_times, dq, bkg, q_min, q_max, save_path):
+def plot_simulated_angles(angle_times, dq, bkg, scale, q_min, q_max, save_path):
     """Simulates experiments for the QCS sample for a given set of angles.
 
     Args:
         angle_times (dict): dictionary of number of points and measurement times for each measured angle.
         dq (float): value to use for the model's instrument resolution parameter.
         bkg (float): value to use for the model's background parameter.
+        scale (float): value to use for the model's experimental scale factor.
         q_min (float): minimum Q value for range of simulation.
         q_max (float): maximum Q value for range of simulation.
         save_path (string): directory to save the plot to.
@@ -79,7 +80,7 @@ def plot_simulated_angles(angle_times, dq, bkg, q_min, q_max, save_path):
     #Simulate noisy datasets with different angles corresponding to the measured data.
     for angle in angle_times:
         points, time = angle_times[angle]
-        model = ReflectModel(structure, scale=1, dq=dq, bkg=bkg)
+        model = ReflectModel(structure, dq=dq, bkg=bkg, scale=scale)
         q, r, r_error, _ = run_experiment(model, angle, points, time, q_min=q_min, q_max=q_max)
 
         #Plot Q values against reflectivity with associated reflectivity error bars.
@@ -96,17 +97,22 @@ def plot_measured_all(data_path, dq, bkg, save_path):
         dq (float): value to use for the model's instrument resolution parameter.
         bkg (float): value to use for the model's background parameter.
         save_path (string): path to the directory to save the plot to.
+        
+    Returns:
+        scale (float): experimental scale factor for the measured data.
 
     """
     structure = QCS_sample()
     model     = ReflectModel(structure, scale=1, dq=dq, bkg=bkg)
     data      = ReflectDataset(data_path)
-    data.scale(np.max(data.y)) #Scale the data so that the maximum reflectivity is 1.
+    scale     = np.max(data.y)
+    data.scale(scale) #Scale the data so that the maximum reflectivity is 1.
 
     #Plot the fit of the measured dataset and save it.
     objective = Objective(model, data)
     fig = plot_objective(objective)
     fig.savefig(save_path+"/measured_fit.png", dpi=600)
+    return scale
 
 class Sampler:
     """The Sampler class contains the code nested sampling.
@@ -205,8 +211,8 @@ if __name__ == "__main__":
     dq  = 2.5
     bkg = 8e-7
 
-    sample_measured_data(data_path+"QCS_all.dat", dq, bkg, save_path)
-    plot_measured_all(data_path+"QCS_all.dat", dq, bkg, save_path)
+    #sample_measured_data(data_path+"QCS_all.dat", dq, bkg, save_path)
+    scale = plot_measured_all(data_path+"QCS_all.dat", dq, bkg, save_path)
     plot_measured_angles(data_path, measured_data, save_path)
 
     q_min, q_max = 0.005, 0.2
@@ -217,4 +223,4 @@ if __name__ == "__main__":
                     0.7: (187, 1),
                     2.0: (187, 1)}
 
-    plot_simulated_angles(angle_times, dq, bkg, q_min, q_max, save_path)
+    plot_simulated_angles(angle_times, dq, bkg, scale, q_min, q_max, save_path)

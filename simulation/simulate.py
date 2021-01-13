@@ -190,7 +190,6 @@ def plot_objective(objective, show_fit=True):
     ax.set_yscale('log')
     ax.set_xlim(0, 0.3)
     ax.set_ylim(1e-7, 2)
-    plt.show()
     return fig
 
 if __name__ == "__main__":
