@@ -1,4 +1,4 @@
-import sys, time
+import os, sys, time
 sys.path.append("../simulation") #Adds directory to Python modules path.
 
 import numpy as np
@@ -176,6 +176,7 @@ def benchmark(layers, num_samples=100):
         (tuple): mean calculation time for MCMC sampling, nested sampling and the FIM.
 
     """
+    print("-------- {}-Layer Samples --------".format(layers))
     models = Generator.generate(num_samples, layers)
     times_MCMC, times_nested, times_FIM = [], [], []
     n = len(models)
@@ -196,13 +197,24 @@ def benchmark(layers, num_samples=100):
         1 / np.diag(g) #Calculate parameter uncertainties.
         end = time.time()
         times_FIM.append(end-start)
-
+        
+    print()
     return np.mean(times_MCMC), np.mean(times_nested), np.mean(times_FIM)
 
 if __name__ == "__main__":
-    num_samples = 10
-    layers = list(range(1,7))
-
-    for layer in layers:
+    save_path = "./results"
+    if not os.path.exists(save_path):
+        os.makedirs(save_path)
+        
+    file = open(save_path+"/benchmark.txt", "w")
+    
+    num_samples = 1
+    for layer in range(1,2):
         time_MCMC, time_nested, time_FIM = benchmark(layer, num_samples=num_samples)
-        print(time_MCMC, time_nested, time_FIM)
+        file.write("------------------ {}-Layer Samples ------------------\n".format(layer))
+        file.write("MCMC Sampling:   {}s\n".format(time_MCMC))
+        file.write("Nested Sampling: {}s\n".format(time_nested))
+        file.write("FIM Approach:    {}s\n".format(time_FIM))
+        file.write("\n")
+        
+    file.close()
