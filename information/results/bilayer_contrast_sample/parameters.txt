@@ -1,0 +1,197 @@
+_______________________________________________________________________________
+
+--Global Objective--
+________________________________________________________________________________
+Objective - 2034527427552
+Dataset = c_PLP0016596
+datapoints = 137
+chi2 = 420.24090558404583
+Weighted = True
+Transform = None
+________________________________________________________________________________
+Parameters:       ''       
+________________________________________________________________________________
+Parameters: 'instrument parameters'
+<Parameter:    'scale'    , value=1.02545 +/- 0.00366, bounds=[0.9, 1.1]>
+<Parameter:     'bkg'     , value=-1.10477e-07 +/- 9.81e-08, bounds=[-1e-06, 1e-06]>
+<Parameter:'dq - resolution', value=5 (fixed)  , bounds=[-inf, inf]>
+________________________________________________________________________________
+Parameters: 'Structure - D2O'
+________________________________________________________________________________
+Parameters:       ''       
+<Parameter:  ' - thick'   , value=0 (fixed)  , bounds=[-inf, inf]>
+<Parameter:   ' - sld'    , value=2.07 (fixed)  , bounds=[-inf, inf]>
+<Parameter:   ' - isld'   , value=0 (fixed)  , bounds=[-inf, inf]>
+<Parameter:  ' - rough'   , value=0 (fixed)  , bounds=[-inf, inf]>
+<Parameter:' - volfrac solvent', value=0 (fixed)  , bounds=[0.0, 1.0]>
+________________________________________________________________________________
+Parameters:       ''       
+<Parameter:  ' - thick'   , value=11.8194 +/- 0.235, bounds=[2.0, 30.0]>
+<Parameter:   ' - sld'    , value=3.47 (fixed)  , bounds=[-inf, inf]>
+<Parameter:   ' - isld'   , value=0 (fixed)  , bounds=[-inf, inf]>
+<Parameter:  ' - rough'   , value=2.86008 +/- 0.915, bounds=[0.0, 7.0]>
+<Parameter:' - volfrac solvent', value=0.132196 +/- 0.00847, bounds=[0.0, 0.5]>
+________________________________________________________________________________
+Parameters:       ''       
+<Parameter:'area per molecule', value=56.5051 +/- 0.221, bounds=[52.0, 65.0]>
+<Parameter:   'b_heads'   , value=0.000601 (fixed)  , bounds=[-inf, inf]>
+<Parameter:' - b_heads_imag', value=0 (fixed)  , bounds=[-inf, inf]>
+<Parameter:   'v_heads'   , value=319 (fixed)  , bounds=[-inf, inf]>
+<Parameter:'inner_head_thickness', value=9.84264 +/- 0.167, bounds=[4.0, 11.0]>
+<Parameter:   'b_tails'   , value=-0.000292 (fixed)  , bounds=[-inf, inf]>
+<Parameter:' - b_tails_imag', value=0 (fixed)  , bounds=[-inf, inf]>
+<Parameter:   'v_tails'   , value=782 (fixed)  , bounds=[-inf, inf]>
+<Parameter:'tail_thickness', value=13.8539 +/- 0.139, bounds=[10.0, 17.0]>
+<Parameter:' - rough_head_tail', value=3 (fixed)  , bounds=[-inf, inf]>
+<Parameter:' - rough_fronting_mono', value=3 (fixed)  , bounds=[-inf, inf]>
+________________________________________________________________________________
+Parameters:       ''       
+<Parameter:'area per molecule', value=56.5051 +/- 0.221, bounds=[52.0, 65.0]>
+<Parameter:   'b_heads'   , value=0.000601 (fixed)  , bounds=[-inf, inf]>
+<Parameter:' - b_heads_imag', value=0 (fixed)  , bounds=[-inf, inf]>
+<Parameter:   'v_heads'   , value=319 (fixed)  , bounds=[-inf, inf]>
+<Parameter:'outer_head_thickness', value=5.82644 +/- 2.21 , bounds=[4.0, 11.0]>
+<Parameter:   'b_tails'   , value=-0.000292 (fixed)  , bounds=[-inf, inf]>
+<Parameter:' - b_tails_imag', value=0 (fixed)  , bounds=[-inf, inf]>
+<Parameter:   'v_tails'   , value=782 (fixed)  , bounds=[-inf, inf]>
+<Parameter:'tail_thickness', value=13.8539 +/- 0.139, bounds=[10.0, 17.0]>
+<Parameter:' - rough_head_tail', value=3 (fixed)  , bounds=[-inf, inf]>
+<Parameter:' - rough_fronting_mono', value=0 (fixed)  , bounds=[-inf, inf]>
+________________________________________________________________________________
+Parameters:       ''       
+<Parameter:  ' - thick'   , value=0 (fixed)  , bounds=[-inf, inf]>
+<Parameter:   ' - sld'    , value=6.17357 +/- 0.00485, bounds=[6.1, 6.36]>
+<Parameter:   ' - isld'   , value=0 (fixed)  , bounds=[-inf, inf]>
+<Parameter:'bilayer/solvent - rough', value=1.78674 +/- 3.56 , bounds=[0.0, 5.0]>
+<Parameter:' - volfrac solvent', value=0 (fixed)  , bounds=[0.0, 1.0]>
+
+
+________________________________________________________________________________
+Objective - 2034527428512
+Dataset = c_PLP0016601
+datapoints = 97
+chi2 = 111.09970366615485
+Weighted = True
+Transform = None
+________________________________________________________________________________
+Parameters:       ''       
+________________________________________________________________________________
+Parameters: 'instrument parameters'
+<Parameter:    'scale'    , value=1 (fixed)  , bounds=[-inf, inf]>
+<Parameter:     'bkg'     , value=1.19505e-07 +/- 1.01e-07, bounds=[-1e-06, 1e-06]>
+<Parameter:'dq - resolution', value=5 (fixed)  , bounds=[-inf, inf]>
+________________________________________________________________________________
+Parameters: 'Structure - hdmix'
+________________________________________________________________________________
+Parameters:       ''       
+<Parameter:  ' - thick'   , value=0 (fixed)  , bounds=[-inf, inf]>
+<Parameter:   ' - sld'    , value=2.07 (fixed)  , bounds=[-inf, inf]>
+<Parameter:   ' - isld'   , value=0 (fixed)  , bounds=[-inf, inf]>
+<Parameter:  ' - rough'   , value=0 (fixed)  , bounds=[-inf, inf]>
+<Parameter:' - volfrac solvent', value=0 (fixed)  , bounds=[0.0, 1.0]>
+________________________________________________________________________________
+Parameters:       ''       
+<Parameter:  ' - thick'   , value=11.8194 +/- 0.235, bounds=[2.0, 30.0]>
+<Parameter:   ' - sld'    , value=3.47 (fixed)  , bounds=[-inf, inf]>
+<Parameter:   ' - isld'   , value=0 (fixed)  , bounds=[-inf, inf]>
+<Parameter:  ' - rough'   , value=2.86008 +/- 0.915, bounds=[0.0, 7.0]>
+<Parameter:' - volfrac solvent', value=0.132196 +/- 0.00847, bounds=[0.0, 0.5]>
+________________________________________________________________________________
+Parameters:       ''       
+<Parameter:'area per molecule', value=56.5051 +/- 0.221, bounds=[52.0, 65.0]>
+<Parameter:   'b_heads'   , value=0.000601 (fixed)  , bounds=[-inf, inf]>
+<Parameter:' - b_heads_imag', value=0 (fixed)  , bounds=[-inf, inf]>
+<Parameter:   'v_heads'   , value=319 (fixed)  , bounds=[-inf, inf]>
+<Parameter:'inner_head_thickness', value=9.84264 +/- 0.167, bounds=[4.0, 11.0]>
+<Parameter:   'b_tails'   , value=-0.000292 (fixed)  , bounds=[-inf, inf]>
+<Parameter:' - b_tails_imag', value=0 (fixed)  , bounds=[-inf, inf]>
+<Parameter:   'v_tails'   , value=782 (fixed)  , bounds=[-inf, inf]>
+<Parameter:'tail_thickness', value=13.8539 +/- 0.139, bounds=[10.0, 17.0]>
+<Parameter:' - rough_head_tail', value=3 (fixed)  , bounds=[-inf, inf]>
+<Parameter:' - rough_fronting_mono', value=3 (fixed)  , bounds=[-inf, inf]>
+________________________________________________________________________________
+Parameters:       ''       
+<Parameter:'area per molecule', value=56.5051 +/- 0.221, bounds=[52.0, 65.0]>
+<Parameter:   'b_heads'   , value=0.000601 (fixed)  , bounds=[-inf, inf]>
+<Parameter:' - b_heads_imag', value=0 (fixed)  , bounds=[-inf, inf]>
+<Parameter:   'v_heads'   , value=319 (fixed)  , bounds=[-inf, inf]>
+<Parameter:'outer_head_thickness', value=5.82644 +/- 2.21 , bounds=[4.0, 11.0]>
+<Parameter:   'b_tails'   , value=-0.000292 (fixed)  , bounds=[-inf, inf]>
+<Parameter:' - b_tails_imag', value=0 (fixed)  , bounds=[-inf, inf]>
+<Parameter:   'v_tails'   , value=782 (fixed)  , bounds=[-inf, inf]>
+<Parameter:'tail_thickness', value=13.8539 +/- 0.139, bounds=[10.0, 17.0]>
+<Parameter:' - rough_head_tail', value=3 (fixed)  , bounds=[-inf, inf]>
+<Parameter:' - rough_fronting_mono', value=0 (fixed)  , bounds=[-inf, inf]>
+________________________________________________________________________________
+Parameters:       ''       
+<Parameter:  ' - thick'   , value=0 (fixed)  , bounds=[-inf, inf]>
+<Parameter:   ' - sld'    , value=2.07 (fixed)  , bounds=[-inf, inf]>
+<Parameter:   ' - isld'   , value=0 (fixed)  , bounds=[-inf, inf]>
+<Parameter:'bilayer/solvent - rough', value=1.78674 +/- 3.56 , bounds=[0.0, 5.0]>
+<Parameter:' - volfrac solvent', value=0 (fixed)  , bounds=[0.0, 1.0]>
+
+
+________________________________________________________________________________
+Objective - 2034527425728
+Dataset = c_PLP0016607
+datapoints = 104
+chi2 = 272.4190598577539
+Weighted = True
+Transform = None
+________________________________________________________________________________
+Parameters:       ''       
+________________________________________________________________________________
+Parameters: 'instrument parameters'
+<Parameter:    'scale'    , value=1 (fixed)  , bounds=[-inf, inf]>
+<Parameter:     'bkg'     , value=-1.30174e-08 +/- 1.13e-07, bounds=[-1e-06, 1e-06]>
+<Parameter:'dq - resolution', value=5 (fixed)  , bounds=[-inf, inf]>
+________________________________________________________________________________
+Parameters: 'Structure - H2O'
+________________________________________________________________________________
+Parameters:       ''       
+<Parameter:  ' - thick'   , value=0 (fixed)  , bounds=[-inf, inf]>
+<Parameter:   ' - sld'    , value=2.07 (fixed)  , bounds=[-inf, inf]>
+<Parameter:   ' - isld'   , value=0 (fixed)  , bounds=[-inf, inf]>
+<Parameter:  ' - rough'   , value=0 (fixed)  , bounds=[-inf, inf]>
+<Parameter:' - volfrac solvent', value=0 (fixed)  , bounds=[0.0, 1.0]>
+________________________________________________________________________________
+Parameters:       ''       
+<Parameter:  ' - thick'   , value=11.8194 +/- 0.235, bounds=[2.0, 30.0]>
+<Parameter:   ' - sld'    , value=3.47 (fixed)  , bounds=[-inf, inf]>
+<Parameter:   ' - isld'   , value=0 (fixed)  , bounds=[-inf, inf]>
+<Parameter:  ' - rough'   , value=2.86008 +/- 0.915, bounds=[0.0, 7.0]>
+<Parameter:' - volfrac solvent', value=0.132196 +/- 0.00847, bounds=[0.0, 0.5]>
+________________________________________________________________________________
+Parameters:       ''       
+<Parameter:'area per molecule', value=56.5051 +/- 0.221, bounds=[52.0, 65.0]>
+<Parameter:   'b_heads'   , value=0.000601 (fixed)  , bounds=[-inf, inf]>
+<Parameter:' - b_heads_imag', value=0 (fixed)  , bounds=[-inf, inf]>
+<Parameter:   'v_heads'   , value=319 (fixed)  , bounds=[-inf, inf]>
+<Parameter:'inner_head_thickness', value=9.84264 +/- 0.167, bounds=[4.0, 11.0]>
+<Parameter:   'b_tails'   , value=-0.000292 (fixed)  , bounds=[-inf, inf]>
+<Parameter:' - b_tails_imag', value=0 (fixed)  , bounds=[-inf, inf]>
+<Parameter:   'v_tails'   , value=782 (fixed)  , bounds=[-inf, inf]>
+<Parameter:'tail_thickness', value=13.8539 +/- 0.139, bounds=[10.0, 17.0]>
+<Parameter:' - rough_head_tail', value=3 (fixed)  , bounds=[-inf, inf]>
+<Parameter:' - rough_fronting_mono', value=3 (fixed)  , bounds=[-inf, inf]>
+________________________________________________________________________________
+Parameters:       ''       
+<Parameter:'area per molecule', value=56.5051 +/- 0.221, bounds=[52.0, 65.0]>
+<Parameter:   'b_heads'   , value=0.000601 (fixed)  , bounds=[-inf, inf]>
+<Parameter:' - b_heads_imag', value=0 (fixed)  , bounds=[-inf, inf]>
+<Parameter:   'v_heads'   , value=319 (fixed)  , bounds=[-inf, inf]>
+<Parameter:'outer_head_thickness', value=5.82644 +/- 2.21 , bounds=[4.0, 11.0]>
+<Parameter:   'b_tails'   , value=-0.000292 (fixed)  , bounds=[-inf, inf]>
+<Parameter:' - b_tails_imag', value=0 (fixed)  , bounds=[-inf, inf]>
+<Parameter:   'v_tails'   , value=782 (fixed)  , bounds=[-inf, inf]>
+<Parameter:'tail_thickness', value=13.8539 +/- 0.139, bounds=[10.0, 17.0]>
+<Parameter:' - rough_head_tail', value=3 (fixed)  , bounds=[-inf, inf]>
+<Parameter:' - rough_fronting_mono', value=0 (fixed)  , bounds=[-inf, inf]>
+________________________________________________________________________________
+Parameters:       ''       
+<Parameter:  ' - thick'   , value=0 (fixed)  , bounds=[-inf, inf]>
+<Parameter:   ' - sld'    , value=-0.56 (fixed)  , bounds=[-inf, inf]>
+<Parameter:   ' - isld'   , value=0 (fixed)  , bounds=[-inf, inf]>
+<Parameter:'bilayer/solvent - rough', value=1.78674 +/- 3.56 , bounds=[0.0, 5.0]>
+<Parameter:' - volfrac solvent', value=0 (fixed)  , bounds=[0.0, 1.0]>
+

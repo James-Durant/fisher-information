@@ -171,14 +171,13 @@ def vary_model(model):
         component.sld.real.value = np.random.uniform(*sld_bounds)
         component.thick.value    = np.random.uniform(*thick_bounds)
 
-def plot_objective(objective, show_fit=True, data_label=None, fit_label=None):
+def plot_objective(objective, show_fit=True, ylim=1e-7):
     """Plots the fit of a given `objective` against the objective's data.
 
     Args:
         objective (refnx.analysis.Objective): the objective to plot.
         show_fit (Boolean): whether to display the objective fit or not.
-        data_label (string): label for the data being plotted.
-        fit_label (string): label for the fit being plotted.
+        ylim (float): minimum reflectivity value to plot.
 
     """
     fig = plt.figure(figsize=[9,7], dpi=600)
@@ -186,19 +185,17 @@ def plot_objective(objective, show_fit=True, data_label=None, fit_label=None):
 
     #Add the data in a transformed fashion.
     y, y_err, model = objective._data_transform(model=objective.generative())
-    ax.errorbar(objective.data.x, y, y_err, color="black", label=data_label,
+    ax.errorbar(objective.data.x, y, y_err, color="black",
                 marker="o", ms=3, lw=0, elinewidth=1, capsize=1.5)
 
     if show_fit: #Add the prediction/fit.
-        ax.plot(objective.data.x, model, label=fit_label, color="red", zorder=20)
+        ax.plot(objective.data.x, model, color="red", zorder=20)
 
     ax.set_xlabel("$\mathregular{Q\ (Å^{-1})}$", fontsize=11, weight='bold')
     ax.set_ylabel('Reflectivity (arb.)',         fontsize=11, weight='bold')
     ax.set_yscale('log')
     ax.set_xlim(0, 0.3)
-    ax.set_ylim(1e-7, 2)
-    if data_label is not None or fit_label is not None:
-        ax.legend()
+    ax.set_ylim(ylim, 2)
     return fig
 
 if __name__ == "__main__":
