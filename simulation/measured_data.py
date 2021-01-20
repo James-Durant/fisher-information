@@ -6,7 +6,8 @@ from refnx.dataset  import ReflectDataset
 from refnx.reflect  import SLD, ReflectModel
 from refnx.analysis import Objective
 
-from simulate import run_experiment, plot_objective
+from simulate import run_experiment
+from utils    import plot_objective
 from information.utils import Sampler
 
 def QCS_sample():
@@ -17,18 +18,18 @@ def QCS_sample():
         refnx.reflect.Structure: refnx representation of the measured structure.
 
     """
-    air       = SLD(0, name="Air")
+    air       = SLD(0,      name="Air")
     layer1    = SLD(1.795,  name="Layer 1 - Si")(thick=790.7,   rough=24.5)
     layer2    = SLD(6.385,  name="Layer 2 - Cu")(thick=297.9,   rough=3.5)
     substrate = SLD(3.354,  name="Substrate - Quartz")(thick=0, rough=12.9)
     return air | layer1 | layer2 | substrate
 
 def plot_measured_angles(data_path, files, save_path):
-    """Creates a plot overlaying each dataset of each measured angle.
+    """Creates a plot overlaying each data set of each measured angle.
 
     Args:
         data_path (string): path to directory containing the measured data.
-        files (list): list of file names for each angle's dataset to plot.
+        files (list): list of file names for each angle's data to plot.
         save_path (string): path to directory to save the plot to.
 
     """
@@ -70,10 +71,10 @@ def plot_simulated_angles(angle_times, dq, bkg, scale, q_min, q_max, save_path):
     ax.set_ylabel('Reflectivity (arb.)',         fontsize=11, weight='bold')
     ax.set_yscale('log')
 
-    #Define the model for the measured dataset.
+    #Define the model for the measured data set.
     structure = QCS_sample()
 
-    #Simulate noisy datasets with different angles corresponding to the measured data.
+    #Simulate noisy data sets with different angles corresponding to the measured data.
     for angle in angle_times:
         points, time = angle_times[angle]
         model = ReflectModel(structure, dq=dq, bkg=bkg, scale=scale)
@@ -99,9 +100,11 @@ def plot_measured_all(data_path, dq, bkg, save_path):
 
     """
     structure = QCS_sample()
-    model     = ReflectModel(structure, scale=1, dq=dq, bkg=bkg)
-    data      = ReflectDataset(data_path)
-    scale     = np.max(data.y)
+
+    #Define the model, load and scale the data.
+    model = ReflectModel(structure, scale=1, dq=dq, bkg=bkg)
+    data  = ReflectDataset(data_path)
+    scale = np.max(data.y)
     data.scale(scale) #Scale the data so that the maximum reflectivity is 1.
 
     #Plot the fit of the measured dataset and save it.
@@ -122,7 +125,7 @@ def sample_measured_data(data_path, dq, bkg, save_path):
     """
     structure = QCS_sample()
 
-    #Vary the SLD, thickness and roughness of each layer (skip air and the substrate).
+    #Vary the SLD, thickness and roughness of each layer (skip air and substrate).
     for component in structure.components[1:-1]:
         sld_bounds   = (component.sld.real.value*0.5, component.sld.real.value*1.5)
         thick_bounds = (component.thick.value*0.5,    component.thick.value*1.5)
@@ -138,6 +141,7 @@ def sample_measured_data(data_path, dq, bkg, save_path):
     objective = Objective(model, data)
     sampler   = Sampler(objective)
 
+    #Sample using MCMC and nested sampling and save the corner plots.
     fig1, _ = sampler.sample_MCMC(verbose=True)
     fig1.savefig(save_path+"/measured_sample_MCMC.png", dpi=600)
     fig2, _ = sampler.sample_nested(verbose=True)

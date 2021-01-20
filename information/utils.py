@@ -6,17 +6,17 @@ from dynesty import NestedSampler
 from dynesty import plotting as dyplot
 from dynesty import utils    as dyfunc
 
-def calc_FIM(q, xi, flux, model):
-    """Calculates the Fisher information matrix for given a dataset and model.
+def calc_FIM(q, xi, counts, model):
+    """Calculates the Fisher information metric (FIM) matrix for a given `model`.
 
     Args:
         q (numpy.ndarray): array of Q values.
-        xi (list): list of refnx Parameter objects representing each varying parameter value.
-        flux (numpy.ndarray): array of flux values corresponding to each Q value.
+        xi (list): list of refnx Parameter objects representing each varying parameter.
+        counts (numpy.ndarray): array of incident neutron counts corresponding to each Q value.
         model (refnx.reflect.ReflectModel): the model to calculate the gradient with.
 
     Returns:
-        numpy.ndarray: Fisher information matrix for the model and data.
+        numpy.ndarray: FIM matrix for the model and data.
 
     """
     n = len(q)
@@ -28,12 +28,12 @@ def calc_FIM(q, xi, flux, model):
             J[i,j] = gradient(model, xi[j], q[i])
 
     r = model(q) #Use model reflectivity values
-    M = np.diag(flux/r, k=0)
+    M = np.diag(counts/r, k=0)
     g = np.dot(np.dot(J.T, M), J)
     return g
 
 def gradient(model, parameter, q_point, step=0.005):
-    """Calculate a two-point gradient of model reflectivity with model `parameter`.
+    """Calculate a two-point gradient of `model` reflectivity with model `parameter`.
 
     Args:
         model (refnx.reflect.ReflectModel): the model to calculate the gradient with.
@@ -45,8 +45,7 @@ def gradient(model, parameter, q_point, step=0.005):
         float: two-point gradient.
 
     """
-    step = parameter.value * step #0.5% step by default
-    old = parameter.value
+    old, step = parameter.value, parameter.value*step #0.5% step by default
 
     x1 = parameter.value = old - step #First point
     y1 = model(q_point) #Get new r value with altered model.
@@ -85,11 +84,11 @@ class Sampler:
 
         Returns:
             (matplotlib.pyplot.Figure): MCMC sampling corner plot.
-            (float): time taken for the MCMC sampling.
+            (float): time taken for sampling.
 
         """
         start = time.time()
-        if fit_first:
+        if fit_first: #Initially fit with differential evolution.
             self.sampler_MCMC.fit('differential_evolution', verbose=verbose)
         self.sampler_MCMC.sample(burn, verbose=verbose) #Burn-in period
         self.sampler_MCMC.reset()
@@ -105,7 +104,7 @@ class Sampler:
 
         Returns:
             (matplotlib.pyplot.Figure): nested sampling corner plot.
-            (float): time taken for the nested sampling.
+            (float): time taken for sampling.
 
         """
         start = time.time()
