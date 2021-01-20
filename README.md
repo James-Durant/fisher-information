@@ -2,7 +2,7 @@
 A framework for applying the Fisher information metric (FIM) to neutron reflectometry.
 
 ## About the Project
-The project is split into two parts: experiment simulation and FIM application for which the code can be found in the [simulation](/simulation) and [information](/information) directories respectively. The results of recreating a measured data set using our simulation can be found [here](/simulations/results) and the results of applying the FIM can be found [here](/information/results).
+The project is split into two parts: experiment simulation and FIM application for which the code can be found in the [simulation](/simulation) and [information](/information) directories respectively. The results of recreating a measured data set using our simulation can be found [here](/simulation/results) and the results of applying the FIM can be found [here](/information/results).
 
 ### Built With
 * [`Python3`](https://www.python.org/)
