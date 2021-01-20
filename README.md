@@ -1,9 +1,15 @@
 # fisher-information
 A framework for applying the Fisher information metric (FIM) to neutron reflectometry.
 
-## About The Project
+## About the Project
+### Built With
+* [`Python3`](https://www.python.org/)
+* [`refnx`](https://refnx.readthedocs.io/en/latest/)
+* [`dynesty`](https://dynesty.readthedocs.io/en/latest/)
+* [`corner.py`](https://corner.readthedocs.io/en/latest/)
+
 ### Simulation
-Experiment simluation code can be found in the [simulation](/simulation) directory:
+Experiment simulation code can be found in the [simulation](/simulation) directory:
 * [measured_data.py](/simulation/measured_data.py) - Fits [measured data](/simulation/data) to obtain a ground truth model and uses this model to compare the data to its simulated counterpart. The results fitting, sampling and simulation can be found [here](/simulation/results).
 * [simulate.py](/simulation/simulate.py) - Contains the code for simulating single and multiple contrast experiments. Uses a [directbeam](/simulation/data/directbeam_wavelength.dat) file of incident neutron flux as a function of wavelength.
 * [structures.py](/simulation/structures.py) - Defines a number of structures of varying complexity used for FIM applications.
@@ -11,20 +17,14 @@ Experiment simluation code can be found in the [simulation](/simulation) directo
 
 ### Information
 FIM calculation and application code can be found in the [information](/information) directory:
-* [benchmark.py](/information/benchmark.py) - Benchmarks parameter uncertanty calculation using the MCMC sampling, nested sampling and the FIM approach.
+* [benchmark.py](/information/benchmark.py) - Benchmarks parameter uncertainty calculation using the MCMC sampling, nested sampling and the FIM approach.
 * [bilayer.py](/information/bilayer.py) - To do
 * [confidence_ellipses.py](/information/confidence_ellipses.py) - Plots the FIM confidence ellipses on MCMC and nested sampling corner plots.
 * [time_dependence.py](/information/time_dependence.py) - Compares fitting errors and FIM errors with increasing time.
 * [utils.py](/information/time_dependence.py) - Contains code for FIM calculation and sampling using MCMC or nested sampling.
 * [variances.py](/information/variances.py) - Compares the inverse FIM with the variance in parameter estimation from fitting methods.
 
-The results from these files can be found [here](/information/results).
-
-### Built With
-* [`Python3`](https://www.python.org/)
-* [`refnx`](https://refnx.readthedocs.io/en/latest/)
-* [`dynesty`](https://dynesty.readthedocs.io/en/latest/)
-* [`corner.py`](https://corner.readthedocs.io/en/latest/)
+Results can be found [here](/information/results).
 
 ## Installation
 1. To replicate the development environment with the [`Anaconda`](https://www.anaconda.com/products/individual) distribution, first create an empty conda environment by running: <br /> ```conda create --name FIM```
@@ -39,9 +39,9 @@ The results from these files can be found [here](/information/results).
 You should now be able to run the code.
 
 ## Contact
-Jos Cooper     - jos.cooper@stfc.ac.uk\
-James Durant   - james.durant@stfc.ac.uk\
-Lucas Wilkins  - lucas@lucaswilkins.com
+Jos Cooper - jos.cooper@stfc.ac.uk\
+James Durant - james.durant@stfc.ac.uk\
+Lucas Wilkins - lucas@lucaswilkins.com
 
 ## Acknowledgements
 To do
