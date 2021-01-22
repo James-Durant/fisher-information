@@ -5,8 +5,8 @@ from refnx.dataset  import ReflectDataset
 from refnx.analysis import Objective
 
 from simulation.simulate import simulate_single_contrast, vary_model
-from simulation.utils import plot_objective
-from utils import Sampler, calc_FIM
+from simulation.utils    import plot_objective
+from information.utils   import Sampler, calc_FIM
 
 def compare_ellipses(structure, angle_times, save_path):
     """Calculates parameter uncertainties for a given `structure` using MCMC and
@@ -112,13 +112,13 @@ if __name__ == "__main__":
     from simulation.structures import thin_layer_sample_1,  thin_layer_sample_2
     from simulation.structures import easy_sample, many_param_sample
 
-    structure   = easy_sample #Choose structure here.
+    structure   = easy_sample() #Choose structure here.
     angle_times = {0.7: (70, 5), #Angle: (Points, Time)
                    2.0: (70, 20)}
 
-    save_path = "./results/"+structure.__name__
+    save_path = "./results/"+structure.name
     if not os.path.exists(save_path): #Create directory if not present.
         os.makedirs(save_path)
 
     #Overlay the FIM confidence ellipses on the MCMC and nested sampling corner plots.
-    compare_ellipses(structure(), angle_times, save_path)
+    compare_ellipses(structure, angle_times, save_path)

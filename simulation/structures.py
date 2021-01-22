@@ -1,5 +1,4 @@
 from refnx.reflect import SLD
-from utils import plot_sld_profile, plot_reflectivity_curve, save_plot
 
 def multiple_contrast_sample():
     air       = SLD(0,   name="Air")
@@ -13,6 +12,8 @@ def multiple_contrast_sample():
 
     structure_air = substrate | layer1 | layer2 | layer3 | layer4 | layer5 | air
     structure_D2O = substrate | layer1 | layer2 | layer3 | layer4 | layer5 | D2O
+    structure_air.name = "multiple_contrast_sample_air"
+    structure_D2O.name = "multiple_contrast_sample_D2O"
     return structure_air, structure_D2O
 
 def easy_sample():
@@ -20,14 +21,18 @@ def easy_sample():
     layer1    = SLD(4, name="Layer 1")(thick=100, rough=2)
     layer2    = SLD(8, name="Layer 2")(thick=150, rough=2)
     substrate = SLD(2.047, name="Substrate")(thick=0, rough=2)
-    return air | layer1 | layer2 | substrate
+    structure = air | layer1 | layer2 | substrate
+    structure.name = "easy_sample"
+    return structure
 
 def thin_layer_sample_1():
     air       = SLD(0, name="Air")
     layer1    = SLD(4, name="Layer 1")(thick=200, rough=2)
     layer2    = SLD(6, name="Layer 2")(thick=6,   rough=2)
     substrate = SLD(2.047, name="Substrate")(thick=0, rough=2)
-    return air | layer1 | layer2 | substrate
+    structure = air | layer1 | layer2 | substrate
+    structure.name = "thin_layer_sample_1"
+    return structure
 
 def thin_layer_sample_2():
     air       = SLD(0, name="Air")
@@ -35,14 +40,18 @@ def thin_layer_sample_2():
     layer2    = SLD(5, name="Layer 2")(thick=30,  rough=6)
     layer3    = SLD(6, name="Layer 3")(thick=6,   rough=2)
     substrate = SLD(2.047, name="Substrate")(thick=0, rough=2)
-    return air | layer1 | layer2 | layer3 | substrate
+    structure = air | layer1 | layer2 | layer3 | substrate
+    structure.name = "thin_layer_sample_2"
+    return structure
 
 def similar_sld_sample_1():
     air       = SLD(0,   name="Air")
     layer1    = SLD(0.9, name="Layer 1")(thick=80, rough=2)
     layer2    = SLD(1.0, name="Layer 2")(thick=50, rough=6)
     substrate = SLD(2.047, name="Substrate")(thick=0, rough=2)
-    return air | layer1 | layer2 | substrate
+    structure = air | layer1 | layer2 | substrate
+    structure.name = "similar_sld_sample_1"
+    return structure
 
 def similar_sld_sample_2():
     air       = SLD(0,   name="Air")
@@ -50,7 +59,9 @@ def similar_sld_sample_2():
     layer2    = SLD(5.5, name="Layer 2")(thick=30, rough=6)
     layer3    = SLD(6.0, name="Layer 3")(thick=35, rough=2)
     substrate = SLD(2.047, name="Substrate")(thick=0, rough=2)
-    return air | layer1 | layer2 | layer3 | substrate
+    structure = air | layer1 | layer2 | layer3 | substrate
+    structure.name = "similar_sld_sample_2"
+    return structure
 
 def many_param_sample():
     air       = SLD(0,   name="Air")
@@ -60,7 +71,9 @@ def many_param_sample():
     layer4    = SLD(3.2, name="Layer 4")(thick=40, rough=2)
     layer5    = SLD(4.0, name="Layer 5")(thick=18, rough=2)
     substrate = SLD(2.047, name="Substrate")(thick=0, rough=2)
-    return air | layer1 | layer2 | layer3 | layer4 | layer5 | substrate
+    structure = air | layer1 | layer2 | layer3 | layer4 | layer5 | substrate
+    structure.name = "many_param_sample"
+    return structure
 
 STRUCTURES = [similar_sld_sample_1, similar_sld_sample_2,
               thin_layer_sample_1,  thin_layer_sample_2,
@@ -75,13 +88,14 @@ def plot_sld_profiles(save_path):
     """
     #Plot and save SLD profiles for each single contrast structure.
     for structure_func in STRUCTURES:
-        fig, _ = plot_sld_profile(structure_func())
-        save_plot(fig, save_path+"/"+structure_func.__name__, "sld_profile")
+        structure = structure_func()
+        fig, _ = plot_sld_profile(structure)
+        save_plot(fig, save_path+"/"+structure.name, "sld_profile")
 
     #Plot the multiple contrast sample on the same axis.
     structure1, structure2 = multiple_contrast_sample()
-    fig, ax = plot_sld_profile(structure1, colour="C0", label="contrast1")
-    ax.plot(*structure2.sld_profile(), color="C1", label="contrast2")
+    fig, ax = plot_sld_profile(structure1, colour="C0", label="Air")
+    ax.plot(*structure2.sld_profile(), color="C1", label="D2O")
     ax.legend()
     save_plot(fig, save_path+"/multiple_contrast_sample", "sld_profile")
 
@@ -94,17 +108,20 @@ def plot_reflectivity_curves(save_path):
     """
     #Plot and save reflectivity curves for each single contrast structure.
     for structure_func in STRUCTURES:
-        fig, _ = plot_reflectivity_curve(structure_func())
-        save_plot(fig, save_path+"/"+structure_func.__name__, "model_reflectivity")
+        structure = structure_func()
+        fig, _ = plot_reflectivity_curve(structure)
+        save_plot(fig, save_path+"/"+structure.name, "model_reflectivity")
 
     #Plot and save reflectivity curves for the multiple contrast sample.
     structure1, structure2 = multiple_contrast_sample()
     fig1, _ = plot_reflectivity_curve(structure1)
     fig2, _ = plot_reflectivity_curve(structure2)
-    save_plot(fig1, save_path+"/multiple_contrast_sample", "contrast1_model_reflectivity")
-    save_plot(fig2, save_path+"/multiple_contrast_sample", "contrast2_model_reflectivity")
+    save_plot(fig1, save_path+"/multiple_contrast_sample", "model_reflectivity_air")
+    save_plot(fig2, save_path+"/multiple_contrast_sample", "model_reflectivity_D2O")
 
 if __name__ == "__main__":
+    from simulation.utils import plot_sld_profile, plot_reflectivity_curve, save_plot
+
     save_path = "../information/results"
     plot_sld_profiles(save_path)
     plot_reflectivity_curves(save_path)

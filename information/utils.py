@@ -29,8 +29,7 @@ def calc_FIM(q, xi, counts, model):
 
     r = model(q) #Use model reflectivity values
     M = np.diag(counts/r, k=0)
-    g = np.dot(np.dot(J.T, M), J)
-    return g
+    return np.dot(np.dot(J.T, M), J)
 
 def gradient(model, parameter, q_point, step=0.005):
     """Calculate a two-point gradient of `model` reflectivity with model `parameter`.

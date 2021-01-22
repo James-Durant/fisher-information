@@ -7,7 +7,7 @@ from refnx.reflect  import SLD, ReflectModel
 from refnx.analysis import Objective
 
 from simulate import run_experiment
-from utils    import plot_objective
+from simulation.utils  import plot_objective
 from information.utils import Sampler
 
 def QCS_sample():
@@ -128,11 +128,11 @@ def sample_measured_data(data_path, dq, bkg, save_path):
     #Vary the SLD, thickness and roughness of each layer (skip air and substrate).
     for component in structure.components[1:-1]:
         sld_bounds   = (component.sld.real.value*0.5, component.sld.real.value*1.5)
-        thick_bounds = (component.thick.value*0.5,    component.thick.value*1.5)
-        rough_bounds = (component.rough.value*0.5,    component.rough.value*1.5)
+        thick_bounds = (component.thick.value*0.5, component.thick.value*1.5)
+        rough_bounds = (component.rough.value*0.5, component.rough.value*1.5)
         component.sld.real.setp(vary=True, bounds=sld_bounds)
-        component.thick.setp(vary=True,    bounds=thick_bounds)
-        component.rough.setp(vary=True,    bounds=rough_bounds)
+        component.thick.setp(vary=True, bounds=thick_bounds)
+        component.rough.setp(vary=True, bounds=rough_bounds)
 
     model = ReflectModel(structure, scale=1, dq=dq, bkg=bkg)
     data  = ReflectDataset(data_path)

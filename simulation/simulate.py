@@ -1,16 +1,13 @@
 import numpy as np
-
 from refnx.reflect import ReflectModel
-from utils import plot_objective
 
-def simulate_single_contrast(structure, angle_times, dq=2, bkg=1e-7, bkg_rate=1e-6, save_path=None, filename=None):
+def simulate_single_contrast(structure, angle_times, dq=2, bkg_rate=1e-7, save_path=None, filename=None):
     """Simulates a single contrast experiment measured using a number of different angles.
 
     Args:
         structure (refnx.reflect.Structure): structure to simulate the experiment on.
         angle_times (dict): dictionary of points and times for each measured angle.
         dq (float): value to use for the model's instrument resolution parameter.
-        bkg (float): value to use for the model's background parameter.
         bkg_rate (float): the level of the background noise to add.
         save_path (string): path to directory to save the reflectivity data to.
         filename (string): file name to use when storing reflectivity data.
@@ -20,7 +17,8 @@ def simulate_single_contrast(structure, angle_times, dq=2, bkg=1e-7, bkg_rate=1e
         data (numpy.ndarray): simulated reflectivity data for the structure.
 
     """
-    model = ReflectModel(structure, scale=1, dq=dq, bkg=bkg) #Define the model.
+    #Define the model. 0 background for simulating as background noise is added.
+    model = ReflectModel(structure, scale=1, dq=dq, bkg=0)
 
     q, r, r_error, counts = [], [], [], []
     total_points = 0
@@ -44,6 +42,9 @@ def simulate_single_contrast(structure, angle_times, dq=2, bkg=1e-7, bkg_rate=1e
         r_error += r_error_angle
         counts  += counts_angle
 
+    #If fitting, the model needs to have the right background.
+    model.bkg.value = bkg_rate
+
     data = np.zeros((total_points, 4))
     data[:,0] = q
     data[:,1] = r
@@ -55,14 +56,13 @@ def simulate_single_contrast(structure, angle_times, dq=2, bkg=1e-7, bkg_rate=1e
 
     return model, data
 
-def simulate_multiple_contrasts(structures, angle_times, dq=2, bkg=1e-7, bkg_rate=1e-6, save_path=None):
+def simulate_multiple_contrasts(structures, angle_times, dq=2, bkg_rate=1e-7, save_path=None):
     """Simulates a multiple contrast experiment measured using a number of different angles.
 
     Args:
         structures (list): list of refnx.reflect.Structure objects corresponding to each contrast.
         angle_times (dict): dictionary of number of points and times for each measured angle.
         dq (float): value to use for the model's instrument resolution parameter.
-        bkg (float): value to use for the model's background parameter.
         bkg_rate (float): the level of the background noise to add.
         save_path (string): path to directory to save the reflectivity data for each contrast to.
 
@@ -75,13 +75,13 @@ def simulate_multiple_contrasts(structures, angle_times, dq=2, bkg=1e-7, bkg_rat
     for i, structure in enumerate(structures, 1):
         filename = "contrast{}.dat".format(i)
         #Simulate each measurement angle for the contrast.
-        model, data = simulate_single_contrast(structure, angle_times, dq, bkg, bkg_rate, save_path, filename)
+        model, data = simulate_single_contrast(structure, angle_times, dq, bkg_rate, save_path, filename)
         models.append(model)
         datasets.append(data)
 
     return models, datasets
 
-def run_experiment(model, angle, points, time, bkg_rate=1e-6, q_min=None, q_max=None, directbeam_file="../simulation/data/directbeam_wavelength.dat"):
+def run_experiment(model, angle, points, time, bkg_rate=1e-7, q_min=None, q_max=None, directbeam_file="../simulation/data/directbeam_wavelength.dat"):
     """Simulates an experiment for a given `model` with added noise.
 
     Args:
@@ -160,7 +160,7 @@ def vary_model(model):
     for component in model.structure.components[1:-1]:
         #Use a bound of 50% above and below the ground truth value.
         sld_bounds   = (component.sld.real.value*0.5, component.sld.real.value*1.5)
-        thick_bounds = (component.thick.value*0.5,    component.thick.value*1.5)
+        thick_bounds = (component.thick.value*0.5, component.thick.value*1.5)
 
         #Vary the SLD and thickness of the layer.
         component.sld.real.setp(vary=True, bounds=sld_bounds)
@@ -174,14 +174,15 @@ if __name__ == "__main__":
     from refnx.dataset  import ReflectDataset
     from refnx.analysis import Objective
 
+    from simulation.utils import plot_objective
     from structures import similar_sld_sample_1, similar_sld_sample_2
     from structures import thin_layer_sample_1,  thin_layer_sample_2
     from structures import easy_sample, many_param_sample
 
-    structure   = easy_sample
+    structure   = easy_sample()
     angle_times = {0.7: (70, 5),
                    2.0: (70, 20)}
 
-    model, data   = simulate_single_contrast(structure(), angle_times)
+    model, data   = simulate_single_contrast(structure, angle_times)
     q, r, r_error = data[:,0], data[:,1], data[:,2]
     plot_objective(Objective(model, ReflectDataset([q, r, r_error])), show_fit=False)

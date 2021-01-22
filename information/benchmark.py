@@ -6,7 +6,7 @@ from refnx.reflect  import SLD
 from refnx.analysis import Objective
 
 from simulation.simulate import simulate_single_contrast
-from utils import Sampler, calc_FIM
+from information.utils   import Sampler, calc_FIM
 
 class Generator:
     """The Generator class contains all code relating random model generation.
@@ -16,9 +16,6 @@ class Generator:
         thick_bounds (tuple): the range of values that layer thicknesses can take.
         rough_bounds (tuple): the range of values that layer roughnesses can take.
         substrate_sld (float): the SLD of the substrate (Silicon).
-        dq (int): instrument resolution parameter.
-        bkg (float): background to apply when generating.
-        bkg_rate (float): background rate used for adding background noise.
         angle_times (dict): a dictionary of points and times for each measurement angle.
 
     """
@@ -26,9 +23,6 @@ class Generator:
     thick_bounds  = (20,1000)
     rough_bounds  = (2,8)
     substrate_sld = 2.047
-    dq            = 2
-    bkg           = 1e-7
-    bkg_rate      = 1e-6
     angle_times   = {0.7: (70, 5),
                      2.0: (70, 20)}
 
@@ -48,9 +42,7 @@ class Generator:
         for i in range(num_samples):
             structure = Generator.random_structure(layers) #Get a random structure.
             #Simulate an experiement using the structure.
-            model, data = simulate_single_contrast(structure, Generator.angle_times,
-                                                    dq=Generator.dq, bkg=Generator.bkg,
-                                                    bkg_rate=Generator.bkg_rate)
+            model, data = simulate_single_contrast(structure, Generator.angle_times)
             models_data.append([model, data])
         return models_data
 
@@ -129,8 +121,8 @@ def benchmark(layers, num_samples):
         sampler = Sampler(objective)
 
         print("MCMC Sampling {0}/{1}...".format(i+1, len(models_data)))
-        #_, time_MCMC = sampler.sample_MCMC(fit_first=False)
-        #times_MCMC.append(time_MCMC)
+        _, time_MCMC = sampler.sample_MCMC(fit_first=False)
+        times_MCMC.append(time_MCMC)
 
         print("Nested Sampling {0}/{1}...".format(i+1, len(models_data)))
         _, time_nested = sampler.sample_nested()

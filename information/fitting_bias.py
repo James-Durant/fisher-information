@@ -1,24 +1,28 @@
 import numpy as np
-import os, copy
+import copy, os
 
 from refnx.dataset  import ReflectDataset
 from refnx.analysis import Objective, CurveFitter
 
 from simulation.simulate import simulate_single_contrast, vary_model
-from information.utils   import calc_FIM
 
-def compare_fit_variance(structure, angle_times, save_path, n=500):
-    """Compares the inverse FIM with variance in parameter estimation using
-       traditional fitting for `n` fits.
+def fiting_bias(structure, angle_times, save_path, n=500):
+    """Calculates the bias in parameter estimation using traditional fitting for `n` fits.
 
     Args:
         structure (refnx.reflect.Structure): the structure to simulate the experiment on.
         angle_times (dict): dictionary of points and measurement times to use for each angle.
-        save_path (string): path to directory to save FIM and fit variances.
+        save_path (string): path to directory to save fitting biases to.
         n (int): number of fits to run.
 
     """
-    param_estimates, inv_FIM = [], []
+    #Get the thickness and SLDs of the ground truth model.
+    true = []
+    for component in structure[1:-1]:
+        true.append(component.thick.value)
+        true.append(component.sld.real.value)
+
+    fitted_params = []
     for i in range(n): #Fit `n` times
         if i % 10 == 0: #Display progress every 10 fits.
             print("{0}/{1}...".format(i, n))
@@ -27,32 +31,24 @@ def compare_fit_variance(structure, angle_times, save_path, n=500):
         model, data = simulate_single_contrast(copy.copy(structure), angle_times)
         vary_model(model) #Vary the SLD and thickness of each layer and set them to random values.
 
-        q, r, r_error, counts = data[:,0], data[:,1], data[:,2], data[:,3]
+        q, r, r_error = data[:,0], data[:,1], data[:,2]
+        objective = Objective(model, ReflectDataset([q,r,r_error]))
 
         #Fit the model using differential evolution.
-        objective = Objective(model, ReflectDataset([q, r, r_error]))
         fitter = CurveFitter(objective)
         fitter.fit('differential_evolution', verbose=False)
+        #Recored the fitted parameters.
+        fitted_params.append([param.value for param in objective.varying_parameters()])
 
-        xi = objective.varying_parameters() #Get the parameter estimates.
-        param_estimates.append([param.value for param in xi])
+    #Calculate the bias in each fitted parameter.
+    biases = np.mean(fitted_params, axis=0) - np.array(true)
+    names  = [param.name for param in objective.varying_parameters()]
 
-        g = calc_FIM(q, xi, counts, model) #Calculate the FIM matrix.
-        inv_FIM.append(1 / np.diag(g)) #Calculate FIM parameter variances.
-
-    #Calculate the variances in parameter estimates from `n` fits.
-    param_vars = np.var(np.array(param_estimates), axis=0)
-    #Calculate the mean inverse FIM for each parameter.
-    mean_inv_FIM = np.mean(np.array(inv_FIM), axis=0)
-    print("Variance in Parameter Estimation:", param_vars)
-    print("Mean Inverse FIM:", mean_inv_FIM)
-
-    #Save the results to a .txt file.
-    with open(save_path+"/variances.txt", "w") as file:
-        file.write("Variance in Parameter Estimation:\n")
-        file.write(str(param_vars)+"\n"*2)
-        file.write("Mean Inverse FIM:\n")
-        file.write(str(mean_inv_FIM))
+    #Save the biases to a .txt file.
+    with open(save_path+"/fitting_biases.txt", "w") as file:
+        file.write("---------- Fitting Biases ----------\n")
+        for name, bias in list(zip(names, biases)):
+            file.write("{0}: {1}\n".format(name, bias))
 
 if __name__ == "__main__":
     from simulation.structures import similar_sld_sample_1, similar_sld_sample_2
@@ -67,4 +63,4 @@ if __name__ == "__main__":
     if not os.path.exists(save_path):
         os.makedirs(save_path)
 
-    compare_fit_variance(structure, angle_times, save_path, n=500)
+    fiting_bias(structure, angle_times, save_path, n=10)

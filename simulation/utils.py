@@ -4,24 +4,26 @@ import os
 
 from refnx.reflect import ReflectModel
 
-def plot_sld_profile(structure, colour='black', label=None):
+def plot_sld_profile(structure, colour='black', label=None, distance=None):
     """Plots the SLD profile of a given `structure`.
 
     Args:
         structure (refnx.reflect.Structure): the sample to plot the SLD profile of.
         colour (string): colour to use for the SLD profile.
         label (string): label to use for the SLD profile.
+        distance (ndarray): interfacial distances measured from interface between
+                            the fronting medium and the first layer.
 
     """
     fig = plt.figure(figsize=[9,7], dpi=600)
     ax  = fig.add_subplot(111)
     #Plot the SLD profile with or without a label.
-    ax.plot(*structure.sld_profile(), color=colour, label=label)
+    ax.plot(*structure.sld_profile(distance), color=colour, label=label)
     ax.set_xlabel("$\mathregular{Distance\ (\AA)}$", fontsize=11, weight='bold')
     ax.set_ylabel("$\mathregular{SLD\ (10^{-6} \AA^{-2})}$", fontsize=11, weight='bold')
     return fig, ax
 
-def reflectivity_curve(structure, q_min=0.005, q_max=0.3, points=500, dq=2, bkg=1e-7):
+def plot_reflectivity_curve(structure, q_min=0.005, q_max=0.3, points=500, dq=2, bkg=1e-7):
     """Plots the model reflectivity curve of a given `structure`.
 
     Args:
@@ -59,13 +61,12 @@ def save_plot(fig, save_path, plot_type):
         os.makedirs(save_path)
     fig.savefig(save_path+"/"+plot_type+".png", dpi=600)
 
-def plot_objective(objective, show_fit=True, ylim=1e-7):
+def plot_objective(objective, show_fit=True):
     """Plots the fit of a given `objective` against the objective's data.
 
     Args:
         objective (refnx.analysis.Objective): the objective to plot.
         show_fit (Boolean): whether to display the objective fit or not.
-        ylim (float): minimum reflectivity value to plot.
 
     """
     fig = plt.figure(figsize=[9,7], dpi=600)
@@ -83,5 +84,5 @@ def plot_objective(objective, show_fit=True, ylim=1e-7):
     ax.set_ylabel('Reflectivity (arb.)',         fontsize=11, weight='bold')
     ax.set_yscale('log')
     ax.set_xlim(0, 0.3)
-    ax.set_ylim(ylim, 2)
+    ax.set_ylim(1e-7, 2)
     return fig

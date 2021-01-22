@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
-import os
+import os, copy
 
 from sklearn.linear_model import LinearRegression
 
@@ -8,7 +8,7 @@ from refnx.dataset  import ReflectDataset
 from refnx.analysis import Objective, CurveFitter
 
 from simulation.simulate import simulate_single_contrast, vary_model
-from utils import calc_FIM
+from information.utils   import calc_FIM
 
 def compare_errors(structure, angle_points, times, save_path):
     """Compares traditional fitting errors and FIM errors with increasing time.
@@ -27,7 +27,7 @@ def compare_errors(structure, angle_points, times, save_path):
         for _ in range(10):
             #Create dictionary of number of points and measurement time for each angle.
             angle_times = {angle: (angle_points[angle], time) for angle in angle_points}
-            model, data = simulate_single_contrast(structure(), angle_times) #Simulate the experiment.
+            model, data = simulate_single_contrast(copy.copy(structure), angle_times) #Simulate the experiment.
             vary_model(model) #Vary the SLD and thickness of each layer and set them to random values.
 
             q, r, r_error, counts = data[:,0], data[:,1], data[:,2], data[:,3]
@@ -106,12 +106,12 @@ if __name__ == "__main__":
     from simulation.structures import thin_layer_sample_1,  thin_layer_sample_2
     from simulation.structures import easy_sample, many_param_sample
 
-    structure = easy_sample #Choose structure here.
-    save_path = "./results/"+structure.__name__
+    structure = easy_sample() #Choose structure here.
+    save_path = "./results/"+structure.name
     if not os.path.exists(save_path):
         os.makedirs(save_path)
 
     angle_points = {0.7: 70, #Angle: Points
                     2.0: 70}
-    times = 10**np.arange(0.5, 1, 1, dtype=float)
+    times = 10**np.arange(0.5, 5.5, 0.1, dtype=float)
     compare_errors(structure, angle_points, times, save_path)
