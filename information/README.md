@@ -1,4 +1,4 @@
-# FIM Application
+# Application of the FIM
 * [benchmark.py](/information/benchmark.py) - Benchmarks parameter uncertainty calculations using MCMC sampling, nested sampling and the FIM approach.
 * [bilayer.py](/information/bilayer.py) - Explores how the FIM varies with increasing bulk contrast SLD for a DMPC sample.
 * [confidence_ellipses.py](/information/confidence_ellipses.py) - Plots the FIM confidence ellipses on MCMC and nested sampling corner plots.
