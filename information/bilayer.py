@@ -13,7 +13,7 @@ from information.utils   import calc_FIM
 def DMPC_sample():
     """Constructs three structures for three contrasts of a DMPC sample:
        Si-SiO2-D2O, Si-SiO2-DMPC-D2O and Si-SiO2-DMPC-H2O. Data and fitted
-       values are from the ISIS Neutron Training Course.
+       values are from the ISIS neutron training course.
 
     """
     #Define the known SLDs, roughnesses, thicknesses, hydrations, volumes and DMPC APM.
@@ -58,13 +58,13 @@ def DMPC_sample():
     DMPC_HG_SL_H2O = DMPC_HG_SL + Headgroup_water_H2O_SL
 
     #Calculate the SLD of the HG in both contrast cases
-    SLD_HG_D2O = 10**6 * DMPC_HG_SL_D2O / vol_HG #SLD = sum b / v
-    SLD_HG_H2O = 10**6 * DMPC_HG_SL_H2O / vol_HG
+    SLD_HG_D2O = DMPC_HG_SL_D2O / vol_HG * 1e6 #SLD = sum b / v
+    SLD_HG_H2O = DMPC_HG_SL_H2O / vol_HG * 1e6
 
     #Calculate the thickness from the HG volume over the lipid Area per molecule
     HG_thick = vol_HG / DMPC_apm #Thickness = v/APM
     #Calculate the SLD of the tails
-    SLD_tails = 10**6 * DMPC_tails_SL / DMPC_tails_vol
+    SLD_tails = DMPC_tails_SL / DMPC_tails_vol * 1e6
     #Calculate the thickness of the tails
     tails_thick = DMPC_tails_vol / DMPC_apm
 
@@ -76,7 +76,7 @@ def DMPC_sample():
 
     tails = SLD(SLD_tails)(tails_thick, bilayer_rough)
 
-    #Set the DMPC hydradtions.
+    #Set the DMPC hydradtion.
     D2O_inner_HG.vfsolv.setp(bilayer_hydration)
     D2O_outer_HG.vfsolv.setp(bilayer_hydration)
     H2O_inner_HG.vfsolv.setp(bilayer_hydration)
@@ -110,7 +110,7 @@ def plot_sld_profiles(structures, save_path):
     fig.savefig(save_path+"/sld_profiles.png", dpi=600)
 
 def plot_objectives(structures, save_path):
-    """Plots the reflectivity curves of each given contrast.
+    """Plots the fitted reflectivity curves of each given contrast.
 
     Args:
         structures (list): the structures to plot the reflectivity curves of.
@@ -155,31 +155,45 @@ def DMPC_using_contrast(contrast_sld, vary_thick=True, vary_rough=True):
         vary_rough (Boolean): whether to vary the roughness parameters.
 
     """
-    #Define the parameters of the structure.
-    substrate_sld   = 2.073
-    substrate_rough = Parameter(2, vary=vary_rough, name="Substrate - rough")
+    #Define the same DMPC model as above but with variable contrast SLD.
+    substrate_sld     = 2.073
+    substrate_rough   = Parameter(2, vary=vary_rough, name="Substrate Roughness")
+    sio2_sld          = 3.41
+    sio2_thick        = Parameter(14.7073, vary=vary_thick, name="SiO2 Thickness")
+    sio2_rough        = Parameter(2, vary=vary_rough, name="SiO2 Roughness")
+    sio2_hydration    = 0.245273
+    HG_bounds_waters  = 3.588
+    bilayer_rough     = Parameter(6.5693, vary=vary_rough, name="Bilayer Roughness")
+    bilayer_hydration = 0.073696
+    DMPC_apm          = 49.8936
+    DMPC_HG_vol       = 320.9
+    DMPC_tails_vol    = 783.3
+    water_vol         = 30.4
+    DMPC_tails_SL     = -3.08e-4
 
-    sio2_sld   = 3.41
-    sio2_solv  = 0.245273
-    sio2_thick = Parameter(14.7073, vary=vary_thick, name="SiO2 - thick")
-    sio2_rough = Parameter(2, vary=vary_rough, name="SiO2 - rough")
-
-    HG_sld   = 1.98
-    HG_thick = Parameter(8.61784, vary=vary_thick, name="Headgroup - thick")
-
-    tails_sld   = 0.37
-    tails_thick = Parameter(15.6994, vary=vary_thick, name="Tails - thick")
-
-    bilayer_solv  = 0.073696
-    bilayer_rough = Parameter(6.5693, vary=vary_rough, name="Bilayer - rough")
-
-    #Define the structure as Si-SiO2-DMPC-Contrast.
     substrate = SLD(substrate_sld)
-    sio2      = SLD(sio2_sld*(1-sio2_solv) + contrast_sld*sio2_solv)(sio2_thick, substrate_rough)
-    inner_HG  = SLD(HG_sld*(1-bilayer_solv) + contrast_sld*bilayer_solv)(HG_thick, sio2_rough)
-    outer_HG  = SLD(HG_sld*(1-bilayer_solv) + contrast_sld*bilayer_solv)(HG_thick, bilayer_rough)
-    tails     = SLD(tails_sld*(1-bilayer_solv) + contrast_sld*bilayer_solv)(tails_thick, bilayer_rough)
+
+    sio2 = SLD(sio2_sld)(thick=sio2_thick, rough=substrate_rough)
+    sio2.vfsolv.setp(sio2_hydration)
+
+    vol_HG   = DMPC_HG_vol + HG_bounds_waters*water_vol
+    HG_sld   = contrast_sld*0.27 + 1.98*0.73
+    HG_thick = Parameter(vol_HG / DMPC_apm, vary=vary_thick, name="Headgroup Thickness")
+
+    tails_sld   = DMPC_tails_SL / DMPC_tails_vol * 1e6
+    tails_thick = Parameter(DMPC_tails_vol / DMPC_apm, vary=vary_thick, name="Tails Thickness")
+
+    substrate = SLD(substrate_sld)
+    sio2      = SLD(sio2_sld)(sio2_thick, substrate_rough)
+    inner_HG  = SLD(HG_sld)(HG_thick, sio2_rough)
+    outer_HG  = SLD(HG_sld)(HG_thick, bilayer_rough)
+    tails     = SLD(tails_sld)(tails_thick, bilayer_rough)
     solution  = SLD(contrast_sld)(rough=bilayer_rough)
+
+    sio2.vfsolv.setp(sio2_hydration)
+    inner_HG.vfsolv.setp(bilayer_hydration)
+    outer_HG.vfsolv.setp(bilayer_hydration)
+    tails.vfsolv.setp(bilayer_hydration)
 
     return substrate | sio2 | inner_HG | tails | tails | outer_HG | solution
 
@@ -218,7 +232,9 @@ def plot_FIM(contrasts, angle_times, save_path):
     ax.set_xlabel("$\mathregular{Contrast\ SLD\ (10^{-6} \AA^{-2})}$", fontsize=11, weight='bold')
     ax.set_ylabel('Fisher Information', fontsize=11, weight='bold')
     ax.legend()
-    fig.savefig(save_path+"/FIM.png", dpi=600) #Save the plot.
+    fig.savefig(save_path+"/FIM_linear.png", dpi=600) #Save the plot.
+    ax.set_yscale('log')
+    fig.savefig(save_path+"/FIM_log.png", dpi=600)
 
 if __name__ == "__main__":
     save_path = "./results/DMPC_sample"
@@ -231,5 +247,5 @@ if __name__ == "__main__":
 
     angle_times = {0.7: (70, 5), #Angle: (Points, Time)
                    2.0: (70, 20)}
-    contrasts = np.arange(-0.56, 6.35, 0.05)
+    contrasts = np.arange(-0.56, 6.35, 0.01)
     plot_FIM(contrasts, angle_times, save_path)
