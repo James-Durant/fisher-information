@@ -105,8 +105,8 @@ def plot_sld_profiles(structures, save_path):
     #Plot the SLD profiles of each contrast on the same axis and save the plot.
     fig, ax = plot_sld_profile(structures[0], colour=None, label=structures[0].name, distance=distances)
     for structure in structures[1:]:
-        ax.plot(*structure.sld_profile(distances), label=structure.name) #Plot SLD profile.
-    ax.legend()
+        ax.plot(*structure.sld_profile(distances))#, label=structure.name) #Plot SLD profile.
+    #ax.legend()
     fig.savefig(save_path+"/sld_profiles.png", dpi=600)
 
 def plot_objectives(structures, save_path):
@@ -140,10 +140,37 @@ def plot_objectives(structures, save_path):
     with open(save_path+"/parameters.txt", "w") as file:
         file.write(str(global_objective))
 
-    #Plot each (fitted) objective and save the plot.
+    #Plot each (fitted) objective seperately and save the plot.
     for objective in global_objective.objectives:
         fig = plot_objective(objective)
         fig.savefig(save_path+"/{}_reflectivity.png".format(objective.model.structure.name), dpi=600)
+
+    #Plot each (fitted) objective on the same plot and save it.
+    fig = plt.figure(figsize=[9,7], dpi=600)
+    ax  = fig.add_subplot(111)
+    #Plot Si-D2O
+    ax.errorbar(si_D2O_data.x, si_D2O_data.y, si_D2O_data.y_err, color=None, 
+                label="Si / D2O Interface", marker="o", ms=3, lw=0, elinewidth=1, capsize=1.5)
+    ax.plot(si_D2O_data.x, si_D2O_model(si_D2O_data.x), color="red", zorder=20)
+    #Plot Si-DMPC-D2O
+    offset = 1e-2
+    ax.errorbar(si_DMPC_D2O_data.x, si_DMPC_D2O_data.y*offset, si_DMPC_D2O_data.y_err*offset, 
+                label="DMPC bilayer in D2O $\mathregular{(x10^{-2})}$",
+                marker="o", ms=3, lw=0, elinewidth=1, capsize=1.5)
+    ax.plot(si_DMPC_D2O_data.x, si_DMPC_D2O_model(si_DMPC_D2O_data.x)*offset, color="red", zorder=20)
+    #Plot Si-DMPC-H2O
+    offset = 1e-3
+    ax.errorbar(si_DMPC_H2O_data.x, si_DMPC_H2O_data.y*offset, si_DMPC_H2O_data.y_err*offset,
+                label="DMPC bilayer in H2O $\mathregular{(x10^{-3})}$",
+                marker="o", ms=3, lw=0, elinewidth=1, capsize=1.5)
+    ax.plot(si_DMPC_H2O_data.x, si_DMPC_H2O_model(si_DMPC_H2O_data.x)*offset, color="red", zorder=20)
+    ax.set_xlabel("$\mathregular{Q\ (Å^{-1})}$", fontsize=11, weight='bold')
+    ax.set_ylabel('Reflectivity (arb.)',         fontsize=11, weight='bold')
+    ax.set_yscale('log')
+    ax.set_xlim(0, 0.25)
+    ax.set_ylim(1e-10, 2)
+    ax.legend(loc='lower left')
+    fig.savefig(save_path+"/fitted_reflectivity.png", dpi=600)
 
 def DMPC_using_contrast(contrast_sld, vary_thick=True, vary_rough=True):
     """Creates a structure representing the DMPC sample above but measured
@@ -248,4 +275,4 @@ if __name__ == "__main__":
     angle_times = {0.7: (70, 5), #Angle: (Points, Time)
                    2.0: (70, 20)}
     contrasts = np.arange(-0.56, 6.35, 0.01)
-    plot_FIM(contrasts, angle_times, save_path)
+    #plot_FIM(contrasts, angle_times, save_path)

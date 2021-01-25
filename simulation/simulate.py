@@ -34,7 +34,12 @@ def simulate_single_contrast(structure, angle_times, dq=2, bkg_rate=1e-7, save_p
                 file_path = save_path+"/{0}_{1}_{2}uA.dat".format(filename, str(angle).replace(".", ""), time)
             else:
                 file_path = save_path+"/{0}_{1}uA.dat".format(str(angle).replace(".", ""), time)
-            np.savetxt(file_path, [q_angle, r_angle, r_error_angle], delimiter=",")
+            
+            save_data = np.zeros((points, 3))
+            save_data[:,0] = q_angle
+            save_data[:,1] = r_angle
+            save_data[:,2] = r_error_angle
+            np.savetxt(file_path, save_data, delimiter=",")
 
         #Combine the data for the angle with the data from other angles.
         q       += q_angle
@@ -175,6 +180,7 @@ if __name__ == "__main__":
     from refnx.analysis import Objective
 
     from simulation.utils import plot_objective
+
     from structures import similar_sld_sample_1, similar_sld_sample_2
     from structures import thin_layer_sample_1,  thin_layer_sample_2
     from structures import easy_sample, many_param_sample
