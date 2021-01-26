@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
-import os, copy
+import os
 
 from sklearn.linear_model import LinearRegression
 
@@ -14,7 +14,7 @@ def compare_errors(structure, angle_points, times, save_path):
     """Compares traditional fitting errors and FIM errors with increasing time.
 
     Args:
-        structure (refnx.reflect.Structure): the structure to simulate the experiment on.
+        structure (function): the structure to simulate the experiment on.
         angle_points (dict): dictionary of points to use for each angle.
         times (numpy.ndarray): array of times to use for the comparison.
         save_path(string): path to directory to save figures to.
@@ -27,7 +27,7 @@ def compare_errors(structure, angle_points, times, save_path):
         for _ in range(10):
             #Create dictionary of number of points and measurement time for each angle.
             angle_times = {angle: (angle_points[angle], time) for angle in angle_points}
-            model, data = simulate_single_contrast(copy.copy(structure), angle_times) #Simulate the experiment.
+            model, data = simulate_single_contrast(structure(), angle_times) #Simulate the experiment.
             vary_model(model) #Vary the SLD and thickness of each layer and set them to random values.
 
             q, r, r_error, counts = data[:,0], data[:,1], data[:,2], data[:,3]
@@ -106,8 +106,8 @@ if __name__ == "__main__":
     from simulation.structures import thin_layer_sample_1,  thin_layer_sample_2
     from simulation.structures import easy_sample, many_param_sample
 
-    structure = easy_sample() #Choose structure here.
-    save_path = "./results/"+structure.name
+    structure = easy_sample #Choose structure here.
+    save_path = "./results/"+structure.__name__
     if not os.path.exists(save_path):
         os.makedirs(save_path)
 

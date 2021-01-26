@@ -1,5 +1,5 @@
 import numpy as np
-import os, copy
+import os
 
 from refnx.dataset  import ReflectDataset
 from refnx.analysis import Objective, CurveFitter
@@ -12,7 +12,7 @@ def compare_fit_variance(structure, angle_times, save_path, n=500):
        traditional fitting for `n` fits.
 
     Args:
-        structure (refnx.reflect.Structure): the structure to simulate the experiment on.
+        structure (function): the structure to simulate the experiment on.
         angle_times (dict): dictionary of points and measurement times to use for each angle.
         save_path (string): path to directory to save FIM and fit variances.
         n (int): number of fits to run.
@@ -24,7 +24,7 @@ def compare_fit_variance(structure, angle_times, save_path, n=500):
             print("{0}/{1}...".format(i, n))
 
         #Simulate the experiment using the given angle, number of points and time.
-        model, data = simulate_single_contrast(copy.copy(structure), angle_times)
+        model, data = simulate_single_contrast(structure, angle_times)
         vary_model(model) #Vary the SLD and thickness of each layer and set them to random values.
 
         q, r, r_error, counts = data[:,0], data[:,1], data[:,2], data[:,3]
@@ -59,11 +59,11 @@ if __name__ == "__main__":
     from simulation.structures import thin_layer_sample_1,  thin_layer_sample_2
     from simulation.structures import easy_sample, many_param_sample
 
-    structure   = easy_sample() #Choose structure here.
+    structure   = easy_sample #Choose structure here.
     angle_times = {0.7: (70, 5), #Angle: (Points, Time)
                    2.0: (70, 20)}
 
-    save_path = "./results/"+structure.name
+    save_path = "./results/"+structure.__name__
     if not os.path.exists(save_path):
         os.makedirs(save_path)
 

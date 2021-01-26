@@ -31,10 +31,11 @@ def simulate_single_contrast(structure, angle_times, dq=2, bkg_rate=1e-7, save_p
         #Save combined dataset to .dat file
         if save_path:
             if filename:
-                file_path = save_path+"/{0}_{1}_{2}uA.dat".format(filename, str(angle).replace(".", ""), time)
+                file_path = save_path+"/{0}_{1}_simulated.dat".format(filename, str(angle).replace(".", ""))
             else:
-                file_path = save_path+"/{0}_{1}uA.dat".format(str(angle).replace(".", ""), time)
-            
+                file_path = save_path+"/{0}_simulated.dat".format(str(angle).replace(".", ""))
+
+            #Save reflectivity data as a 3-column ASCII file: Q, R, dR
             save_data = np.zeros((points, 3))
             save_data[:,0] = q_angle
             save_data[:,1] = r_angle
@@ -185,10 +186,10 @@ if __name__ == "__main__":
     from structures import thin_layer_sample_1,  thin_layer_sample_2
     from structures import easy_sample, many_param_sample
 
-    structure   = easy_sample()
+    structure   = easy_sample
     angle_times = {0.7: (70, 5),
                    2.0: (70, 20)}
 
-    model, data   = simulate_single_contrast(structure, angle_times)
+    model, data   = simulate_single_contrast(structure(), angle_times)
     q, r, r_error = data[:,0], data[:,1], data[:,2]
     plot_objective(Objective(model, ReflectDataset([q, r, r_error])), show_fit=False)

@@ -105,8 +105,8 @@ def plot_sld_profiles(structures, save_path):
     #Plot the SLD profiles of each contrast on the same axis and save the plot.
     fig, ax = plot_sld_profile(structures[0], colour=None, label=structures[0].name, distance=distances)
     for structure in structures[1:]:
-        ax.plot(*structure.sld_profile(distances))#, label=structure.name) #Plot SLD profile.
-    #ax.legend()
+        ax.plot(*structure.sld_profile(distances)), label=structure.name) #Plot SLD profile.
+    ax.legend()
     fig.savefig(save_path+"/sld_profiles.png", dpi=600)
 
 def plot_objectives(structures, save_path):
@@ -149,12 +149,12 @@ def plot_objectives(structures, save_path):
     fig = plt.figure(figsize=[9,7], dpi=600)
     ax  = fig.add_subplot(111)
     #Plot Si-D2O
-    ax.errorbar(si_D2O_data.x, si_D2O_data.y, si_D2O_data.y_err, color=None, 
+    ax.errorbar(si_D2O_data.x, si_D2O_data.y, si_D2O_data.y_err, color=None,
                 label="Si / D2O Interface", marker="o", ms=3, lw=0, elinewidth=1, capsize=1.5)
     ax.plot(si_D2O_data.x, si_D2O_model(si_D2O_data.x), color="red", zorder=20)
     #Plot Si-DMPC-D2O
     offset = 1e-2
-    ax.errorbar(si_DMPC_D2O_data.x, si_DMPC_D2O_data.y*offset, si_DMPC_D2O_data.y_err*offset, 
+    ax.errorbar(si_DMPC_D2O_data.x, si_DMPC_D2O_data.y*offset, si_DMPC_D2O_data.y_err*offset,
                 label="DMPC bilayer in D2O $\mathregular{(x10^{-2})}$",
                 marker="o", ms=3, lw=0, elinewidth=1, capsize=1.5)
     ax.plot(si_DMPC_D2O_data.x, si_DMPC_D2O_model(si_DMPC_D2O_data.x)*offset, color="red", zorder=20)
@@ -275,4 +275,4 @@ if __name__ == "__main__":
     angle_times = {0.7: (70, 5), #Angle: (Points, Time)
                    2.0: (70, 20)}
     contrasts = np.arange(-0.56, 6.35, 0.01)
-    #plot_FIM(contrasts, angle_times, save_path)
+    plot_FIM(contrasts, angle_times, save_path)
