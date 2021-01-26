@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import os
+import os, sys
+sys.path.append("../")
 
 from refnx.dataset  import ReflectDataset
 from refnx.reflect  import SLD, ReflectModel

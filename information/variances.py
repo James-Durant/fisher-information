@@ -1,5 +1,6 @@
 import numpy as np
-import os
+import os, sys
+sys.path.append("../")
 
 from refnx.dataset  import ReflectDataset
 from refnx.analysis import Objective, CurveFitter

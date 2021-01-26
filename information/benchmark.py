@@ -1,5 +1,6 @@
 import numpy as np
-import os, time
+import os, time, sys
+sys.path.append("../")
 
 from refnx.dataset  import ReflectDataset
 from refnx.reflect  import SLD

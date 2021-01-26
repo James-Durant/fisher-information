@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
-import os
+import os, sys
+sys.path.append("../")
 
 from refnx.dataset  import ReflectDataset
 from refnx.reflect  import SLD, ReflectModel
@@ -105,7 +106,7 @@ def plot_sld_profiles(structures, save_path):
     #Plot the SLD profiles of each contrast on the same axis and save the plot.
     fig, ax = plot_sld_profile(structures[0], colour=None, label=structures[0].name, distance=distances)
     for structure in structures[1:]:
-        ax.plot(*structure.sld_profile(distances)), label=structure.name) #Plot SLD profile.
+        ax.plot(*structure.sld_profile(distances), label=structure.name) #Plot SLD profile.
     ax.legend()
     fig.savefig(save_path+"/sld_profiles.png", dpi=600)
 

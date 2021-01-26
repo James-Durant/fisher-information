@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
-import os
+import os, sys
+sys.path.append("../")
 
 from sklearn.linear_model import LinearRegression
 

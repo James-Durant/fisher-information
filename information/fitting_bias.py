@@ -1,12 +1,13 @@
 import numpy as np
-import os
+import os, sys
+sys.path.append("../")
 
 from refnx.dataset  import ReflectDataset
 from refnx.analysis import Objective, CurveFitter
 
 from simulation.simulate import simulate_single_contrast, vary_model
 
-def fiting_bias(structure, angle_times, save_path, n=500):
+def fiting_bias(structure, angle_times, save_path, n):
     """Calculates the bias in parameter estimation using traditional fitting for `n` fits.
 
     Args:
@@ -18,7 +19,7 @@ def fiting_bias(structure, angle_times, save_path, n=500):
     """
     #Get the thickness and SLDs of the ground truth model.
     true = []
-    for component in structure[1:-1]:
+    for component in structure()[1:-1]:
         true.append(component.thick.value)
         true.append(component.sld.real.value)
 
@@ -63,4 +64,5 @@ if __name__ == "__main__":
     if not os.path.exists(save_path):
         os.makedirs(save_path)
 
-    fiting_bias(structure, angle_times, save_path, n=10)
+    fits = 1000
+    fiting_bias(structure, angle_times, save_path, fits)
