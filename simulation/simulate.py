@@ -87,7 +87,8 @@ def simulate_multiple_contrasts(structures, angle_times, dq=2, bkg_rate=1e-7, sa
 
     return models, datasets
 
-def run_experiment(model, angle, points, time, bkg_rate=1e-7, q_min=None, q_max=None, directbeam_file="../simulation/data/directbeam_wavelength.dat"):
+def run_experiment(model, angle, points, time, bkg_rate=1e-7, q_bin_edges=None,
+                   directbeam_file="../simulation/data/directbeam_wavelength.dat"):
     """Simulates an experiment for a given `model` with added noise.
 
     Args:
@@ -96,9 +97,8 @@ def run_experiment(model, angle, points, time, bkg_rate=1e-7, q_min=None, q_max=
         points (int): the number of points to use when binning.
         time (int): time to count during the experiment.
         bkg_rate (float): the level of the background noise.
-        q_min (float): minimum Q value for range of simulation.
-        q_max (float): maximum Q value for range of simulation.
         directbeam_file (string): the file path to the directbeam_wavelength.dat file.
+        q_bin_edges (ndarray): the edges of the Q bins to use for simulation.
 
     Returns:
         q_binned (list): Q values in equally log-spaced bins.
@@ -116,14 +116,11 @@ def run_experiment(model, angle, points, time, bkg_rate=1e-7, q_min=None, q_max=
     theta = angle*np.pi / 180 #Convert angle from degrees into radians.
     q = 4*np.pi*np.sin(theta) / wavelengths #Calculate Q values.
 
-    if q_min is None:
-        q_min = np.min(q)
-    if q_max is None:
-        q_max = np.max(q)
+    if q_bin_edges is None:
+        #Bin Q values in equally log-spaced bins using flux as weighting.
+        q_bin_edges = np.logspace(np.log10(np.min(q)), np.log10(np.max(q)), points+1)
 
-    #Bin Q values in equally log-spaced bins using flux as weighting.
-    log_q = np.logspace(np.log10(q_min), np.log10(q_max), points+1)
-    flux_binned, q_bin_edges = np.histogram(q, log_q, weights=direct_flux)
+    flux_binned, _ = np.histogram(q, q_bin_edges, weights=direct_flux)
 
     #Get the bin centres and calculate model reflectivity.
     q_binned = [(q_bin_edges[i] + q_bin_edges[i+1]) / 2 for i in range(points)]

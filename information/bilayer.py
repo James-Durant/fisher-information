@@ -151,7 +151,7 @@ def plot_objectives(structures, save_path):
     ax  = fig.add_subplot(111)
     #Plot Si-D2O
     ax.errorbar(si_D2O_data.x, si_D2O_data.y, si_D2O_data.y_err, color=None,
-                label="Si / D2O Interface", marker="o", ms=3, lw=0, elinewidth=1, capsize=1.5)
+                label="Si/D2O Interface", marker="o", ms=3, lw=0, elinewidth=1, capsize=1.5)
     ax.plot(si_D2O_data.x, si_D2O_model(si_D2O_data.x), color="red", zorder=20)
     #Plot Si-DMPC-D2O
     offset = 1e-2
@@ -185,10 +185,10 @@ def DMPC_using_contrast(contrast_sld, vary_thick=True, vary_rough=True):
     """
     #Define the same DMPC model as above but with variable contrast SLD.
     substrate_sld     = 2.073
-    substrate_rough   = Parameter(2, vary=vary_rough, name="Substrate Roughness")
+    substrate_rough   = Parameter(2, vary=vary_rough, name="Si/SiO2 Roughness")
     sio2_sld          = 3.41
     sio2_thick        = Parameter(14.7073, vary=vary_thick, name="SiO2 Thickness")
-    sio2_rough        = Parameter(2, vary=vary_rough, name="SiO2 Roughness")
+    sio2_rough        = Parameter(2, vary=vary_rough, name="SiO2/DMPC Roughness")
     sio2_hydration    = 0.245273
     HG_bounds_waters  = 3.588
     bilayer_rough     = Parameter(6.5693, vary=vary_rough, name="Bilayer Roughness")
@@ -209,7 +209,7 @@ def DMPC_using_contrast(contrast_sld, vary_thick=True, vary_rough=True):
     HG_thick = Parameter(vol_HG / DMPC_apm, vary=vary_thick, name="Headgroup Thickness")
 
     tails_sld   = DMPC_tails_SL / DMPC_tails_vol * 1e6
-    tails_thick = Parameter(DMPC_tails_vol / DMPC_apm, vary=vary_thick, name="Tails Thickness")
+    tails_thick = Parameter(DMPC_tails_vol / DMPC_apm, vary=vary_thick, name="Tailgroup Thickness")
 
     substrate = SLD(substrate_sld)
     sio2      = SLD(sio2_sld)(sio2_thick, substrate_rough)

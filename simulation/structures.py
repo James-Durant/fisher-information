@@ -12,8 +12,6 @@ def multiple_contrast_sample():
 
     structure_air = substrate | layer1 | layer2 | layer3 | layer4 | layer5 | air
     structure_D2O = substrate | layer1 | layer2 | layer3 | layer4 | layer5 | D2O
-    structure_air.name = "multiple_contrast_sample_air"
-    structure_D2O.name = "multiple_contrast_sample_D2O"
     return structure_air, structure_D2O
 
 def easy_sample():
