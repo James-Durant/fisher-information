@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 import os, sys
 sys.path.append("../")
 
+from scipy.stats import t
+
 from refnx.dataset  import ReflectDataset
 from refnx.reflect  import SLD, ReflectModel
 from refnx.analysis import Objective
@@ -68,23 +70,18 @@ def plot_measured_all(data_path, dq, bkg, save_path):
         bkg (float): value to use for the model's background parameter.
         save_path (string): path to the directory to save the plot to.
 
-    Returns:
-        scale (float): experimental scale factor for the measured data.
-
     """
     structure = QCS_sample()
 
     #Define the model, load and scale the data.
     model = ReflectModel(structure, scale=1, dq=dq, bkg=bkg)
     data  = ReflectDataset(data_path)
-    scale = np.max(data.y)
-    data.scale(scale) #Scale the data so that the maximum reflectivity is 1.
+    data.scale(np.max(data.y)) #Scale the data so that the maximum reflectivity is 1.
 
     #Plot the fit of the measured dataset and save it.
     objective = Objective(model, data)
     fig = plot_objective(objective)
     fig.savefig(save_path+"/measured_fit.png", dpi=600)
-    return scale
 
 def simulate_measured_data(data_path, files, dq, bkg, scale, angles, time):
     """Loads each measured angle's data and simulates experiments for each angle.
@@ -127,12 +124,12 @@ def simulate_measured_data(data_path, files, dq, bkg, scale, angles, time):
 
 def plot_angle_data(angle_data, data_type, save_path):
     """Creates a plot overlaying each data set of each measured/simulated angle.
-    
+
     Args:
         angle_data (dict): dictionary of reflectivity data for each angle.
         data_type (string): either 'measured' or 'simulated'.
         save_path (string): path to directory to save the plot to.
-        
+
     """
     fig = plt.figure(figsize=[9,7], dpi=600)
     ax  = fig.add_subplot(111)
@@ -142,7 +139,7 @@ def plot_angle_data(angle_data, data_type, save_path):
         q, r, r_error = angle_data[angle]
         #Plot Q values vs. reflectivity with associated reflectivity error bars.
         ax.errorbar(q, r, r_error, marker="o", ms=3, lw=0, elinewidth=1,
-                    capsize=1.5, label="{0}° {1}".format(str(angle), data_type))
+                    capsize=1.5, label="{0} {1}°".format(data_type, str(angle)))
 
     ax.set_xlabel("$\mathregular{Q\ (Å^{-1})}$", fontsize=11, weight='bold')
     ax.set_ylabel('Reflectivity (arb.)',         fontsize=11, weight='bold')
@@ -153,43 +150,40 @@ def plot_angle_data(angle_data, data_type, save_path):
     fig.savefig(save_path+"/{}_reflectivity.png".format(data_type.lower()), dpi=600)
 
 def similarity(measured, simulated):
-    """Calculates a similarity metric between given `measured` and `simulated`
-       reflectivity data.
+    """Determines whether there is significant difference between given
+       `measured` and `simulated` reflectivity datasets.
 
     Args:
         measured (dict): dictionary of measured reflectivity data for each angle.
         simulated (dict): dictionary of simulated reflectivity data for each angle.
 
     Returns:
-        similarity (float): the similarity between the given datasets.
+        t_statistic (float): the Hotelling T-squared statistic.
+        pval (float): the associated p-value for the t-statistic.
 
     """
-    #Iterate over each measured/simulated angle.
-    squared_diffs = []
-    for angle in measured:
-        #Get the measured and simulated data for the angle.
-        q_measured,  r_measured,  r_error_measured  = measured[angle]
-        q_simulated, r_simulated, r_error_simulated = simulated[angle]
+    #Get the measured and simulated reflectivity and associated errors for all angles.
+    #The simulated data is simulated at the same Q values as the measured data.
+    r_measured  = np.array([measured[angle][1] for angle in measured]).flatten()
+    r_simulated = np.array([simulated[angle][1] for angle in simulated]).flatten()
+    r_error_measured  = np.array([measured[angle][2] for angle in measured]).flatten()
+    r_error_simulated = np.array([simulated[angle][2] for angle in simulated]).flatten()
 
-        #Apply an Anscombe transform to make the values approximately normal.
-        r_measured   = 2*np.sqrt(np.array(r_measured) + 3/8)
-        r_simulated  = 2*np.sqrt(np.array(r_simulated) + 3/8)
+    #Calculate the measured and reflected counts, taking the count as 0 if the reflectivity error is 0.
+    counts_measured  = np.divide(r_measured,  r_error_measured,  out=np.zeros_like(r_measured),  where=r_error_measured!=0)
+    counts_simulated = np.divide(r_simulated, r_error_simulated, out=np.zeros_like(r_simulated), where=r_error_simulated!=0)
 
-        r_error_measured  = 2*np.sqrt(np.array(r_error_measured) + 3/8)
-        r_error_simulated = 2*np.sqrt(np.array(r_error_simulated) + 3/8)
+    #Apply an Anscombe transformation to make the values approximately normal.
+    #Then weight each value by 1 / standard deviation
+    counts_measured  = 2*np.sqrt(counts_measured  + 3/8) / np.std(counts_measured)
+    counts_simulated = 2*np.sqrt(counts_simulated + 3/8) / np.std(counts_simulated)
 
-        #Weight the simulated and measured reflectivity by their errors.
-        #If the reflectivity error is 0, calculate the weight as 0.
-        weight1 = np.divide(r_measured,  r_error_measured,  out=np.zeros_like(r_measured),  where=r_error_measured!=0)
-        weight2 = np.divide(r_simulated, r_error_simulated, out=np.zeros_like(r_simulated), where=r_error_simulated!=0)
-        
-        #Record the squared difference between the weighted reflectivity values for the angle.
-        squared_diffs.append(np.square(weight1-weight2))
-
-    #Calculate the mean over the weighted squared differences for all points (over all angles).
+    #Calculate the mean over the squared differences in reflectivity values for all points.
     #Then take the square root of this value to get a Hotelling T-statistic.
-    t_statistic = np.sqrt(np.mean(squared_diffs))
-    return t_statistic
+    t_statistic = np.sqrt(np.mean(np.square(counts_measured-counts_simulated)))
+    #Get the associated p-value using the SciPy survival function.
+    pval = t.sf(np.abs(t_statistic), len(r_measured)-1)*2
+    return t_statistic, pval
 
 if __name__ == "__main__":
     save_path = "./results"
@@ -199,10 +193,10 @@ if __name__ == "__main__":
     data_path = "./data"
     dq  = 2.5
     bkg = 8e-7
+    scale = 0.783
 
-    #sample_measured_data(data_path+"/QCS_all.dat", dq, bkg, save_path)
-    scale = plot_measured_all(data_path+"/QCS_all.dat", dq, bkg, save_path)
-
+    sample_measured_data(data_path+"/QCS_all.dat", dq, bkg, save_path)
+    plot_measured_all(data_path+"/QCS_all.dat", dq, bkg, save_path)
     angles = [0.3, 0.4, 0.5, 0.6, 0.7, 2.0]
     measured_data = ["QCS_03_1uA.dat", "QCS_04_1uA.dat", "QCS_05_1uA.dat",
                      "QCS_06_1uA.dat", "QCS_07_1uA.dat", "QCS_20_1uA.dat"]
@@ -211,5 +205,6 @@ if __name__ == "__main__":
     plot_angle_data(measured, "Measured", save_path)
     plot_angle_data(simulated, "Simulated", save_path)
 
-    similarity = similarity(measured, simulated)
-    print(similarity)
+    t_statistic, pval = similarity(measured, simulated)
+    print("Hotelling t-squared statistic:", t_statistic)
+    print("p-value:", pval)
