@@ -11,5 +11,5 @@ Log parameter fitting errors (top) and log FIM errors (bottom) vs. log time for 
 <img src="https://github.com/James-Durant/fisher-information/blob/main/figures/time_dependence.png" width="900">
 
 ### Figure 4
-Fitted experimental reflectivity vs. momentum transfer (top) for the Si/D2O interface and the two solution isotopic contrast datasets, H2O and D2O, offset for clarity by factors of 10^-2 and 10^-3 respectively. Inset are the corresponding fitted SLD profiles. Also shown (bottom) is the FIM for each for each layer thickness and roughness vs. increasing contrast SLD from H2O to D2O.
+Fitted experimental reflectivity vs. momentum transfer (top) for the Si/D2O interface and the two solution isotopic contrast datasets, H2O and D2O, offset for clarity by factors of 10^-2 and 10^-3 respectively. Inset are the corresponding fitted SLD profiles. Also shown (bottom) is the FIM for each for each model parameter as a function of the bulk water SLD, from H2O to D2O.
 <img src="https://github.com/James-Durant/fisher-information/blob/main/figures/bilayer.png" width="600">
