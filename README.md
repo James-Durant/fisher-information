@@ -1,5 +1,5 @@
 # fisher-information
-A framework for applying the Fisher information metric (FIM) to neutron reflectometry.
+A framework for determining the maximum information gain and optimising experimental design in neutron reflectometry using the Fisher information.
 
 ## About the Project
 The project is split into two parts: experiment simulation and FIM application for which the code can be found in the [simulation](/simulation) and [information](/information) directories respectively. The results of recreating a measured data set using our simulation can be found [here](/simulation/results) and the results of applying the FIM can be found [here](/information/results).
@@ -30,4 +30,4 @@ James Durant - james.durant@stfc.ac.uk\
 Lucas Wilkins - lucas@lucaswilkins.com
 
 ## Acknowledgements
-To do
+This work has been partially supported by the  STFC Facilities Programme Fund  through the ISIS Neutron and Muon Source, and Scientific Computing Department of Rutherford Appleton Laboratory, Science and Technology Facilities Council, and by the Wave 1 of The UKRI Strategic Priorities Fund under the EPSRC Grant EP/T001569/1, particularly the "AI for Science" theme within that grant and The Alan Turing Institute. We would also like to thank Luke Clifton for his assistance and expertise in fitting the DMPC data.
