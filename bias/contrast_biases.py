@@ -1,12 +1,13 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import os
 
 from refnx.analysis import Objective, GlobalObjective, CurveFitter
 
+from structures import Bilayer
 from simulate import simulate
-from models import Bilayer
 
-def contrast_biases(initial_contrast, new_contrasts, angle_times, n=10):
+def contrast_biases(initial_contrast, new_contrasts, angle_times, n=50):
     DMPC = Bilayer()
     xi = DMPC.parameters
     
@@ -32,23 +33,26 @@ def contrast_biases(initial_contrast, new_contrasts, angle_times, n=10):
         biases.append(np.mean(fitted, axis=0) - true)
         print("{0}/{1}".format(x, len(new_contrasts)))
     
-    labels = [param.name for param in xi]
-    plot_biases(new_contrasts, np.asarray(biases), labels)
-
-def plot_biases(contrasts, contrast_biases, labels):
     fig = plt.figure(figsize=[9,7], dpi=600)
     ax = fig.add_subplot(111)
     
-    for i in range(len(labels)):
-        ax.plot(contrasts, contrast_biases[:,i], label=labels[i])
+    biases = np.asarray(biases)
+    for i, param in enumerate(xi):
+        ax.plot(contrasts, biases[:,i], label=param.name)
 
     ax.set_xlabel("$\mathregular{Contrast\ SLD\ (10^{-6} \AA^{-2})}$", fontsize=11, weight='bold')
     ax.set_ylabel("Bias", fontsize=11, weight='bold')
     ax.legend()
+    
+    save_path = "./results/contrast_biases"
+    if not os.path.exists(save_path):
+        os.makedirs(save_path)
+    
+    fig.savefig(save_path+"/DMPC.png")
 
 if __name__ == "__main__":
-   angle_times = {0.7: (70, 500), #Angle: (Points, Time)
-                  2.0: (70, 2000)}
+   angle_times = {0.7: (70, 50), #Angle: (Points, Time)
+                  2.0: (70, 200)}
    initial = 6.36
    contrasts = np.arange(-0.56, 6.36, 0.05)
-   contrast_biases(initial, contrasts, angle_times, n=100)
+   contrast_biases(initial, contrasts, angle_times, n=50)

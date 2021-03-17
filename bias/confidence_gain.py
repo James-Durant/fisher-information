@@ -1,8 +1,9 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import os
 
+from structures import Bilayer
 from simulate import simulate
-from models import Bilayer
 from utils import calc_FIM
 
 def confidence_gain(initial_contrast, new_contrasts, angle_times):
@@ -56,8 +57,11 @@ def ellipse_height(g, i, j, k=1):
     return np.linalg.norm(max_coords-min_coords)
 
 def plot_confidences(confidence_gains, contrasts):
-    labels = [param.name for param in confidence_gains]
+    save_path = "./results/confidence_gain"
+    if not os.path.exists(save_path):
+        os.makedirs(save_path)
     
+    labels = [param.name for param in confidence_gains]
     for i, param in enumerate(confidence_gains):
         fig = plt.figure(figsize=[9,7], dpi=600)
         ax  = fig.add_subplot(111)
@@ -71,6 +75,8 @@ def plot_confidences(confidence_gains, contrasts):
         ax.set_xlabel("$\mathregular{Contrast\ SLD\ (10^{-6} \AA^{-2})}$", fontsize=11, weight='bold')
         ax.set_ylabel("Confidence Gain", fontsize=11, weight='bold')
         ax.legend()
+        
+        fig.savefig(save_path+"/DMPC_{}.png".format(i+1))
 
 if __name__ == "__main__":
    angle_times = {0.7: (70, 500), #Angle: (Points, Time)

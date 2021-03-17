@@ -13,20 +13,21 @@ class Sampler:
         self.sampler_nested = NestedSampler(self.logl, self.objective.prior_transform, self.ndim)
         self.sampler_MCMC = CurveFitter(self.objective)
 
-    def sample_MCMC(self, burn=400, steps=30, nthin=100, verbose=True):
-        self.sampler_MCMC.sample(burn, verbose=verbose) #Burn-in period
+    def sample_MCMC(self, burn=400, steps=30, nthin=100, verbose=True, show_fig=True):
+        self.sampler_MCMC.sample(burn, verbose=verbose)
         self.sampler_MCMC.reset()
-        self.sampler_MCMC.sample(steps, nthin=nthin, verbose=verbose) #Main sampling stage.
-        return self.objective.corner()
+        self.sampler_MCMC.sample(steps, nthin=nthin, verbose=verbose)
+        
+        if show_fig:
+            return self.objective.corner()
 
     def sample_nested(self, verbose=True, show_fig=True):
         self.sampler_nested.run_nested(print_progress=verbose)
 
         results = self.sampler_nested.results
-        #Calculate the parameter means.
         weights = np.exp(results.logwt - results.logz[-1])
         mean, _ = dyfunc.mean_and_cov(results.samples, weights)
-        self.logl(mean) #Update objective to use mean parameter values.
+        self.logl(mean)
     
         if show_fig:
             return dyplot.cornerplot(results, color='blue', quantiles=None, 
@@ -35,7 +36,7 @@ class Sampler:
 
     def logl(self, x):
         for i, parameter in enumerate(self.objective.varying_parameters()):
-            parameter.value = x[i] #Update the model with given parameter values.
+            parameter.value = x[i]
         return self.objective.logl()
 
 def calc_FIM(qs, xi, counts, models):
@@ -58,14 +59,27 @@ def calc_FIM(qs, xi, counts, models):
     return np.dot(np.dot(J.T, M), J)
 
 def gradient(model, parameter, q_point, step=0.005):
-    old, step = parameter.value, parameter.value*step #0.5% step by default
+    old, step = parameter.value, parameter.value*step
 
-    x1 = parameter.value = old - step #First point
-    y1 = model(q_point) #Get new r value with altered model.
+    x1 = parameter.value = old - step
+    y1 = model(q_point)
 
-    x2 = parameter.value = old + step #Second point
+    x2 = parameter.value = old + step
     y2 = model(q_point)
 
-    parameter.value = old #Reset parameter
-    return (y2-y1) / (x2-x1) #Return the gradient
+    parameter.value = old
+    return (y2-y1) / (x2-x1)
 
+def vary_structure(structure, random=False, bound_size=0.5):
+    for component in structure.components[1:-1]:
+        sld_bounds   = (component.sld.real.value*(1-bound_size), component.sld.real.value*(1+bound_size))
+        thick_bounds = (component.thick.value*(1-bound_size), component.thick.value*(1+bound_size))
+
+        component.sld.real.setp(vary=True, bounds=sld_bounds)
+        component.thick.setp(vary=True, bounds=thick_bounds)
+        
+        if random:
+            component.sld.real.value = np.random.uniform(*sld_bounds)
+            component.thick.value = np.random.uniform(*thick_bounds)
+
+    return structure
