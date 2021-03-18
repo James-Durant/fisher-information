@@ -8,10 +8,10 @@ from structures import Bilayer
 from simulate import simulate
 
 def bias_derivative(initial_contrast, new_contrasts, angle_times, n=50):
-    x = 3
-    headgroup_range = np.arange(5, 13, 1)
-    headgroup_biases = []
-    for value in headgroup_range:
+    x = 4
+    tailgroup_range = np.arange(12, 22, 1)
+    tailgroup_biases = []
+    for value in tailgroup_range:
         DMPC = Bilayer()
         xi = DMPC.parameters
         xi[x].value = value
@@ -39,14 +39,14 @@ def bias_derivative(initial_contrast, new_contrasts, angle_times, n=50):
             biases.append(np.mean(fitted) - true)
             print("{0}/{1}".format(k, len(new_contrasts)))
         
-        headgroup_biases.append(biases)
+        tailgroup_biases.append(biases)
         print()
         
     fig = plt.figure(figsize=[9,7], dpi=600)
     ax = fig.add_subplot(111)
     
-    for i, value in enumerate(headgroup_range):
-        ax.plot(contrasts, headgroup_biases[i], label="HG_thick="+str(value))
+    for i, value in enumerate(tailgroup_range):
+        ax.plot(contrasts, tailgroup_biases[i], label="TG_thick="+str(value))
     
     ax.set_xlabel("$\mathregular{Contrast\ SLD\ (10^{-6} \AA^{-2})}$", fontsize=11, weight='bold')
     ax.set_ylabel("$\mathregular{Bias\ (\AA)}$", fontsize=11, weight='bold')
@@ -56,7 +56,7 @@ def bias_derivative(initial_contrast, new_contrasts, angle_times, n=50):
     if not os.path.exists(save_path):
         os.makedirs(save_path)
     
-    fig.savefig(save_path+"/bias_derivative.png")     
+    fig.savefig(save_path+"/tailgroup_bias_derivative.png")     
 
 def contrast_biases(initial_contrast, new_contrasts, angle_times, n=10):
     DMPC = Bilayer()
