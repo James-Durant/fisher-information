@@ -32,7 +32,8 @@ class Sampler:
         if show_fig:
             return dyplot.cornerplot(results, color='blue', quantiles=None, 
                                      show_titles=True, max_n_ticks=3, 
-                                     truths=np.zeros(self.ndim), truth_color='black')
+                                     truths=np.zeros(self.ndim), 
+                                     truth_color='black')[0]
 
     def logl(self, x):
         for i, parameter in enumerate(self.objective.varying_parameters()):
