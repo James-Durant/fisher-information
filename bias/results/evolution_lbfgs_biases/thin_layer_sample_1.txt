@@ -1,0 +1,11 @@
+---------- Differential Evolution Biases ----------
+Layer 1 - thick: 0.22884034454219204
+Layer 1 - sld: -0.001789031721759038
+Layer 2 - thick: -0.21658005978981087
+Layer 2 - sld: 0.27015512877288295
+
+---------- L-BFGS-B Biases ----------
+Layer 1 - thick: -0.5034079844157304
+Layer 1 - sld: -0.0020435392399531516
+Layer 2 - thick: 0.7768113702112576
+Layer 2 - sld: 0.11457750144971612
