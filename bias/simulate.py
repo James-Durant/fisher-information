@@ -3,26 +3,22 @@ import numpy as np
 from refnx.dataset import ReflectDataset
 from refnx.reflect import ReflectModel
 
-def simulate(structure, angle_times, dq=2, bkg_rate=1e-7, include_counts=False):
-    #Define the model. 0 background for simulating as background noise is added.
-    model = ReflectModel(structure, scale=1, dq=dq, bkg=0)
+def simulate(structure, angle_times, dq=2, bkg=1e-7, include_counts=False):
+    model = ReflectModel(structure, scale=1, dq=dq, bkg=bkg)
 
     q, r, r_error, counts = [], [], [], []
     total_points = 0
     for angle in angle_times:
         #Simulate the experiment for the angle.
-        points, time  = angle_times[angle]
+        points, time = angle_times[angle]
         total_points += points
-        q_angle, r_angle, r_error_angle, counts_angle = run_experiment(model, angle, points, time, bkg_rate)
+        q_angle, r_angle, r_error_angle, counts_angle = run_experiment(model, angle, points, time)
 
         #Combine the data for the angle with the data from other angles.
-        q       += q_angle
-        r       += r_angle
+        q += q_angle
+        r += r_angle
         r_error += r_error_angle
-        counts  += counts_angle
-
-    #If fitting, the model needs to have the right background.
-    model.bkg.value = bkg_rate
+        counts += counts_angle
 
     if include_counts:
         data = np.zeros((total_points, 4))
@@ -44,8 +40,7 @@ def simulate(structure, angle_times, dq=2, bkg_rate=1e-7, include_counts=False):
     else:
         return model, ReflectDataset([data[:,0], data[:,1], data[:,2]])
 
-def run_experiment(model, angle, points, time, bkg_rate=1e-7, 
-                   directbeam_file="./data/directbeam_wavelength.dat"):
+def run_experiment(model, angle, points, time, directbeam_file="./data/directbeam_wavelength.dat"):
     #Load the directbeam_wavelength.dat file.
     direct_beam = np.loadtxt(directbeam_file, delimiter=',')
     wavelengths = direct_beam[:,0] # 1st column is wavelength, 2nd is flux.
@@ -71,7 +66,7 @@ def run_experiment(model, angle, points, time, bkg_rate=1e-7,
         count_incident = flux_point * time
 
         #Add background noise and get the measured reflected count for the bin.
-        count_reflected = np.random.poisson((r_point*flux_point + bkg_rate) * time)
+        count_reflected = np.random.poisson(r_point*flux_point*time)
 
         #Point has zero reflectivity if there is no flux.
         if count_reflected > 0:
@@ -85,6 +80,6 @@ def run_experiment(model, angle, points, time, bkg_rate=1e-7,
         else:
             r.append(0)
             r_errors.append(0)
-            counts.append(0) #Incident neutrons in the bin
+            counts.append(0)
 
     return q_binned, r, r_errors, counts

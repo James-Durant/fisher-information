@@ -79,8 +79,8 @@ def plot_confidences(confidence_gains, contrasts):
         fig.savefig(save_path+"/DMPC_{}.png".format(i+1))
 
 if __name__ == "__main__":
-   angle_times = {0.7: (70, 500), #Angle: (Points, Time)
-                  2.0: (70, 2000)}
+   angle_times = {0.7: (70, 50), #Angle: (Points, Time)
+                  2.0: (70, 200)}
    initial = 6.36
    contrasts = np.arange(-0.56, 6.36, 0.2)
    confidence_gain(initial, contrasts, angle_times)
