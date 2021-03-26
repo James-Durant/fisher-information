@@ -14,6 +14,7 @@ class Sampler:
         self.sampler_MCMC = CurveFitter(self.objective)
 
     def sample_MCMC(self, burn=400, steps=30, nthin=100, verbose=True, show_fig=True):
+        self.sampler_MCMC.fit('differential_evolution', verbose=verbose)
         self.sampler_MCMC.sample(burn, verbose=verbose)
         self.sampler_MCMC.reset()
         self.sampler_MCMC.sample(steps, nthin=nthin, verbose=verbose)

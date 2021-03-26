@@ -4,12 +4,12 @@ from refnx.analysis import Parameter
 class Bilayer:
     def __init__(self):
         self.substrate_sld     = 2.073
-        self.substrate_rough   = Parameter(2, vary=False, name="Si/SiO2 Roughness")
+        self.substrate_rough   = Parameter(2, vary=True, name="Si/SiO2 Roughness")
         self.sio2_sld          = 3.41
-        self.sio2_thick        = Parameter(14.7073, vary=False, name="SiO2 Thickness")
+        self.sio2_thick        = Parameter(14.7073, vary=True, name="SiO2 Thickness")
         self.sio2_rough        = Parameter(2, vary=False, name="SiO2/DMPC Roughness")
         self.sio2_hydration    = 0.245273
-        self.bilayer_rough     = Parameter(6.5693, vary=False, name="Bilayer Roughness")
+        self.bilayer_rough     = Parameter(6.5693, vary=True, name="Bilayer Roughness")
         self.bilayer_hydration = 0.073696
         
         HG_bounds_waters  = 3.588
@@ -50,7 +50,7 @@ class Bilayer:
     @property
     def parameters(self):
         return [self.substrate_rough, self.sio2_thick, #self.sio2_rough,
-                self.bilayer_rough,   self.HG_thick,   self.tails_thick]
+                self.bilayer_rough, self.HG_thick, self.tails_thick]
 
 class DMPC_refnx:
     def __init__(self):

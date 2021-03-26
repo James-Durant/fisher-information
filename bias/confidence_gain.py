@@ -2,9 +2,53 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 
+from refnx.dataset import ReflectDataset
+from refnx.analysis import Objective, CurveFitter
+
 from structures import Bilayer
 from simulate import simulate
 from utils import calc_FIM
+
+def contrast_choice(contrasts, angle_times):
+    FIM_sums, fitting_sums = [], []
+    for x, contrast in enumerate(contrasts):
+        DMPC = Bilayer()
+        xi = DMPC.parameters
+            
+        true_vals = np.asarray([param.value for param in xi])
+        
+        model, data = simulate(DMPC.using_contrast(contrast), angle_times, include_counts=True)
+        q, counts = data[:,0], data[:,3]
+
+        g = 1 / calc_FIM([q], xi, counts, [model])
+        
+        for param in xi:
+            param.bounds = (param.value*0.75, param.value*1.25)
+        
+        objective = Objective(model, ReflectDataset([data[:,0], data[:,1], data[:,2]]))
+
+        fitter = CurveFitter(objective)
+        fitter.fit('differential_evolution', verbose=False)
+
+        fitted_vals = np.asarray([param.value for param in xi])
+        cov = objective.covar()
+        
+        g = (g / true_vals[:, np.newaxis]) / true_vals[np.newaxis, :]
+        cov = (cov / fitted_vals[:, np.newaxis]) / fitted_vals[np.newaxis, :]
+        
+        FIM_sums.append(np.sum(g))
+        fitting_sums.append(np.sum(cov))
+        
+        
+        print("{0}/{1}".format(x+1, len(contrasts)))
+    
+    fig = plt.figure(figsize=[9,7], dpi=600)
+    ax = fig.add_subplot(111)
+    ax.plot(contrasts, FIM_sums, label='Inverse Fisher Information') 
+    ax.plot(contrasts, fitting_sums, label='Fitting Covariance') 
+    ax.set_xlabel("$\mathregular{Contrast\ SLD\ (10^{-6} \AA^{-2})}$", fontsize=11, weight='bold')
+    ax.set_ylabel("Normalised Matrix Sum", fontsize=11, weight='bold')
+    ax.legend()
 
 def confidence_gain(initial_contrast, new_contrasts, angle_times):
     DMPC = Bilayer()
@@ -83,4 +127,5 @@ if __name__ == "__main__":
                   2.0: (70, 200)}
    initial = 6.36
    contrasts = np.arange(-0.56, 6.36, 0.2)
-   confidence_gain(initial, contrasts, angle_times)
+   #confidence_gain(initial, contrasts, angle_times)
+   contrast_choice( contrasts, angle_times)
