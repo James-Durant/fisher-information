@@ -17,7 +17,7 @@ def evolution_vs_lbfgs(structure, angle_times, n):
     lbfgs_params = []
     for i in range(n):
         objective = Objective(*simulate(structure(), angle_times))
-        vary_structure(objective.model.structure, random=True)
+        vary_structure(objective.model.structure, random_init=True)
         
         fitter = CurveFitter(objective)
         fitter.fit('differential_evolution', verbose=False, polish=False)
@@ -59,7 +59,7 @@ def fitting_sampling_biases(structure, angle_times, n):
         objective = Objective(*simulate(structure(), angle_times))
         #print("Ground Truth - Chi-squared: {0}, Log-likelihood: {1}".format(round(objective.chisqr(), 4), round(objective.logl(), 4)))
         
-        vary_structure(objective.model.structure, random=True, bound_size=0.25)
+        vary_structure(objective.model.structure, random_init=True, bound_size=0.25)
         
         CurveFitter(objective).fit('differential_evolution', verbose=False)
         #print("Fitted - Chi-squared: {0}, Log-likelihood: {1}".format(round(objective.chisqr(), 4), round(objective.logl(), 4)))

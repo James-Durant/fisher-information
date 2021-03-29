@@ -3,8 +3,8 @@ import numpy as np
 from refnx.dataset import ReflectDataset
 from refnx.reflect import ReflectModel
 
-def simulate(structure, angle_times, dq=2, bkg=1e-7, include_counts=False):
-    model = ReflectModel(structure, scale=1, dq=dq, bkg=bkg)
+def simulate(structure, angle_times, scale=1, dq=2, bkg=1e-7, include_counts=False):
+    model = ReflectModel(structure, scale=scale, dq=dq, bkg=bkg)
 
     q, r, r_error, counts = [], [], [], []
     total_points = 0
@@ -20,25 +20,21 @@ def simulate(structure, angle_times, dq=2, bkg=1e-7, include_counts=False):
         r_error += r_error_angle
         counts += counts_angle
 
-    if include_counts:
-        data = np.zeros((total_points, 4))
-        data[:,0] = q
-        data[:,1] = r
-        data[:,2] = r_error
-        data[:,3] = counts
-    else:
-        data = np.zeros((total_points, 3))
-        data[:,0] = q
-        data[:,1] = r
-        data[:,2] = r_error
+    data = np.zeros((total_points, 4))
+    data[:,0] = q
+    data[:,1] = r
+    data[:,2] = r_error
+    data[:,3] = counts
 
-    data = data[(data != 0).all(1)]  #Remove points of zero reflectivity.
+    data = data[(data != 0).all(1)] #Remove points of zero reflectivity.
     data = data[data[:,0].argsort()] #Sort by Q
 
+    dataset = ReflectDataset([data[:,0], data[:,1], data[:,2]])
+
     if include_counts:
-        return model, data
+        return model, dataset, data[:,3]
     else:
-        return model, ReflectDataset([data[:,0], data[:,1], data[:,2]])
+        return model, dataset
 
 def run_experiment(model, angle, points, time, directbeam_file="./data/directbeam_wavelength.dat"):
     #Load the directbeam_wavelength.dat file.

@@ -1,0 +1,6 @@
+similar_sld_sample_1: 0.520560345010729
+similar_sld_sample_2: 0.30524118839470693
+thin_layer_sample_1: 0.4768298574965232
+thin_layer_sample_2: 0.4354101127028004
+easy_sample: 0.787284368322148
+many_param_sample: 0.6344297241018988

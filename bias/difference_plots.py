@@ -43,7 +43,7 @@ if __name__ == "__main__":
     from structures import thin_layer_sample_1, thin_layer_sample_2
     from structures import easy_sample, many_param_sample
 
-    structure   = many_param_sample
+    structure = easy_sample
     angle_times = {0.7: (70, 5), #Angle: (Points, Time)
                    2.0: (70, 20)}
 

@@ -92,7 +92,7 @@ class AsymmetricBilayer:
                            self.core_solv]
         
         if double_asymmetric:
-            self.inner_tg_pc = Parameter(0.95,  'Inner TG PC', (0,1))
+            self.inner_tg_pc = Parameter(0.95, 'Inner TG PC', (0,1))
             self.outer_tg_pc = Parameter(0.063, 'Outer TG PC', (0,1))
             self.parameters.append(self.inner_tg_pc)
             self.parameters.append(self.outer_tg_pc)
@@ -192,26 +192,23 @@ def plot_objectives(objectives):
     ax.set_ylim(1e-7, 2)
     return fig
 
-def plot_FIM(contrasts, angle_times, normalise=False):
-    bilayer = AsymmetricBilayer(double_asymmetric=False)
+def plot_FIM(contrasts, angle_times, normalise=False, double_asymmetric=False):
+    bilayer = AsymmetricBilayer(double_asymmetric=double_asymmetric)
     
     information = []
     for contrast_sld in contrasts:
-        model, data = simulate(bilayer.using_contrast(contrast_sld), angle_times, include_counts=True)
+        model, dataset, counts = simulate(bilayer.using_contrast(contrast_sld),
+                                          angle_times, include_counts=True)
 
-        q, r, r_error, counts = data[:,0], data[:,1], data[:,2], data[:,3]
-
-        objective = Objective(model, ReflectDataset([q, r, r_error]))
-        xi = bilayer.parameters
-        g = calc_FIM([q], xi, counts, [model])
-        
+        g = calc_FIM(dataset.x, bilayer.parameters, counts, model)
         information.append(np.diag(g))
 
     information = np.asarray(information)
     
     fig = plt.figure(figsize=[9,7], dpi=600)
-    ax  = fig.add_subplot(111)
-    for i, param in enumerate(xi):
+    ax = fig.add_subplot(111)
+    
+    for i, param in enumerate(bilayer.parameters):
         if normalise:
             normalised = (information[:,i] - np.min(information[:,i])) / (np.max(information[:,i]) - np.min(information[:,i]))
             ax.plot(contrasts, normalised, label=param.name)
@@ -219,12 +216,13 @@ def plot_FIM(contrasts, angle_times, normalise=False):
             ax.plot(contrasts, information[:,i], label=param.name)
 
     ax.set_xlabel("$\mathregular{Contrast\ SLD\ (10^{-6} \AA^{-2})}$", fontsize=11, weight='bold')
+    ax.legend()
+    
     if normalise:
         ax.set_ylabel('Normalised Fisher Information', fontsize=11, weight='bold')
     else:
         ax.set_ylabel('Fisher Information', fontsize=11, weight='bold')
         ax.set_yscale('log')
-    ax.legend()
 
 if __name__ == "__main__":
     fit_bilayer(double_asymmetric=True)
@@ -232,6 +230,4 @@ if __name__ == "__main__":
     angle_times = {0.7: (70, 10),
                    2.0: (70, 40)}
     contrasts = np.arange(-0.56, 6.35, 0.05)
-    
-    plot_FIM(contrasts, angle_times, normalise=False)
-    contrast_choice(contrasts, angle_times)
+    plot_FIM(contrasts, angle_times, normalise=False, double_asymmetric=False)

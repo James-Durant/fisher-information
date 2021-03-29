@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from refnx.dataset import ReflectDataset
 from refnx.reflect import SLD, ReflectModel
 from refnx.analysis import Objective, CurveFitter
 
@@ -35,10 +34,7 @@ class ModelSelection:
         structure = structure | substrate
         return ReflectModel(structure, scale=1, dq=2, bkg=1e-7)
     
-    def select_model(self, data):
-        q, r, r_error, counts =data[:,0], data[:,1], data[:,2], data[:,3]
-        dataset = ReflectDataset([q, r, r_error])
-        
+    def select_model(self, dataset, counts):
         objectives, logls, AICs, BICs, KICs = [], [], [], [], []
         for layers in self.layers_range:
             print(">>> Fitting {}-layer model".format(layers))
@@ -47,22 +43,22 @@ class ModelSelection:
             objective = Objective(model, dataset)
             CurveFitter(objective).fit('differential_evolution', verbose=False)
             
-            xi = objective.varying_parameters()
-            
             objectives.append(objective)
             plot_objective(objective)
 
             logl = objective.logl()
             logls.append(logl)
+            
+            xi = objective.varying_parameters()
 
             k = len(xi)
             AICs.append(-2*logl + 2*k)
             
-            n = len(data)
+            n = len(dataset)
             BICs.append(-2*logl + k*np.log(n))
             
             logp = objective.logp()
-            g = calc_FIM([q], xi, counts, [model])
+            g = calc_FIM(dataset.x, xi, counts, model)
             KICs.append(-2*logl - 2*logp + k*np.log(n/(2*np.pi)) + np.log(np.linalg.det(g/n)))
             
         print("Log-likelihood: {}-layer".format(np.argmax(logls)+1))  
@@ -102,9 +98,10 @@ if __name__ == "__main__":
     from structures import similar_sld_sample_1, similar_sld_sample_2
     from structures import easy_sample, many_param_sample
     
+    structure = easy_sample
     angle_times = {0.7: (70, 5), #Angle: (Points, Time)
                    2.0: (70, 20)}
 
-    _, data = simulate(easy_sample(), angle_times, include_counts=True)
-    model = ModelSelection(layer_bounds=(1,4)).select_model(data)
+    _, dataset, counts = simulate(structure(), angle_times, include_counts=True)
+    model = ModelSelection(layer_bounds=(1,4)).select_model(dataset, counts)
     #print(model)

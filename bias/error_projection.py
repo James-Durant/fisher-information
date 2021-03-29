@@ -16,7 +16,7 @@ def plot_simulated_projections(structure, angle_times, time_factors):
         new_angle_times = {angle: (angle_times[angle][0], angle_times[angle][1]*factor) 
                            for angle in angle_times}
         
-        objective = Objective(*simulate(vary_structure(structure(), random=False, bound_size=0.25), new_angle_times))
+        objective = Objective(*simulate(vary_structure(structure()), new_angle_times))
         CurveFitter(objective).fit('differential_evolution', verbose=False)
 
         errors.append([param.stderr for param in objective.varying_parameters()])

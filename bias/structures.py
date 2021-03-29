@@ -1,4 +1,4 @@
-from refnx.reflect import SLD, LipidLeaflet
+from refnx.reflect import SLD
 from refnx.analysis import Parameter
 
 class Bilayer:
@@ -22,7 +22,7 @@ class Bilayer:
         vol_HG = DMPC_HG_vol + HG_bounds_waters*water_vol
         self.HG_thick = Parameter(vol_HG / DMPC_apm, vary=True, name="Headgroup Thickness")
     
-        self.tails_sld   = DMPC_tails_SL / DMPC_tails_vol * 1e6
+        self.tails_sld = DMPC_tails_SL / DMPC_tails_vol * 1e6
         self.tails_thick = Parameter(DMPC_tails_vol / DMPC_apm, vary=True, name="Tailgroup Thickness")
         
     def using_contrast(self, contrast_sld):
@@ -51,32 +51,6 @@ class Bilayer:
     def parameters(self):
         return [self.substrate_rough, self.sio2_thick, #self.sio2_rough,
                 self.bilayer_rough, self.HG_thick, self.tails_thick]
-
-class DMPC_refnx:
-    def __init__(self):
-        self.substrate_rough = Parameter(4.60093,  name="Si/SiO2 Roughness")
-        self.sio2_thick      = Parameter(12.5021,  name="SiO2 Thickness")
-        self.sio2_rough      = Parameter(3,        name="SiO2/DMPC Roughness")
-        self.bilayer_rough   = Parameter(3,        name="Bilayer Roughness")
-        self.HG_thick        = Parameter(9.61555,  name="Headgroup Thickness")
-        self.tails_thick     = Parameter(5.67973,  name="Tailgroup Thickness")
-        self.DMPC_apm        = Parameter(57.0848,  name="DMPC APM")
-        self.solv_rough      = Parameter(0.863971, name="DMPC/Solution Roughness")
-        
-    def using_contrast(self, contrast_sld):
-        si_substrate  = SLD(2.07)
-        sio2_layer    = SLD(3.47*(1-0.14397)+contrast_sld*0.14397)(self.sio2_thick, self.substrate_rough)
-        inner_leaflet = LipidLeaflet(self.DMPC_apm, 0.000601, 319, self.HG_thick, -0.000292, 782, self.tails_thick, self.bilayer_rough, self.sio2_rough)
-        outer_leaflet = LipidLeaflet(self.DMPC_apm, 0.000601, 319, self.HG_thick, -0.000292, 782, self.tails_thick, self.bilayer_rough, 0, reverse_monolayer=True)
-        solution      = SLD(contrast_sld)(thick=0, rough=self.solv_rough)
-    
-        return si_substrate | sio2_layer | inner_leaflet | outer_leaflet | solution
-
-    @property
-    def parameters(self):
-        return [self.substrate_rough, self.sio2_thick, self.sio2_rough,
-                self.bilayer_rough,   self.HG_thick,   self.tails_thick,
-                self.DMPC_apm,        self.solv_rough]
 
 def QCS_sample():
     air       = SLD(0,     name="Air")

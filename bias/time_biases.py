@@ -23,7 +23,7 @@ def time_biases(structure, angle_times, multipliers, n=100):
                                for angle in angle_times}
             
             objective = Objective(*simulate(structure(), new_angle_times))
-            vary_structure(objective.model.structure, random=True)
+            vary_structure(objective.model.structure, random_init=True)
     
             CurveFitter(objective).fit('differential_evolution', verbose=False)
             fitted_params.append([param.value for param in objective.varying_parameters()])
