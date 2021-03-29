@@ -65,18 +65,18 @@ class AsymmetricBilayer:
         self.core_D2O  =  4.2
         self.core_H2O  =  2.01
         
-        self.si_rough       = Parameter(6.83,     'Si/SiO2 rough',   (3,8))
-        self.sio2_thick     = Parameter(13.9,     'SiO2 thick',      (10,30))
-        self.sio2_rough     = Parameter(3.65,     'SiO2/DPPC rough', (2,5))
-        self.sio2_solv      = Parameter(0.0392,   'SiO2 solv',       (0,0.5))
-        self.inner_hg_thick = Parameter(9.02,     'Inner HG thick',  (5,20))
-        self.inner_hg_solv  = Parameter(0.377,    'Inner HG solv',   (0,1))
-        self.bilayer_rough  = Parameter(4.71,     'Bilayer rough',   (0,12))
-        self.inner_tg_thick = Parameter(16.0,     'Inner TG thick',  (10,20))
-        self.outer_tg_thick = Parameter(14.8,     'Outer TG thick',  (10,20))
-        self.tg_solv        = Parameter(4.88e-05, 'TG solv',         (0,1))
-        self.core_thick     = Parameter(28.5,     'Core thick',      (0,50))
-        self.core_solv      = Parameter(0.245,    'Core solv',       (0,1))
+        self.si_rough       = Parameter(5.5,    'Si/SiO2 rough',   (3,8))
+        self.sio2_thick     = Parameter(13.4,   'SiO2 thick',      (10,30))
+        self.sio2_rough     = Parameter(3.2,    'SiO2/DPPC rough', (2,5))
+        self.sio2_solv      = Parameter(0.038,  'SiO2 solv',       (0,0.5))
+        self.inner_hg_thick = Parameter(9.0,    'Inner HG thick',  (5,20))
+        self.inner_hg_solv  = Parameter(0.39,   'Inner HG solv',   (0,1))
+        self.bilayer_rough  = Parameter(4.0,    'Bilayer rough',   (0,12))
+        self.inner_tg_thick = Parameter(16.7,   'Inner TG thick',  (10,20))
+        self.outer_tg_thick = Parameter(14.9,   'Outer TG thick',  (10,20))
+        self.tg_solv        = Parameter(0.0085, 'TG solv',         (0,1))
+        self.core_thick     = Parameter(28.7,    'Core thick',     (0,50))
+        self.core_solv      = Parameter(0.26,   'Core solv',       (0,1))
         
         self.parameters = [self.si_rough,
                            self.sio2_thick,
@@ -92,8 +92,8 @@ class AsymmetricBilayer:
                            self.core_solv]
         
         if double_asymmetric:
-            self.inner_tg_pc = Parameter(0.986,  'Inner TG PC', (0,1))
-            self.outer_tg_pc = Parameter(0.0257, 'Outer TG PC', (0,1))
+            self.inner_tg_pc = Parameter(0.95,  'Inner TG PC', (0,1))
+            self.outer_tg_pc = Parameter(0.063, 'Outer TG PC', (0,1))
             self.parameters.append(self.inner_tg_pc)
             self.parameters.append(self.outer_tg_pc)
             
@@ -101,7 +101,7 @@ class AsymmetricBilayer:
             self.outer_tg_sld = SLD(self.outer_tg_pc*self.dPC_tg + (1-self.outer_tg_pc)*self.hLPS_tg)
             
         else:
-            self.asym_value = Parameter(0.93, 'Asymmetric value', (0,1))
+            self.asym_value = Parameter(0.95, 'Asymmetric value', (0,1))
             self.parameters.append(self.asym_value)
             
             self.inner_tg_sld = SLD(self.asym_value*self.dPC_tg  + (1-self.asym_value)*self.hLPS_tg)
@@ -146,12 +146,16 @@ def fit_bilayer(double_asymmetric=False, slds=[6.14, 2.07, -0.56],
     objectives = [Objective(model, data) 
                   for model, data in list(zip(models, datasets))]
 
-    for model in models:
-        model.bkg.setp(vary=True, bounds=(1e-6, 1e-5))
+    #for model in models:
+    #    model.bkg.setp(vary=True, bounds=(1e-6, 1e-5))
     
     global_objective = GlobalObjective(objectives)
-    global_objective.varying_parameters = (lambda: bilayer.parameters + [model.bkg for model in models])
-    CurveFitter(global_objective).fit('differential_evolution')
+    global_objective.varying_parameters = lambda: bilayer.parameters #+ [model.bkg for model in models])
+    fitter = CurveFitter(global_objective)
+    fitter.fit('differential_evolution')
+    
+    sampler = Sampler(global_objective)
+    sampler.sample_nested()
 
     print('----------- Fitted Parameters -----------')
     for param in global_objective.varying_parameters():
@@ -188,7 +192,7 @@ def plot_objectives(objectives):
     ax.set_ylim(1e-7, 2)
     return fig
 
-def plot_FIM(contrasts, angle_times):
+def plot_FIM(contrasts, angle_times, normalise=False):
     bilayer = AsymmetricBilayer(double_asymmetric=False)
     
     information = []
@@ -198,7 +202,7 @@ def plot_FIM(contrasts, angle_times):
         q, r, r_error, counts = data[:,0], data[:,1], data[:,2], data[:,3]
 
         objective = Objective(model, ReflectDataset([q, r, r_error]))
-        xi = objective.varying_parameters()
+        xi = bilayer.parameters
         g = calc_FIM([q], xi, counts, [model])
         
         information.append(np.diag(g))
@@ -208,55 +212,26 @@ def plot_FIM(contrasts, angle_times):
     fig = plt.figure(figsize=[9,7], dpi=600)
     ax  = fig.add_subplot(111)
     for i, param in enumerate(xi):
-        ax.plot(contrasts, information[:,i], label=param.name)
+        if normalise:
+            normalised = (information[:,i] - np.min(information[:,i])) / (np.max(information[:,i]) - np.min(information[:,i]))
+            ax.plot(contrasts, normalised, label=param.name)
+        else:
+            ax.plot(contrasts, information[:,i], label=param.name)
 
     ax.set_xlabel("$\mathregular{Contrast\ SLD\ (10^{-6} \AA^{-2})}$", fontsize=11, weight='bold')
-    ax.set_ylabel('Fisher Information', fontsize=11, weight='bold')
-    ax.set_yscale('log')
-    ax.legend()
-
-def contrast_choice(contrasts, angle_times):
-    FIM_sums, fitting_sums = [], []
-    for x, contrast in enumerate(contrasts):
-        bilayer = AsymmetricBilayer(double_asymmetric=False)
-        xi = bilayer.parameters
-            
-        true_vals = np.asarray([param.value for param in xi])
-        
-        model, data = simulate(bilayer.using_contrast(contrast), angle_times, include_counts=True)
-        q, counts = data[:,0], data[:,3]
-
-        g = 1 / calc_FIM([q], xi, counts, [model])
-        
-        objective = Objective(model, ReflectDataset([data[:,0], data[:,1], data[:,2]]))
-
-        fitter = CurveFitter(objective)
-        fitter.fit('differential_evolution', verbose=False)
-
-        fitted_vals = np.asarray([param.value for param in xi])
-        cov = objective.covar()
-        
-        #g = (g / true_vals[:, np.newaxis]) / true_vals[np.newaxis, :]
-        #cov = (cov / fitted_vals[:, np.newaxis]) / fitted_vals[np.newaxis, :]
-        
-        FIM_sums.append(np.sum(g))
-        fitting_sums.append(np.sum(cov))
-        
-        print("{0}/{1}".format(x+1, len(contrasts)))
-    
-    fig = plt.figure(figsize=[9,7], dpi=600)
-    ax = fig.add_subplot(111)
-    ax.plot(contrasts, FIM_sums, label='Inverse Fisher Information') 
-    ax.plot(contrasts, fitting_sums, label='Fitting Covariance') 
-    ax.set_xlabel("$\mathregular{Contrast\ SLD\ (10^{-6} \AA^{-2})}$", fontsize=11, weight='bold')
-    ax.set_ylabel("Normalised Matrix Sum", fontsize=11, weight='bold')
+    if normalise:
+        ax.set_ylabel('Normalised Fisher Information', fontsize=11, weight='bold')
+    else:
+        ax.set_ylabel('Fisher Information', fontsize=11, weight='bold')
+        ax.set_yscale('log')
     ax.legend()
 
 if __name__ == "__main__":
-    fit_bilayer(double_asymmetric=False)
+    fit_bilayer(double_asymmetric=True)
     
     angle_times = {0.7: (70, 10),
                    2.0: (70, 40)}
     contrasts = np.arange(-0.56, 6.35, 0.05)
-    plot_FIM(contrasts, angle_times)
-    #contrast_choice(contrasts, angle_times)
+    
+    plot_FIM(contrasts, angle_times, normalise=False)
+    contrast_choice(contrasts, angle_times)
