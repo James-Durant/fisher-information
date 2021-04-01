@@ -7,6 +7,8 @@ from dynesty import NestedSampler, DynamicNestedSampler
 from dynesty import plotting as dyplot
 from dynesty import utils as dyfunc
 
+from structures import ModelGenerator
+
 class Sampler:
     """The Sampler class contains code for MCMC and nested sampling.
 
@@ -264,14 +266,77 @@ def usefulness(objective):
     # 1 minus so that most useful is 1 and least useful is 0.
     return 1 - np.mean(np.abs(pearson_rs))
 
+def select_model(dataset, counts, layers=(1,5)):
+    """Selects the best model for a given dataset.
+
+    Args:
+        dataset (refnx.dataset.ReflectDataset): the dataset to obtain a model for.
+        counts (numpy.ndarray): neutron counts for each point in the dataset.
+        layers (tuple): the range of layers to search through when selecting a model.
+        
+    Returns:
+        refnx.reflect.ReflectModel: the selected model for the data.
+
+    """
+    generator = ModelGenerator()
+    
+    # Iterate over the layers to consider for the model.
+    objectives, logls, AICs, BICs, KICs = [], [], [], [], []
+    for layer in layers:
+        # Display progress.
+        print('>>> Fitting {}-layer model'.format(layer))
+        
+        # Generate a random model with the current number of layers.
+        model, _, _ = generator.generate(1, layer)[0]
+        
+        # Fit the model against the given dataset.
+        objective = Objective(model, dataset)
+        CurveFitter(objective).fit('differential_evolution', verbose=False)
+        
+        objectives.append(objective)
+
+        logl = objective.logl() # Record the log-likelihood.
+        logls.append(logl)
+        
+        xi = objective.varying_parameters()
+
+        # Calculate the Akaike information criterion (AIC)
+        k = len(xi)
+        AICs.append(-2*logl + 2*k)
+        
+        # Calculate the Bayesian information criterion (BIC)
+        n = len(dataset)
+        BICs.append(-2*logl + k*np.log(n))
+        
+        # Calculate the Kashyap information criterion (KIC)
+        logp = objective.logp()
+        g = calc_FIM(dataset.x, xi, counts, model)
+        KICs.append(-2*logl - 2*logp + k*np.log(n/(2*np.pi)) + np.log(np.linalg.det(g/n)))
+     
+    # Display the best model using each information criterion.
+    print('\nLog-likelihood: {}-layer'.format(np.argmax(logls)+1))  
+    print('AIC: {}-layer'.format(np.argmin(AICs)+1))
+    print('BIC: {}-layer'.format(np.argmin(BICs)+1))
+    print('KIC: {}-layer'.format(np.argmin(KICs)+1))
+    
+    return objectives[np.argmin(AICs)] # Use the AIC by default.
+
 if __name__ == '__main__':
     from refnx.analysis import Objective
-
     from simulate import simulate_single_contrast
+    
+    from structures import thin_layer_sample_1, thin_layer_sample_2
+    from structures import similar_sld_sample_1, similar_sld_sample_2
+    from structures import easy_sample, QCS_sample, many_param_sample
     from structures import STRUCTURES
-
+    
+    structure = easy_sample
     angle_times = {0.7: (70, 5),
                    2.0: (70, 20)}
+    
+    # Select a model for the simulated data of the chosen structure.
+    _, dataset, counts = simulate_single_contrast(structure(), angle_times, include_counts=True)
+    model = select_model(dataset, counts, layers=(1,4))
 
     # Calculate the usefulness of all structures in the structures file.
     print('----------- Usefulness Metrics -----------')

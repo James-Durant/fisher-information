@@ -2,7 +2,7 @@ import numpy as np
 import os
 
 from refnx.dataset import ReflectDataset
-from refnx.reflect import Slab, ReflectModel
+from refnx.reflect import SLD, Slab, ReflectModel
 from refnx.analysis import Parameter, Objective, GlobalObjective, CurveFitter
 
 from simulate import simulate_single_contrast
@@ -11,54 +11,49 @@ from utils import vary_structure
 from plotting import plot_sld_profile, plot_sld_profiles, save_plot
 from plotting import plot_reflectivity_curve, plot_objectives
 
-import numbers
-from refnx.reflect.structure import Scatterer
-from refnx.analysis.parameter import BaseParameter, Parameters
+class ModelGenerator:
+    """The ModelGenerator class contains code relating random model generation.
 
-class ModelGen:
-    """The ModelGen class contains all code relating random model generation.
-
-    Class Attributes:
+    Attributes:
         sld_bounds (tuple): the range of values that layer SLDs can take.
         thick_bounds (tuple): the range of values that layer thicknesses can take.
         rough_bounds (tuple): the range of values that layer roughnesses can take.
-        substrate_sld (float): the SLD of the substrate (Silicon).
+        substrate_sld (float): the SLD of the substrate.
         angle_times (dict): a dictionary of points and times for each measurement angle.
 
     """
-    sld_bounds    = (-1,10)
-    thick_bounds  = (20,1000)
-    rough_bounds  = (2,8)
-    substrate_sld = 2.047
-    angle_times   = {0.7: (70, 5),
-                     2.0: (70, 20)}
+    def __init__(self, sld_bounds=(-1,10), thick_bounds=(20,1000), 
+                 rough_bounds=(2,8), substrate_sld=2.047, 
+                 angle_times={0.7: (70, 5), 2.0: (70, 20)}):
+        
+        self.sld_bounds = sld_bounds
+        self.thick_bounds = thick_bounds
+        self.rough_bounds = rough_bounds
+        self.substrate_sld = substrate_sld
+        self.angle_times = angle_times
 
-    @staticmethod
-    def generate(num_samples, layers):
-        """Generates `num_samples` models and data sets with given number of `layers`.
+    def generate(self, num_samples, layers):
+        """Generates `num_samples` models and data sets with given number of layers.
 
         Args:
             num_samples (int): the number of models to generate.
             layers (int): the number of layers for each model to be generated with.
 
         Returns:
-            models_data (list): `generate_num` models and associated simulated data sets.
+            models_data (list): generate_num models and associated simulated data sets.
 
         """
         models_data = []
         for layers in range(num_samples):
             # Get a random structure and simulate an experiement using it.
-            structure = vary_structure(ModelGen.random_structure(layers),
-                                       vary_rough=True, bound_size=0.25)
+            structure = vary_structure(self.random_structure(layers), vary_rough=True, bound_size=0.2)
             
-            models_data.append(simulate_single_contrast(structure,
-                                         ModelGen.angle_times, 
-                                         include_counts=True))
+            models_data.append(simulate_single_contrast(structure, self.angle_times, include_counts=True))
+            
         return models_data
 
-    @staticmethod
-    def random_structure(layers):
-        """Generates a single random structure with desired number of `layers`.
+    def random_structure(self, layers):
+        """Generates a single random structure with desired number of layers.
 
         Args:
             layers (int): the number of layers for the structure to be generated with.
@@ -70,12 +65,11 @@ class ModelGen:
         # The structure consists of air followed by each layer and then finally the substrate.
         structure = SLD(0, name='Air')
         for i in range(layers):
-            structure = structure | ModelGen.make_component(substrate=False)
+            structure = structure | self.make_component(substrate=False)
 
-        return structure | ModelGen.make_component(substrate=True)
+        return structure | self.make_component(substrate=True)
 
-    @staticmethod
-    def make_component(substrate):
+    def make_component(self, substrate):
         """Generates a single layer of a structure.
 
         Args:
@@ -87,58 +81,15 @@ class ModelGen:
         """
         if substrate:
             thickness = 0 # Substrate has 0 thickness in refnx.
-            sld = ModelGen.substrate_sld
+            sld = self.substrate_sld
         else:
             # Select a random thickness and SLD.
-            thickness = np.random.choice(np.arange(*ModelGen.thick_bounds, 5))
-            sld = np.random.choice(np.arange(*ModelGen.sld_bounds, 0.1))
+            thickness = np.random.choice(np.arange(*self.thick_bounds, 1))
+            sld = np.random.choice(np.arange(*self.sld_bounds, 0.05))
 
         # Select a random roughness for the layer.
-        roughness = np.random.choice(np.arange(*ModelGen.rough_bounds, 0.5))
+        roughness = np.random.choice(np.arange(*self.rough_bounds, 0.25))
         return SLD(sld)(thickness, roughness)
-
-class SLD(Scatterer):
-    def __init__(self, value, name=''):
-        super().__init__(name=name)
-
-        self.imag = Parameter(0, name='%s - isld' % name)
-        if isinstance(value, numbers.Real):
-            self.real = Parameter(value.real, name='%s - sld' % name)
-        elif isinstance(value, numbers.Complex):
-            self.real = Parameter(value.real, name='%s - sld' % name)
-            self.imag = Parameter(value.imag, name='%s - isld' % name)
-        elif isinstance(value, SLD):
-            self.real = value.real
-            self.imag = value.imag
-        elif isinstance(value, BaseParameter):
-            self.real = value
-        elif (
-            hasattr(value, '__len__')
-            and isinstance(value[0], BaseParameter)
-            and isinstance(value[1], BaseParameter)
-        ):
-            self.real = value[0]
-            self.imag = value[1]
-
-        self._parameters = Parameters(name=name)
-        self._parameters.extend([self.real, self.imag])
-
-    def __repr__(self):
-        return 'SLD([{real!r}, {imag!r}],' ' name={name!r})'.format(
-            **self.__dict__
-        )
-
-    def __complex__(self):
-        sldc = complex(self.real.value, self.imag.value)
-        return sldc
-
-    @property
-    def parameters(self):
-        """
-        :class:`refnx.analysis.Parameters` associated with this component
-        """
-        self._parameters.name = self.name
-        return self._parameters
 
 class Bilayer:
     def fit(self, fit_bkg=False):
