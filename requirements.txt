@@ -1,8 +1,8 @@
-corner==2.1.0
-dynesty==1.0.1
-matplotlib==3.3.2
-numpy==1.19.4
-refnx==0.1.16
-scikit-learn==0.23.2
-scipy==1.5.2
-tqdm==4.51.0
+corner
+dynesty
+matplotlib
+numpy
+refnx
+scikit-learn
+scipy
+tqdm
