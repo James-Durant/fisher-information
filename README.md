@@ -4,12 +4,10 @@ A framework for determining the maximum information gain and optimising experime
 ## About the Project
 The code, results and data for this project can be found in the [fisher-information](/fisher-information) directory. 
 
-Please cite our paper corresponding to this repositiory if you include it in your own publications. <br />
-Its full reference is:
+Please cite the paper corresponding to this repository if you intend to include it in your own publications.
 > "Durant, J. H., Wilkins, L., Butler, K., and Cooper J. F. K. (2021). *Determining the maximum information gain and optimising experimental design in neutron reflectometry using the Fisher information*. arXiv. https://arxiv.org/abs/2103.08973"
 
-
-The figures presented in our paper are avaliable in the [figures](/figures) directory.
+The figures presented in the paper are available in the [figures](/figures) directory.
 
 ### Built With
 * [`Python3`](https://www.python.org/)
@@ -35,4 +33,4 @@ James Durant - james.durant@stfc.ac.uk\
 Lucas Wilkins - lucas@lucaswilkins.com
 
 ## Acknowledgements
-This work has been partially supported by the  STFC Facilities Programme Fund  through the ISIS Neutron and Muon Source, and Scientific Computing Department of Rutherford Appleton Laboratory, Science and Technology Facilities Council, and by the Wave 1 of The UKRI Strategic Priorities Fund under the EPSRC Grant EP/T001569/1, particularly the "AI for Science" theme within that grant and The Alan Turing Institute. We would also like to thank Luke Clifton for his assistance and expertise in fitting the DMPC data.
+This work has been partially supported by the STFC Facilities Programme Fund through the ISIS Neutron and Muon Source, and Scientific Computing Department of Rutherford Appleton Laboratory, Science and Technology Facilities Council, and by the Wave 1 of The UKRI Strategic Priorities Fund under the EPSRC Grant EP/T001569/1, particularly the "AI for Science" theme within that grant and The Alan Turing Institute. We would also like to thank Luke Clifton for his assistance and expertise in fitting the DMPC data.
