@@ -2,12 +2,10 @@
 A framework for determining the maximum information gain and optimising experimental design in neutron reflectometry using the Fisher information metric (FIM).
 
 ## About the Project
-The code, results and data for this project can be found in the [fisher-information](/fisher-information) directory. 
-
-Please cite the paper corresponding to this repository if you intend to include it in your own publications.
+This repository contains the [figures](/figures), [code](/fisher-information), [data](/fisher-information/data) and [results](/fisher-information/results) for the following paper:
 > "Durant, J. H., Wilkins, L., Butler, K., and Cooper J. F. K. (2021). *Determining the maximum information gain and optimising experimental design in neutron reflectometry using the Fisher information*. arXiv. https://arxiv.org/abs/2103.08973"
 
-The figures presented in the paper are available in the [figures](/figures) directory.
+Please cite this paper if you intend on including elements of this work in your own publications.
 
 ### Built With
 * [`Python3`](https://www.python.org/)
