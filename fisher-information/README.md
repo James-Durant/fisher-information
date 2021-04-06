@@ -1,3 +1,4 @@
+# Guide
 * [benchmark.py](/fisher-information/benchmark.py) - Benchmarks parameter uncertainty calculation using MCMC sampling, nested sampling and the FIM approach.
 * [biases.py](/fisher-information/biases.py) - Investigates biases in fitting, and determines how these biases change with measurement time and contrast choice.
 * [contrast_choice.py](/fisher-information/contrast_choice.py) - Explores how the FIM varies with increasing contrast SLD for a bilayer sample.
