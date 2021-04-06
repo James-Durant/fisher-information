@@ -25,7 +25,7 @@ class Bilayer:
             for model in self.models: # Vary the background parameters.
                 model.bkg.setp(vary=True, bounds=(1e-7, 1e-5))
 
-            # Add the background parameters to the already varying paramters.
+            # Add the background parameters to the already varying parameters.
             func = lambda: (self.parameters +
                             [model.bkg for model in self.models])
         else:
@@ -33,7 +33,7 @@ class Bilayer:
 
         # Overwrite varying_parameters method with the parameters of interest.
         global_objective.varying_parameters = func
-        
+
         # Fit and display the estimated parameter values.
         fitter = CurveFitter(global_objective)
         fitter.fit('differential_evolution')
@@ -74,7 +74,7 @@ class SymmetricBilayer(Bilayer):
         data_path (str): path to directory containing measured data.
         scales (list): experimental scale factor for each measured contrast.
         bkgs (list): instrument backgrounds for each measured contrast.
-        dq (float): instrument resoultion used when measuring.
+        dq (float): instrument resolution used when measuring.
         names (list): labels for each measured contrast.
         distances (np.ndarray): range of SLD profile x-axis.
         si_sld (float): SLD of silicon (substrate).
@@ -143,12 +143,12 @@ class SymmetricBilayer(Bilayer):
             param.vary=True
 
         self.create_objectives() # Load the measured data.
-        
+
     def __str__(self) -> str:
         return 'symmetric_bilayer'
 
     def create_objectives(self) -> None:
-        """Creates objectives correponding to each measured contrast."""
+        """Creates objectives corresponding to each measured contrast."""
         # Define the known scattering lengths and scattering length densities
         # of the two measured contrasts: D2O and H2O.
         d2o_sl  = 2e-4
@@ -177,24 +177,24 @@ class SymmetricBilayer(Bilayer):
         # Calculate the thickness from the headgroup volume over the
         # lipid area per molecule.
         hg_thick = vol_hg / self.dmpc_apm # Thickness = v / APM
-        
+
         # Calculate the thickness of the tailgroup
         tg_thick = self.dmpc_tg_vol / self.dmpc_apm
 
         # Define the layers of the structure.
         substrate = SLD(self.si_sld)
         sio2 = Slab(self.sio2_thick, self.sio2_sld, self.si_rough, vfsolv=self.sio2_solv)
-        
+
         inner_hg_d2o = Slab(hg_thick, sld_hg_d2o,  self.sio2_rough,    vfsolv=self.bilayer_solv)
         outer_hg_d2o = Slab(hg_thick, sld_hg_d2o,  self.bilayer_rough, vfsolv=self.bilayer_solv)
         inner_hg_h2o = Slab(hg_thick, sld_hg_d2o,  self.sio2_rough,    vfsolv=self.bilayer_solv)
         outer_hg_h2o = Slab(hg_thick, sld_hg_h2o,  self.bilayer_rough, vfsolv=self.bilayer_solv)
         tg           = Slab(tg_thick, self.tg_sld, self.bilayer_rough, vfsolv=self.bilayer_solv)
 
-        # Structure correponding to measuring without the bilayer present.
+        # Structure corresponding to measuring without the bilayer present.
         si_D2O_structure = substrate | sio2 | D2O(rough=self.sio2_rough)
-        
-        # Two structures correponding to each measured contrast.
+
+        # Two structures corresponding to each measured contrast.
         si_DMPC_D2O_structure = substrate | sio2 | inner_hg_d2o | tg | tg | outer_hg_d2o | D2O(rough=self.bilayer_rough)
         si_DMPC_H2O_structure = substrate | sio2 | inner_hg_h2o | tg | tg | outer_hg_h2o | H2O(rough=self.bilayer_rough)
 
@@ -218,7 +218,7 @@ class SymmetricBilayer(Bilayer):
                            for model, data in list(zip(self.models, self.datasets))]
 
     def using_contrast(self, contrast_sld: float) -> Structure:
-        """Creates a structure representing the bilayer measured using a 
+        """Creates a structure representing the bilayer measured using a
            water contrast of given `contrast_sld`.
 
         Args:
@@ -237,19 +237,19 @@ class SymmetricBilayer(Bilayer):
 
         substrate = SLD(self.si_sld)
         solution  = SLD(contrast_sld)(rough=self.bilayer_rough)
-        
+
         sio2     = Slab(self.sio2_thick, self.sio2_sld, self.si_rough,      vfsolv=self.sio2_solv)
         inner_hg = Slab(hg_thick,        hg_sld,        self.sio2_rough,    vfsolv=self.bilayer_solv)
         outer_hg = Slab(hg_thick,        hg_sld,        self.bilayer_rough, vfsolv=self.bilayer_solv)
         tg       = Slab(tg_thick,        self.tg_sld,   self.bilayer_rough, vfsolv=self.bilayer_solv)
-        
+
         solution  = SLD(contrast_sld)(rough=self.bilayer_rough)
 
         return substrate | sio2 | inner_hg | tg | tg | outer_hg | solution
 
 class AsymmetricBilayer(Bilayer):
     """Defines a model describing an asymmetric bilayer. This model can either
-       be defined using single or double asymetery: the implementation for
+       be defined using single or double asymmetry: the implementation for
        which is provided in those classes that inherit from this.
 
     Attributes:
@@ -262,11 +262,11 @@ class AsymmetricBilayer(Bilayer):
         distances (np.ndarray): range to use for SLD profile x-axis.
         si_sld (float): SLD of silicon (substrate).
         sio2_sld (float): SLD of silicon oxide.
-        pc_hg_sld (float): 
-        dPC_tg (float): 
-        hLPS_tg (float): 
-        core_D2O (float): 
-        core_H2O (float): 
+        pc_hg_sld (float):
+        dPC_tg (float):
+        hLPS_tg (float):
+        core_D2O (float):
+        core_H2O (float):
         si_rough (Parameter): silicon (substrate) roughness.
         sio2_thick (Parameter): silicon oxide thickness.
         sio2_rough (Parameter): silicon oxide roughness.
@@ -335,7 +335,7 @@ class AsymmetricBilayer(Bilayer):
             param.vary=True
 
     def create_objectives(self) -> None:
-        """Creates objectives correponding to each measured contrast."""
+        """Creates objectives corresponding to each measured contrast."""
         self.structures = [self.using_contrast(sld, name)
                            for sld, name in list(zip(self.contrast_slds, self.names))]
 
@@ -349,7 +349,7 @@ class AsymmetricBilayer(Bilayer):
                            for model, data in list(zip(self.models, self.datasets))]
 
     def using_contrast(self, contrast_sld: float, name: str='') -> Structure:
-        """Creates a structure representing the bilayer measured using a 
+        """Creates a structure representing the bilayer measured using a
            water contrast of given `contrast_sld`.
 
         Args:
@@ -383,7 +383,7 @@ class AsymmetricBilayer(Bilayer):
 
 class SingleAsymmetricBilayer(AsymmetricBilayer):
     """Defines a model describing an asymmetric bilayer defined by a single
-       asymmetry value. Inherits all of the attriubtes of the parent class.
+       asymmetry value. Inherits all of the attributes of the parent class.
 
     Attributes:
         asym_value (Parameter): describes the asymmetry of the bilayer.
@@ -407,7 +407,7 @@ class SingleAsymmetricBilayer(AsymmetricBilayer):
 
 class DoubleAsymmetricBilayer(AsymmetricBilayer):
     """Defines a model describing an asymmetric bilayer defined by two
-       asymmetry values. Inherits all of the attriubtes of the parent class.
+       asymmetry values. Inherits all of the attributes of the parent class.
 
     Attributes:
         inner_tg_pc (Parameter): describes the asymmetry of the bilayer.
@@ -500,7 +500,7 @@ BILAYERS = [SymmetricBilayer, SingleAsymmetricBilayer, DoubleAsymmetricBilayer]
 if __name__ == '__main__':
     save_path = './results'
 
-    # Plot the SLD profiles and model reflecitivty curves for all structures.
+    # Plot the SLD profiles and model reflectivity curves for all structures.
     for structure in STRUCTURES:
         fig, _ = plot_sld_profile(structure())
         save_plot(fig, os.path.join(save_path, structure.__name__), 'sld_profile')
@@ -508,7 +508,7 @@ if __name__ == '__main__':
         fig, _ = plot_reflectivity_curve(structure())
         save_plot(fig, os.path.join(save_path, structure.__name__), 'model_reflectivity')
 
-    # Plot the SLD profiles and fitted reflecitivty curves for the bilayer models.
+    # Plot the SLD profiles and fitted reflectivity curves for the bilayer models.
     for bilayer_class in BILAYERS:
         bilayer = bilayer_class()
         bilayer.plot_sld_profiles(save_path)
