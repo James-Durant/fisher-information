@@ -8,7 +8,7 @@ This repository contains the [figures](/figures), [code](/fisher-information), [
 Please cite this paper if you intend on including elements of this work in your own publications.
 
 ### Built With
-* [`Python3`](https://www.python.org/)
+* [`Python3`](https://www.python.org/) (>= 3.8.0)
 * [`refnx`](https://refnx.readthedocs.io/en/latest/)
 * [`dynesty`](https://dynesty.readthedocs.io/en/latest/)
 * [`corner.py`](https://corner.readthedocs.io/en/latest/)
@@ -23,7 +23,7 @@ Please cite this paper if you intend on including elements of this work in your 
 4. Run the following to install the required packages from the [requirements.txt](/requirements.txt) file: <br />
    ```pip install -r requirements.txt```
 
-You should now be able to run the code.
+You should now be able to run the code. Please ensure you are running a version of Python >= 3.8.0
 
 ## Contact
 Jos Cooper - jos.cooper@stfc.ac.uk\

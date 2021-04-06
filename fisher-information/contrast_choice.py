@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 
-from typing import List, Tuple, Dict
+from typing import List
 from numpy.typing import ArrayLike
 
 from refnx.analysis import Parameter

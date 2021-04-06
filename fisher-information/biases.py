@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 
-from typing import List, Tuple, Dict, Callable
+from typing import List, Callable
 from numpy.typing import ArrayLike
 
 from refnx.analysis import Parameter, Objective, GlobalObjective, CurveFitter
