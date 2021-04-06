@@ -271,13 +271,13 @@ if __name__ == '__main__':
                    2.0: (70, 4)}
 
     # Investigates how FIM and fitting errors change with measurement time.
-    multipliers = 10**np.arange(0.5, 5.5, 2, dtype=float)
+    multipliers = 10**np.arange(0.5, 5.5, 0.1, dtype=float)
     compare_errors(structure, angle_times, multipliers, save_path)
 
     # Investigates how the uncertainty inversely proportional to time squared
     # relationship holds in practice.
-    #reduction_range = np.arange(1, 10, 0.25)
-    #simulated_projections(structure, angle_times, reduction_range, save_path)
+    reduction_range = np.arange(1, 10, 0.25)
+    simulated_projections(structure, angle_times, reduction_range, save_path)
 
     data_path = './data'
-    #measured_projections(data_path, save_path)
+    measured_projections(data_path, save_path)
