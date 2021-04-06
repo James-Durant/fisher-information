@@ -2,28 +2,31 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 
+from typing import List, Tuple, Dict, Callable
 from sklearn.linear_model import LinearRegression
 
 from refnx.dataset import ReflectDataset
 from refnx.reflect import ReflectModel
-from refnx.analysis import Objective, CurveFitter
+from refnx.analysis import Parameter, Objective, CurveFitter
 
 from simulate import simulate_single_contrast
 from structures import QCS_sample
 
-from utils import vary_structure, calc_FIM
+from utils import vary_structure, fisher_single_contrast
 from plotting import save_plot
 
-def simulated_projections(structure, angle_times, multipliers, save_path):
+def simulated_projections(structure: Callable,
+                          angle_times: Dict[float, Tuple[int, int]],
+                          multipliers: np.ndarray, save_path: str) -> None:
     """Compares the predicted (using the uncertainty inversely proportional to
        time squared relationship) and actual parameter uncertainties vs.
        increasing measurement time for simulated data of a given structure.
 
     Args:
         structure (function): the structure to simulate the experiments on.
-        initial_angle_times (dict): dictionary of initial points and times for each angle.
+        angle_times (dict): initial points and times for each angle.
         multipliers (numpy.ndarray): array of time multipliers.
-        save_path(string): path to directory to save figures to.
+        save_path (str): path to directory to save figures to.
 
     """
     save_path = os.path.join(save_path, structure.__name__)
@@ -32,11 +35,13 @@ def simulated_projections(structure, angle_times, multipliers, save_path):
     errors = []
     for i, factor in enumerate(multipliers, 1):
         # Multiply the initial times by the current multiplier for each angle.
-        new_angle_times = {angle: (initial_angle_times[angle][0], initial_angle_times[angle][1]*factor)
-                           for angle in initial_angle_times}
+        new_angle_times = {angle: (angle_times[angle][0],
+                                   angle_times[angle][1]*factor)
+                           for angle in angle_times}
 
         # Simulate the experiment and fit.
-        objective = Objective(*simulate_single_contrast(vary_structure(structure()), new_angle_times))
+        objective = Objective(*simulate_single_contrast(vary_structure(structure()),
+                                                        new_angle_times))
         CurveFitter(objective).fit('differential_evolution', verbose=False)
 
         # Record the parameter uncertainties with this time multiplier.
@@ -47,16 +52,18 @@ def simulated_projections(structure, angle_times, multipliers, save_path):
 
     # Plot the uncertainty projections and actual uncertainties vs. time.
     errors = np.asarray(errors)
-    plot_projections(multipliers, errors, objective.varying_parameters(), save_path)
+    xi = objective.varying_parameters()
+    plot_projections(multipliers, errors, xi, save_path)
 
-def measured_projections(data_path, save_path, scale=1, bkg=8e-7, dq=2.5):
+def measured_projections(data_path: str, save_path: str, scale: float=1,
+                         bkg: float=8e-7, dq: float=2.5) -> None:
     """Compares the predicted (using the uncertainty inversely proportional to
        time squared relationship) and actual parameter uncertainties vs.
        increasing measurement time for measured data of the QCS sample.
 
     Args:
-        data_path (string): path to directory containing measured QCS data.
-        save_path (string): path to directory to save figures to.
+        data_path (str): path to directory containing measured QCS data.
+        save_path (str): path to directory to save figures to.
         scale (float): value to use for the model's experimental scale factor.
         bkg (float): value to use for the model's background parameter.
         dq (float): value to use for the model's instrument resolution parameter.
@@ -66,7 +73,8 @@ def measured_projections(data_path, save_path, scale=1, bkg=8e-7, dq=2.5):
     save_path = os.path.join(save_path, 'QCS_sample')
 
     # Load the measured datasets corresponding to different measurement times.
-    datasets = [np.loadtxt(os.path.join(data_path, '{}.dat'.format(i+1)), delimiter=',') for i in range(10)]
+    datasets = [np.loadtxt(os.path.join(data_path,'{}.dat'.format(i+1)), delimiter=',')
+                for i in range(10)]
     errors = []
 
     # Iterate over each dataset.
@@ -91,18 +99,21 @@ def measured_projections(data_path, save_path, scale=1, bkg=8e-7, dq=2.5):
         refdata.scale(np.max(refdata.y))
 
         # Fit the data and record the parameter errors.
-        model = ReflectModel(vary_structure(QCS_sample()), scale=scale, bkg=bkg, dq=dq)
+        model = ReflectModel(vary_structure(QCS_sample()),
+                             scale=scale, bkg=bkg, dq=dq)
         objective = Objective(model, refdata)
         CurveFitter(objective).fit('differential_evolution', verbose=False)
 
-        errors.append([param.stderr for param in objective.varying_parameters()])
+        xi = objective.varying_parameters()
+        errors.append([param.stderr for param in xi])
 
     # Plot the uncertainty projections and actual uncertainties vs. time.
     errors = np.asarray(errors)
     time_factors = np.arange(1, 11, 1)
-    plot_projections(time_factors, errors, objective.varying_parameters(), save_path)
+    plot_projections(time_factors, errors, xi, save_path)
 
-def plot_projections(multipliers, errors, xi, save_path):
+def plot_projections(multipliers: np.ndarray, errors: np.ndarray,
+                     xi: List[Parameter], save_path: str) -> None:
     """Plots uncertainty projections (using initial errors) and actual
        uncertainties vs. measurement time.
 
@@ -110,7 +121,7 @@ def plot_projections(multipliers, errors, xi, save_path):
         multipliers (numpy.ndarray): array of time multipliers.
         errors (numpy.ndarray): array of actual errors from fitting.
         xi (list): list of parameters that were varied when fitting.
-        save_path (string): path to directory to save figures to.
+        save_path (str): path to directory to save figures to.
 
     """
     fig = plt.figure(figsize=[7,5], dpi=600)
@@ -119,26 +130,30 @@ def plot_projections(multipliers, errors, xi, save_path):
     # Iterate over each parameter.
     for i, param in enumerate(xi):
         # Plot the actual errors vs. time for the parameter.
-        ax.plot(multipliers, errors[:,i], label=param.name, linestyle='', marker='x', zorder=2)
+        ax.plot(multipliers, errors[:,i], label=param.name,
+                linestyle='', marker='x', zorder=2)
 
         # Plot the projected errors vs. time for the parameter.
         # The projection is taken using the initial errors.
         times = np.arange(multipliers [0], multipliers [-1], 0.01)
-        ax.plot(times, errors[0][i]/np.sqrt(times), color='black', lw=0.8, zorder=1)
+        ax.plot(times, errors[0][i]/np.sqrt(times),
+                color='black', lw=0.8, zorder=1)
 
     ax.set_xlabel('Time')
     ax.set_ylabel('Parameter Uncertainty')
     ax.legend()
     save_plot(fig, save_path, 'error_projection') # Save the plot.
 
-def compare_errors(structure, angle_times, multipliers, save_path):
+def compare_errors(structure: Callable,
+                   angle_times: Dict[float, Tuple[int, int]],
+                   multipliers: np.ndarray, save_path: str) -> None:
     """Compares traditional fitting errors and FIM errors with increasing time.
 
     Args:
-        structure (function): the structure to simulate the experiment on.
-        initial_angle_times (dict): dictionary of initial points and times for each angle.
+        structure (function): structure to simulate the experiment on.
+        initial_angle_times (dict): initial points and times for each angle.
         multipliers (numpy.ndarray): array of time multipliers.
-        save_path(string): path to directory to save figures to.
+        save_path (str): path to directory to save figures to.
 
     """
     save_path = os.path.join(save_path, structure.__name__)
@@ -146,18 +161,22 @@ def compare_errors(structure, angle_times, multipliers, save_path):
     # Iterate over the given times.
     fit_errors, FIM_errors = [], []
     for i, multiplier in enumerate(multipliers, 1):
-        # Calculate the fit and FIM errors for 10 simulations using the same measurement time.
+        # Calculate the fit and FIM errors for 10 simulations using
+        # the same measurement time.
         fit_errors_time, FIM_errors_time = [], []
 
         for _ in range(10):
-            # Create dictionary of number of points and measurement times for each angle.
-            new_angle_times = {angle: (angle_times[angle][0], angle_times[angle][1]*multiplier)
+            # Number of points and measurement times for each angle.
+            new_angle_times = {angle: (angle_times[angle][0],
+                                       angle_times[angle][1]*multiplier)
                                for angle in angle_times}
 
             # Simulate the experiment.
-            model, data, counts = simulate_single_contrast(structure(), new_angle_times, include_counts=True)
+            model, data, counts = simulate_single_contrast(structure(),
+                                                           new_angle_times,
+                                                           include_counts=True)
 
-            # Vary the SLD and thickness of each layer and set them to random values.
+            # Vary layers' SLDs and thicknesses and set them to random values.
             vary_structure(model.structure, random_init=True)
 
             # Fit the data using differential evolution.
@@ -169,7 +188,7 @@ def compare_errors(structure, angle_times, multipliers, save_path):
             fit_errors_time.append([param.stderr for param in xi])
 
             # Calculate the FIM errors.
-            g = calc_FIM(data.x, xi, counts, model)
+            g = fisher_single_contrast(data.x, xi, counts, model)
             FIM_errors_time.append(1 / np.sqrt(np.diag(g)))
 
         # Use the mean of the 10 errors for the time point.
@@ -181,18 +200,21 @@ def compare_errors(structure, angle_times, multipliers, save_path):
 
     # Plot the mean fit and FIM errors vs. increasing time.
     names = [param.name for param in xi]
-    plot_errors(multipliers, np.array(fit_errors), np.array(FIM_errors), names, save_path)
+    fit_errors = np.asarray(fit_errors)
+    FIM_errors = np.asarray(FIM_errors)
+    plot_errors(multipliers, fit_errors, FIM_errors, names, save_path)
 
-def plot_errors(multipliers, fit_errors, FIM_errors, names, save_path):
+def plot_errors(multipliers: np.ndarray, fit_errors: np.ndarray,
+                FIM_errors: np.ndarray, names: List[str], save_path: str) -> None:
     """Plots log fitting error and log FIM error vs. log time multiplier for
-       each parameter and performs linear regression to calculate the gradient in each case.
+       each parameter and performs linear regression for gradient in each case.
 
     Args:
-        multipliers (numpy.ndarray): array of multipliers for which the errors were calculated.
+        multipliers (numpy.ndarray): multipliers for which errors were calculated.
         fit_errors (numpy.ndarray): parameter fitting errors for each time.
         FIM_errors (numpy.ndarray): FIM parameter errors for each time.
         names (list): list of string parameter names.
-        save_path(string): path to directory to save figures to.
+        save_path (str): path to directory to save figures to.
 
     """
     # Create the plot of log fit errors against log time multipliers.
@@ -212,7 +234,7 @@ def plot_errors(multipliers, fit_errors, FIM_errors, names, save_path):
 
     # Iterate over each parameter.
     for i in range(len(names)):
-        # Take the log of the fitting and FIM errors and reshape for linear regression.
+        # log of the fitting and FIM errors and reshape for linear regression.
         log_fit = np.log(fit_errors[:,i]).reshape(-1,1)
         log_FIM = np.log(FIM_errors[:,i]).reshape(-1,1)
 
@@ -221,8 +243,11 @@ def plot_errors(multipliers, fit_errors, FIM_errors, names, save_path):
         FIM_reg = LinearRegression().fit(log_time, log_FIM)
 
         # Round the gradients to 3dp.
-        fit_m = np.format_float_positional(fit_reg.coef_[0][0], precision=3, unique=False, trim='k')
-        FIM_m = np.format_float_positional(FIM_reg.coef_[0][0], precision=3, unique=False, trim='k')
+        fit_m = np.format_float_positional(fit_reg.coef_[0][0], precision=3,
+                                           unique=False, trim='k')
+
+        FIM_m = np.format_float_positional(FIM_reg.coef_[0][0], precision=3,
+                                           unique=False, trim='k')
 
         # Plot log time multipliers against log error for the parameter.
         fit_ax.plot(log_time, log_fit, label=names[i]+', m='+fit_m)
@@ -242,17 +267,17 @@ if __name__ == '__main__':
     save_path = './results'
 
     structure = easy_sample # Choose structure here.
-    initial_angle_times = {0.7: (70, 1), # Angle: (Points, Time)
-                           2.0: (70, 4)}
+    angle_times = {0.7: (70, 1), # Angle: (Points, Time)
+                   2.0: (70, 4)}
 
     # Investigates how FIM and fitting errors change with measurement time.
     multipliers = 10**np.arange(0.5, 5.5, 0.1, dtype=float)
-    compare_errors(structure, initial_angle_times, multipliers, save_path)
+    compare_errors(structure, angle_times, multipliers, save_path)
 
     # Investigates how the uncertainty inversely proportional to time squared
     # relationship holds in practice.
     reduction_range = np.arange(1, 10, 0.25)
-    simulated_projections(structure, initial_angle_times, reduction_range, save_path)
+    simulated_projections(structure, angle_times, reduction_range, save_path)
 
     data_path = './data'
     measured_projections(data_path, save_path)

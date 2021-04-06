@@ -2,21 +2,25 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 
-from refnx.analysis import Objective, GlobalObjective, CurveFitter
+from typing import List, Tuple, Dict, Callable
+from refnx.analysis import Parameter, Objective, GlobalObjective, CurveFitter
 
+from structures import Bilayer
 from simulate import simulate_single_contrast
-from utils import vary_structure, get_ground_truths, Sampler
 
+from utils import vary_structure, get_ground_truths, Sampler
 from plotting import save_plot
 
-def fitting_biases(structure, angle_times, save_path, n=500):
+def fitting_biases(structure: Callable,
+                   angle_times: Dict[float, Tuple[int, int]],
+                   save_path: str, n: int=500) -> None:
     """Investigates fitting biases in differential evolution with and without
        following up with L-BFGS-B and in nested sampling.
 
     Args:
         structure (function): the structure to investigate the biases with.
-        angle_times (dict): dictionary of points and measurement times for each angle.
-        save_path (string): path to directory to save the bias results to.
+        angle_times (dict): points and measurement times for each angle.
+        save_path (str): path to directory to save the bias results to.
         n (int): the number of fits to calculate the bias with.
 
     """
@@ -24,22 +28,26 @@ def fitting_biases(structure, angle_times, save_path, n=500):
 
     evolution_params, lbfgs_params, sampled_params = [], [], []
     for i in range(n): # Fit n times.
-        # Simulate an experiment, vary the model parameters and randomly initialise.
-        objective = Objective(*simulate_single_contrast(structure(), angle_times))
+        # Simulate an experiment, vary the model parameters.
+        objective = Objective(*simulate_single_contrast(structure(),
+                                                        angle_times))
+        # Randomly initialise.
         vary_structure(objective.model.structure, random_init=True)
 
-        # Fit using differential evolution only first and record the estimated values.
+        xi = objective.varying_parameters()
+
+        # Fit only first and record the estimated values.
         fitter = CurveFitter(objective)
         fitter.fit('differential_evolution', verbose=False, polish=False)
-        evolution_params.append([param.value for param in objective.varying_parameters()])
+        evolution_params.append([param.value for param in xi])
 
         # Then fit using L-BFGS-B and record the estimated parameter values.
         fitter.fit('L-BFGS-B', verbose=False)
-        lbfgs_params.append([param.value for param in objective.varying_parameters()])
+        lbfgs_params.append([param.value for param in xi])
 
         # Sample using nested sampling and record the estimated values.
         Sampler(objective).sample_nested(verbose=False, show_fig=False)
-        sampled_params.append([param.value for param in objective.varying_parameters()])
+        sampled_params.append([param.value for param in xi])
 
         # Display progress.
         print('>>> {0}/{1}'.format(i+1, n))
@@ -57,14 +65,15 @@ def fitting_biases(structure, angle_times, save_path, n=500):
     save_biases(lbfgs_biases, names, 'L-BFGS-B', save_path)
     save_biases(sampling_biases, names, 'Sampling', save_path)
 
-def save_biases(biases, names, method, save_path):
+def save_biases(biases: np.ndarray, names: List[str], method: str,
+                save_path: str) -> None:
     """Saves calculated biases to a .txt file.
 
     Args:
         biases (numpy.ndarray): array of biases to save.
         names (list): list of parameter names.
-        method (string): the fitting method used to calculate the biases.
-        save_path (string): path to directory to save the bias results to.
+        method (str): the fitting method used to calculate the biases.
+        save_path (str): path to directory to save the bias results to.
 
     """
     # Create the directory if not present.
@@ -80,14 +89,16 @@ def save_biases(biases, names, method, save_path):
             file.write('{0}: {1}\n'.format(name, bias))
         file.write('\n')
 
-def time_biases(structure, angle_times, multipliers, save_path, n=100):
+def time_biases(structure: Callable,
+                angle_times: Dict[float, Tuple[int, int]],
+                multipliers: np.ndarray, save_path: str, n: int=100) -> None:
     """Investigates how fitting biases change with increasing measurement time.
 
     Args:
         structure (function): the structure to investigate the biases with.
-        angle_times (dict): dictionary of points and measurement times for each angle.
+        angle_times (dict): points and measurement times for each angle.
         multipliers (numpy.ndarray): array of time multipliers.
-        save_path (string): path to directory to save the bias plot to.
+        save_path (str): path to directory to save the bias plot to.
         n (int): the number of fits to calculate the bias with.
 
     """
@@ -101,17 +112,21 @@ def time_biases(structure, angle_times, multipliers, save_path, n=100):
 
         # Fit n times using the current time multiplier.
         for _ in range(n):
-            # Multiply the initial times by the current multiplier for each angle.
-            new_angle_times = {angle: (angle_times[angle][0], angle_times[angle][1]*multiplier)
+            # Multiply the initial times by current multiplier for each angle.
+            new_angle_times = {angle: (angle_times[angle][0],
+                                       angle_times[angle][1]*multiplier)
                                for angle in angle_times}
 
-            # Simulate an experiment, vary the model parameters and randomly initialise.
-            objective = Objective(*simulate_single_contrast(structure(), new_angle_times))
+            # Simulate an experiment, vary the model parameters.
+            objective = Objective(*simulate_single_contrast(structure(),
+                                                            new_angle_times))
+            # Randomly initialise.
             vary_structure(objective.model.structure, random_init=True)
-
+                
             # Fit the objective and record the estimated parameter values.
+            xi = objective.varying_parameters()
             CurveFitter(objective).fit('differential_evolution', verbose=False)
-            fitted_params.append([param.value for param in objective.varying_parameters()])
+            fitted_params.append([param.value for param in xi])
 
         # Calculate the bias over the n fits.
         biases.append(np.mean(fitted_params, axis=0) - true)
@@ -121,25 +136,31 @@ def time_biases(structure, angle_times, multipliers, save_path, n=100):
 
     # Plot the fitting biases as a function of measurement time.
     save_path = os.path.join(save_path, structure.__name__)
-    plot_biases(multipliers, biases, objective.varying_parameters(),
-                'Time Multiplier', save_path, 'time_biases')
+    plot_biases(multipliers, biases, xi, 'Time Multiplier',
+                save_path, 'time_biases')
 
-def contrast_biases(bilayer, initial_contrast, new_contrasts, angle_times, save_path, n=10):
-    """Investigates how fitting biases change with second contrast choice for a bilayer model.
+def contrast_biases(bilayer: Bilayer, initial_contrast: float,
+                    new_contrasts: np.ndarray,
+                    angle_times: Dict[float, Tuple[int, int]],
+                    save_path: str, n: int=10) -> None:
+    """Investigates how fitting biases change with second contrast choice
+       for a bilayer model.
 
     Args:
         bilayer (Bilayer): the bilayer model to calculate the fitting bias on.
         initial_contrast (float): the initial measurement contrast.
         new_contrasts (numpy.ndarray): an array of second contrasts to measure.
-        angle_times (dict): dictionary of points and measurement times for each angle.
-        save_path (string): path to directory to save the bias plot to.
+        angle_times (dict): points and measurement times for each angle.
+        save_path (str): path to directory to save the bias plot to.
         n (int): the number of fits to calculate the bias with.
 
     """
     xi = bilayer.parameters
 
     # Simulate an experiment using the initial measurement contrast.
-    objective_initial = Objective(*simulate_single_contrast(bilayer.using_contrast(initial_contrast), angle_times))
+    structure = bilayer.using_contrast(initial_contrast)
+    objective_initial = Objective(*simulate_single_contrast(structure,
+                                                            angle_times))
 
     # Ground truth parameter values.
     true = np.asarray([param.value for param in xi])
@@ -156,14 +177,18 @@ def contrast_biases(bilayer, initial_contrast, new_contrasts, angle_times, save_
                 param.value = true[i]
 
             # Simulate an experiment using the second measurement contrast.
-            objective_new = Objective(*simulate_single_contrast(bilayer.using_contrast(new_contrast), angle_times))
+            structure = bilayer.using_contrast(new_contrast)
+            objective_new = Objective(*simulate_single_contrast(structure,
+                                                                angle_times))
 
             # Randomly initialise the parameter values.
             for param in xi:
-                param.value = np.random.uniform(param.bounds.lb, param.bounds.ub)
+                param.value = np.random.uniform(param.bounds.lb,
+                                                param.bounds.ub)
 
             # Fit the objective and record the estimated parameter values.
-            fitter = CurveFitter(GlobalObjective([objective_initial, objective_new]))
+            objectives = [objective_initial, objective_new]
+            fitter = CurveFitter(GlobalObjective(objectives))
             fitter.fit('differential_evolution', verbose=False)
             fitted.append([param.value for param in xi])
 
@@ -175,18 +200,20 @@ def contrast_biases(bilayer, initial_contrast, new_contrasts, angle_times, save_
 
     # Plot the fitting biases as a function of second contrast choice.
     save_path = os.path.join(save_path, str(bilayer))
-    plot_biases(new_contrasts, biases, xi, '$\mathregular{Contrast\ SLD\ (10^{-6} \AA^{-2})}$',
+    plot_biases(new_contrasts, biases, xi,
+                '$\mathregular{Contrast\ SLD\ (10^{-6} \AA^{-2})}$',
                 save_path, 'contrast_biases')
 
-def plot_biases(x, biases, xi, x_label, save_path, file_name):
+def plot_biases(x: np.ndarray, biases: np.ndarray, xi: List[Parameter],
+                x_label: str, save_path: str, file_name: str) -> None:
     """Plots fitting biases against either measurment time or contrast choice.
 
     Args:
         x (np.ndarray): an array of either measurement times or contrast SLDs.
         biases (np.ndarray): an array of biases corresponding to the x array.
-        x_label (string): label to use for the x-axis
-        save_path (string): path to directory to save the bias plot to.
-        file_name (string): name to use for the bias plot file.
+        x_label (str): label to use for the x-axis
+        save_path (str): path to directory to save the bias plot to.
+        file_name (str): name to use for the bias plot file.
 
     """
     fig = plt.figure(figsize=[9,7], dpi=600)

@@ -2,12 +2,14 @@ import numpy as np
 import os, time, sys
 sys.path.append('./')
 
+from typing import List, Tuple
 from refnx.analysis import Objective
 
 from structures import ModelGen
 from utils import calc_FIM, Sampler
 
-def benchmark(layers, num_samples):
+def benchmark(layers: int, num_samples: int
+              ) -> Tuple[List[float], List[float], List[float]]:
     """Randomly generate num_samples samples each of given number of
        layers and calculate parameter uncertainness using MCMC sampling,
        nested sampling and the FIM approach for each sample.

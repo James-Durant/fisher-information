@@ -1,19 +1,23 @@
 import numpy as np
 import os
 
+from typing import Callable, Dict, Tuple
 from refnx.analysis import Objective, CurveFitter
 
 from simulate import simulate_single_contrast
-from utils import vary_structure, calc_FIM
+from utils import vary_structure, fisher_single_contrast
 
-def compare_fit_variance(structure, angle_times, save_path, n=500):
+def compare_fit_variance(structure: Callable,
+                         angle_times: Dict[float, Tuple[int, int]],
+                         save_path: str, n: int=500) -> None:
     """Compares the inverse FIM with variance in parameter estimation using
-       traditional fitting for n fits.
+       traditional a fitting algorithm for `n` fits.
 
     Args:
         structure (function): the structure to simulate the experiment on.
-        angle_times (dict): dictionary of points and measurement times to use for each angle.
-        save_path (string): path to directory to save FIM and fit variances.
+        angle_times (dict): dictionary of points and measurement times to
+                            use for each angle.
+        save_path (str): path to directory to save FIM and fit variances.
         n (int): number of fits to run.
 
     """
@@ -21,10 +25,13 @@ def compare_fit_variance(structure, angle_times, save_path, n=500):
 
     # Fit `n` times
     for i in range(n):
-        # Simulate the experiment using the given angles, number of points and measurement times.
-        model, data, counts = simulate_single_contrast(structure(), angle_times, include_counts=True)
+        # Simulate the experiment using the given angles, number of points
+        # and measurement times.
+        model, data, counts = simulate_single_contrast(structure(),
+                                                       angle_times,
+                                                       include_counts=True)
 
-        # Vary the SLD and thickness of each layer and set them to random values.
+        # Vary the layers' SLDs and thicknesses and set them to random values.
         vary_structure(model.structure, random_init=True)
 
         # Fit the model using differential evolution.
@@ -36,7 +43,7 @@ def compare_fit_variance(structure, angle_times, save_path, n=500):
         param_estimates.append([param.value for param in xi])
 
         # Calculate the FIM matrix and FIM parameter variances.
-        g = calc_FIM(data.x, xi, counts, model)
+        g = fisher_single_contrast(data.x, xi, counts, model)
         inv_FIM.append(1 / np.diag(g))
 
         # Display progress every 10 fits.

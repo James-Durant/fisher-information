@@ -1,0 +1,8 @@
+----------- Usefulness Metrics -----------
+easy_sample: 0.7858639913269504
+QCS_sample: 0.7084014477831465
+similar_sld_sample_1: 0.5228916277766293
+similar_sld_sample_2: 0.39436715865858774
+thin_layer_sample_1: 0.47516936328386417
+thin_layer_sample_2: 0.44319000489013616
+many_param_sample: 0.6389352815743838
