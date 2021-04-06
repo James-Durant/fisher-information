@@ -2,16 +2,22 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 
-from refnx.reflect import ReflectModel
+from typing import List, Tuple
 
-def plot_sld_profile(structure, distances=None, colour='black', label=False):
+from refnx.dataset import ReflectDataset
+from refnx.reflect import Structure, ReflectModel
+from refnx.analysis import Objective
+
+def plot_sld_profile(structure: Structure, distances: np.ndarray=None,
+                     colour: str='black', label: bool=False
+                     ) -> Tuple[plt.Figure, plt.Axis]:
     """Plots the SLD profile of a given structure.
 
     Args:
-        structure (refnx.reflect.Structure): the structure to plot the SLD profile of.
-        distances (numpy.ndarray): the range of values to use on the x-axis.
-        colour (string): colour to use for the SLD profile.
-        label (Boolean): whether to use the structure's name in the plot's legend.
+        structure (refnx.reflect.Structure): structure to plot SLD profile of.
+        distances (numpy.ndarray): range of values to use on the x-axis.
+        colour (str): colour to use for the SLD profile.
+        label (bool): whether to use structure's name in the plot's legend.
 
     Returns:
         fig (matplotlib.pyplot.Figure): figure containing a plotted SLD profile.
@@ -25,17 +31,20 @@ def plot_sld_profile(structure, distances=None, colour='black', label=False):
     ax.plot(*structure.sld_profile(distances), color=colour,
             label=structure.name if label else None)
 
-    ax.set_xlabel('$\mathregular{Distance\ (\AA)}$', fontsize=11, weight='bold')
-    ax.set_ylabel('$\mathregular{SLD\ (10^{-6} \AA^{-2})}$', fontsize=11, weight='bold')
+    ax.set_xlabel('$\mathregular{Distance\ (\AA)}$',
+                  fontsize=11, weight='bold')
+    ax.set_ylabel('$\mathregular{SLD\ (10^{-6} \AA^{-2})}$',
+                  fontsize=11, weight='bold')
     return fig, ax
 
-def plot_sld_profiles(structures, distances=None, label=True):
+def plot_sld_profiles(structures: List[Structure], distances: np.ndararay=None,
+                      label: bool=True) -> Tuple[plt.Figure, plt.Axis]:
     """Plots the SLD profiles of a given list structures.
 
     Args:
-        structures (list): the structures to plot the SLD profiles of.
-        distances (numpy.ndarray): the range of values to use on the x-axis.
-        label (Boolean): whether to use the structures' name in the plot's legend.
+        structures (list): structures to plot the SLD profiles of.
+        distances (numpy.ndarray): range of values to use on the x-axis.
+        label (bool): whether to use structures' name in the plot's legend.
 
     Returns:
         fig (matplotlib.pyplot.Figure): figure containing plotted SLD profiles.
@@ -55,13 +64,14 @@ def plot_sld_profiles(structures, distances=None, label=True):
 
     return fig, ax
 
-def plot_objective(objective, colour='black', label=False):
+def plot_objective(objective: Objective, colour: str='black',
+                   label: bool=False) -> Tuple[plt.Figure, plt.Axis]:
     """Plots the fit of a given objective against the objective's data.
 
     Args:
-        objective (refnx.analysis.Objective): the objective to plot.
-        colour (string): colour to use for the objective's data points.
-        label (Boolean): whether to use the structure's name in the plot's legend.
+        objective (refnx.analysis.Objective): objective to plot.
+        colour (str): colour to use for the objective's data points.
+        label (bool): whether to use structure's name in the plot's legend.
 
     Returns:
         fig (matplotlib.pyplot.Figure): figure containing a plotted objective.
@@ -78,12 +88,13 @@ def plot_objective(objective, colour='black', label=False):
 
     return fig, ax
 
-def plot_objectives(objectives, label=True):
-    """Plots the fits of a given list of objectives against the objectives' data.
+def plot_objectives(objectives: List[Objective], label: bool=True
+                    ) -> Tuple[plt.Figure, plt.Axis]:
+    """Plots fits of a given list of objectives against the objectives' data.
 
     Args:
         objectives (list): list of objectives to plot.
-        label (Boolean): whether to include a legend in the plot.
+        label (bool): whether to include a legend in the plot.
 
     Returns:
         fig (matplotlib.pyplot.Figure): figure containing plotted objectives.
@@ -98,7 +109,8 @@ def plot_objectives(objectives, label=True):
         q, r, r_error = objective.data.x, objective.data.y, objective.data.y_err
 
         # Plot the reflectivity data.
-        ax.errorbar(q, r, r_error, marker='o', ms=3, lw=0, elinewidth=1, capsize=1.5,
+        ax.errorbar(q, r, r_error,
+                    marker='o', ms=3, lw=0, elinewidth=1, capsize=1.5,
                     label=objective.model.structure.name if label else None)
 
         # Plot the fit.
@@ -109,17 +121,18 @@ def plot_objectives(objectives, label=True):
 
     return fig, ax
 
-def plot_refdata(data, colour='black', label=None):
+def plot_refdata(data: ReflectDataset, colour: str='black',
+                 label: bool=None) -> Tuple[plt.Figure, plt.Axis]:
     """Plots a given reflectivity dataset.
 
     Args:
-        data (refnx.dataset.ReflectDataset): the dataset to plot.
-        colour (string): the colour to plot the data points using
-        label (string): label of the dataset for inclusion in plot's legend.
+        data (refnx.dataset.ReflectDataset): dataset to plot.
+        colour (str): colour to plot the data points using
+        label (str): label of dataset for inclusion in plot's legend.
 
     Returns:
-        fig (matplotlib.pyplot.Figure): figure containing a plotted reflectivity dataset.
-        ax (matplotlib.pyplot.Axis): axis containing a plotted reflectivity dataset.
+        fig (matplotlib.pyplot.Figure): figure containing reflectivity data.
+        ax (matplotlib.pyplot.Axis): axis containing reflectivity data.
 
     """
     fig = plt.figure(figsize=[9,7], dpi=600)
@@ -136,11 +149,13 @@ def plot_refdata(data, colour='black', label=None):
     ax.set_ylim(1e-7, 2)
     return fig, ax
 
-def plot_reflectivity_curve(structure, q_min=0.005, q_max=0.3, points=500, dq=2, bkg=1e-7):
+def plot_reflectivity_curve(structure: Structure, q_min: float=0.005,
+                            q_max: float=0.3, points: int=500, dq: float=2,
+                            bkg: float=1e-7) -> Tuple[plt.Figure, plt.Axis]:
     """Plots the model reflectivity curve of a given structure.
 
     Args:
-        structure (refnx.reflect.Structure): the structure to plot the reflectivity curve of.
+        structure (refnx.reflect.Structure): structure to plot reflectivity curve of.
         q_min (float): minimum Q value for the plot.
         q_max (float): maximum Q value for the plot.
         points (int): number of reflectivity points to plot.
@@ -148,8 +163,8 @@ def plot_reflectivity_curve(structure, q_min=0.005, q_max=0.3, points=500, dq=2,
         bkg (float): instrument background parameter.
 
     Returns:
-        fig (matplotlib.pyplot.Figure): figure containing a plotted reflectivity curve.
-        ax (matplotlib.pyplot.Axis): axis containing a plotted reflectivity curve.
+        fig (matplotlib.pyplot.Figure): figure containing reflectivity curve.
+        ax (matplotlib.pyplot.Axis): axis containing reflectivity curve.
 
     """
     model = ReflectModel(structure, scale=1, bkg=bkg, dq=dq) # Define a model.
@@ -165,13 +180,13 @@ def plot_reflectivity_curve(structure, q_min=0.005, q_max=0.3, points=500, dq=2,
     ax.set_yscale('log')
     return fig, ax
 
-def save_plot(fig, save_path, file_name):
+def save_plot(fig: plt.Figure, save_path: str, file_name: str) -> None:
     """Saves a figure to a given directory.
 
     Args:
-        fig (matplotlib.pyplot.Figure): the figure to save.
-        save_path: path to the directory to save the figure to.
-        file_name: name of the file to save the plot as.
+        fig (matplotlib.pyplot.Figure): figure to save.
+        save_path (str): path to directory to save the figure to.
+        file_name (str): name of file to save the plot as.
 
     """
     # Create the directory if not present.

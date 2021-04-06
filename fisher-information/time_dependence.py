@@ -23,7 +23,7 @@ def simulated_projections(structure: Callable,
        increasing measurement time for simulated data of a given structure.
 
     Args:
-        structure (function): the structure to simulate the experiments on.
+        structure (function): structure to simulate the experiments on.
         angle_times (dict): initial points and times for each angle.
         multipliers (numpy.ndarray): array of time multipliers.
         save_path (str): path to directory to save figures to.
@@ -64,9 +64,9 @@ def measured_projections(data_path: str, save_path: str, scale: float=1,
     Args:
         data_path (str): path to directory containing measured QCS data.
         save_path (str): path to directory to save figures to.
-        scale (float): value to use for the model's experimental scale factor.
-        bkg (float): value to use for the model's background parameter.
-        dq (float): value to use for the model's instrument resolution parameter.
+        scale (float): model's experimental scale factor.
+        bkg (float): model's background parameter.
+        dq (float): model's instrument resolution parameter.
 
     """
     data_path = os.path.join(data_path, 'QCS_sample', 'time_data')
@@ -120,7 +120,7 @@ def plot_projections(multipliers: np.ndarray, errors: np.ndarray,
     Args:
         multipliers (numpy.ndarray): array of time multipliers.
         errors (numpy.ndarray): array of actual errors from fitting.
-        xi (list): list of parameters that were varied when fitting.
+        xi (list): parameters that were varied when fitting.
         save_path (str): path to directory to save figures to.
 
     """
@@ -213,7 +213,7 @@ def plot_errors(multipliers: np.ndarray, fit_errors: np.ndarray,
         multipliers (numpy.ndarray): multipliers for which errors were calculated.
         fit_errors (numpy.ndarray): parameter fitting errors for each time.
         FIM_errors (numpy.ndarray): FIM parameter errors for each time.
-        names (list): list of string parameter names.
+        names (list): parameter names.
         save_path (str): path to directory to save figures to.
 
     """

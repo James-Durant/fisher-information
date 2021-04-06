@@ -14,9 +14,8 @@ def compare_fit_variance(structure: Callable,
        traditional a fitting algorithm for `n` fits.
 
     Args:
-        structure (function): the structure to simulate the experiment on.
-        angle_times (dict): dictionary of points and measurement times to
-                            use for each angle.
+        structure (function): structure to simulate the experiment on.
+        angle_times (dict): points and measurement times for each angle.
         save_path (str): path to directory to save FIM and fit variances.
         n (int): number of fits to run.
 

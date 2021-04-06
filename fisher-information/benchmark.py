@@ -1,12 +1,12 @@
 import numpy as np
 import os, time, sys
-sys.path.append('./')
+sys.path.append('./') # MCMC sampling cannot find structures code without this?
 
 from typing import List, Tuple
 from refnx.analysis import Objective
 
-from structures import ModelGen
-from utils import calc_FIM, Sampler
+from utils import ModelGenerator
+from utils import fisher_single_contrast, Sampler
 
 def benchmark(layers: int, num_samples: int
               ) -> Tuple[List[float], List[float], List[float]]:
@@ -27,7 +27,7 @@ def benchmark(layers: int, num_samples: int
     print('-------- {}-Layer Samples --------'.format(layers))
 
     # Generate the random samples and simulate experiments using them.
-    models_data = ModelGen.generate(num_samples, layers)
+    models_data = ModelGenerator.generate(num_samples, layers)
 
     # Iterate over each sample and run MCMC and nested sampling, and calculate the FIM.
     times_MCMC, times_nested, times_FIM = [], [], []
@@ -54,7 +54,7 @@ def benchmark(layers: int, num_samples: int
         print('>>> FIM {0}/{1}'.format(i+1, len(models_data)))
         xi = objective.varying_parameters()
         start = time.time()
-        g = calc_FIM(data.x, xi, counts, model)
+        g = fisher_single_contrast(data.x, xi, counts, model)
         1 / np.diag(g) # Calculate parameter uncertainties.
         end = time.time()
         times_FIM.append(end-start)

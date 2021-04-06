@@ -18,10 +18,10 @@ def fitting_biases(structure: Callable,
        following up with L-BFGS-B and in nested sampling.
 
     Args:
-        structure (function): the structure to investigate the biases with.
+        structure (function): structure to investigate the biases with.
         angle_times (dict): points and measurement times for each angle.
         save_path (str): path to directory to save the bias results to.
-        n (int): the number of fits to calculate the bias with.
+        n (int): number of fits to calculate the bias with.
 
     """
     true = get_ground_truths(structure)
@@ -72,7 +72,7 @@ def save_biases(biases: np.ndarray, names: List[str], method: str,
     Args:
         biases (numpy.ndarray): array of biases to save.
         names (list): list of parameter names.
-        method (str): the fitting method used to calculate the biases.
+        method (str): fitting method used to calculate the biases.
         save_path (str): path to directory to save the bias results to.
 
     """
@@ -95,11 +95,11 @@ def time_biases(structure: Callable,
     """Investigates how fitting biases change with increasing measurement time.
 
     Args:
-        structure (function): the structure to investigate the biases with.
+        structure (function): structure to investigate the biases with.
         angle_times (dict): points and measurement times for each angle.
         multipliers (numpy.ndarray): array of time multipliers.
         save_path (str): path to directory to save the bias plot to.
-        n (int): the number of fits to calculate the bias with.
+        n (int): number of fits to calculate the bias with.
 
     """
     # Get the true values of the layers' thicknesses and SLDs.
@@ -122,7 +122,7 @@ def time_biases(structure: Callable,
                                                             new_angle_times))
             # Randomly initialise.
             vary_structure(objective.model.structure, random_init=True)
-                
+
             # Fit the objective and record the estimated parameter values.
             xi = objective.varying_parameters()
             CurveFitter(objective).fit('differential_evolution', verbose=False)
@@ -147,12 +147,12 @@ def contrast_biases(bilayer: Bilayer, initial_contrast: float,
        for a bilayer model.
 
     Args:
-        bilayer (Bilayer): the bilayer model to calculate the fitting bias on.
-        initial_contrast (float): the initial measurement contrast.
-        new_contrasts (numpy.ndarray): an array of second contrasts to measure.
+        bilayer (Bilayer): bilayer model to calculate the fitting bias on.
+        initial_contrast (float): initial measurement contrast.
+        new_contrasts (numpy.ndarray): second contrasts to measure.
         angle_times (dict): points and measurement times for each angle.
         save_path (str): path to directory to save the bias plot to.
-        n (int): the number of fits to calculate the bias with.
+        n (int): number of fits to calculate the bias with.
 
     """
     xi = bilayer.parameters
@@ -206,11 +206,11 @@ def contrast_biases(bilayer: Bilayer, initial_contrast: float,
 
 def plot_biases(x: np.ndarray, biases: np.ndarray, xi: List[Parameter],
                 x_label: str, save_path: str, file_name: str) -> None:
-    """Plots fitting biases against either measurment time or contrast choice.
+    """Plots fitting biases against either measurement time or contrast choice.
 
     Args:
-        x (np.ndarray): an array of either measurement times or contrast SLDs.
-        biases (np.ndarray): an array of biases corresponding to the x array.
+        x (np.ndarray): either measurement times or contrast SLDs.
+        biases (np.ndarray): biases corresponding to the x array.
         x_label (str): label to use for the x-axis
         save_path (str): path to directory to save the bias plot to.
         file_name (str): name to use for the bias plot file.

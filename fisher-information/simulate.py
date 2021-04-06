@@ -2,6 +2,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 
+from typing import Tuple, Dict
+
 from refnx.dataset import ReflectDataset
 from refnx.reflect import ReflectModel
 from refnx.analysis import Objective

@@ -15,8 +15,8 @@ class Sampler:
     """Samples an objective using MCMC and nested sampling.
 
     Attributes:
-        objective (refnx.analysis.Objective): the objective to sample.
-        ndim (int): the number of free parameters of the objective.
+        objective (refnx.analysis.Objective): objective to sample.
+        ndim (int): number of free parameters of the objective.
         sampler_MCMC (refnx.analysis.CurveFitter): sampler for MCMC sampling.
         sampler_nested_static (dynesty.NestedSampler): static nested sampler.
         sampler_nested_dynamic (dynesty.DynamicNestedSampler): dynamic nested sampler.
@@ -49,7 +49,7 @@ class Sampler:
             show_fig (bool): whether to create and return a corner plot.
 
         Returns:
-            (matplotlib.pyplot.Figure, optional): a MCMC sampling corner plot.
+            (matplotlib.pyplot.Figure, optional): MCMC sampling corner plot.
 
         """
         # Initially fit with differential evolution if requested.
@@ -173,7 +173,7 @@ class ModelGenerator:
             layers (int): number of layers for generated structures.
 
         Returns:
-            (refnx.reflect.Structure): the randomly generated structure.
+            (refnx.reflect.Structure): randomly generated structure.
 
         """
         # Air followed by each layer and then finally the substrate.
@@ -190,7 +190,7 @@ class ModelGenerator:
             substrate (bool): whether the component is the substrate or not.
 
         Returns:
-            (refnx.reflect.Component): the randomly generated layer.
+            (refnx.reflect.Component): randomly generated layer.
 
         """
         if substrate:
@@ -212,12 +212,12 @@ def vary_structure(structure: Structure, random_init: bool=False,
        initialise these values to random values within their bounds.
 
     Args:
-        structure (refnx.reflect.Structure): the structure to vary.
+        structure (refnx.reflect.Structure): structure to vary.
         random_init (bool): whether to randomly initialise structure parameters.
-        bound_size (float): the size of the bounds to place on the parameters.
+        bound_size (float): size of the bounds to place on the parameters.
         vary_sld (bool): whether to vary the structure's layers' SLDs.
-        vary_thick (bool): whether to vary the structure's layers' thicknesses.
-        vary_rough (bool): whether to vary the structure's layers' roughnesses.
+        vary_thick (bool): whether to vary structure's layers' thicknesses.
+        vary_rough (bool): whether to vary structure's layers' roughnesses.
 
     Returns:
         refnx.reflect.Structure: a reference to the given structure.
@@ -265,7 +265,7 @@ def fisher_single_contrast(q: np.ndarray, xi: List[Parameter],
 
     Args:
         q (numpy.ndarray): array of Q values.
-        xi (list): list of parameters representing each varying parameter.
+        xi (list): parameters representing each varying parameter.
         counts (numpy.ndarray): incident neutron counts for each Q value.
         model (refnx.reflect.ReflectModel): model for calculating gradients.
 
@@ -294,7 +294,7 @@ def fisher_multiple_contrasts(qs: List[np.ndarray], xi: List[Parameter],
 
     Args:
         qs (list): Q arrays corresponding to each contrast.
-        xi (list): parameters representing each varying parameter.
+        xi (list): varying parameters.
         counts (list): incident neutron counts corresponding to each Q value.
         models (list): models to calculate gradients with.
 
@@ -328,9 +328,9 @@ def gradient(model: ReflectModel, parameter: Parameter, q_point: float,
 
     Args:
         model (refnx.reflect.ReflectModel): model to calculate gradient.
-        parameter (refnx.analysis.Parameter): the parameter to vary.
+        parameter (refnx.analysis.Parameter): parameter to vary.
         q_point (float): Q value of the R point to calculate the gradient of.
-        step (float): the step size to take when calculating the gradient.
+        step (float): step size to take when calculating the gradient.
 
     Returns:
         float: two-point gradient.
@@ -354,7 +354,7 @@ def get_ground_truths(structure: Structure) -> np.ndarray:
         structure (refnx.reflect.Structure): structure to get true values from.
 
     Returns:
-        numpy.ndarray: the thickness and SLDs of each layer of the structure.
+        numpy.ndarray: thickness and SLDs of each layer of the structure.
 
     """
     # Get the true values of the layers' thicknesses and SLDs.
@@ -371,11 +371,10 @@ def usefulness(objective: Objective) -> float:
        match traditional sampling methods.
 
     Args:
-        objective (refnx.analysis.Objective): the objective to calculate the
-                                              usefulness of.
+        objective (refnx.analysis.Objective): objective to calculate usefulness of.
 
     Returns:
-        float: the usefulness metric for the objective.
+        float: usefulness metric for the objective.
 
     """
     covar = objective.covar() # Calculate the fitting covariance matrix.
@@ -400,7 +399,7 @@ def select_model(dataset: ReflectDataset, counts: np.ndarray,
         layers (tuple): range of layers to search when selecting a model.
 
     Returns:
-        refnx.reflect.ReflectModel: the selected model for the data.
+        refnx.reflect.ReflectModel: selected model for the data.
 
     """
     generator = ModelGenerator()
