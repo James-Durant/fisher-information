@@ -128,7 +128,7 @@ def plot_refdata(data: ReflectDataset, colour: str='black',
 
     Args:
         data (refnx.dataset.ReflectDataset): dataset to plot.
-        colour (str): colour to use when ploting the data points.
+        colour (str): colour to use when plotting the data points.
         label (str): label of dataset for inclusion in plot's legend.
 
     Returns:
@@ -196,3 +196,45 @@ def save_plot(fig: plt.Figure, save_path: str, file_name: str) -> None:
 
     file_path = os.path.join(save_path, file_name+'.png')
     fig.savefig(file_path, dpi=600)
+
+if __name__ == '__main__':
+    from structures import SymmetricBilayer
+
+    # Plot each (fitted) objective on the same plot and save it.
+    bilayer = SymmetricBilayer()
+
+    fig = plt.figure(figsize=[9,7], dpi=600)
+    ax = fig.add_subplot(111)
+
+    #Plot Si-D2O
+    model, data = bilayer.models[0], bilayer.datasets[0]
+    ax.plot(data.x, model(data.x), color="red", zorder=20)
+    ax.errorbar(data.x, data.y, data.y_err,
+                color=None, label="Si/D2O Interface", marker="o", ms=3, lw=0,
+                elinewidth=1, capsize=1.5)
+
+    #Plot Si-DMPC-D2O
+    model, data = bilayer.models[1], bilayer.datasets[1]
+    offset = 1e-2
+    ax.plot(data.x, model(data.x)*offset, color="red", zorder=20)
+    ax.errorbar(data.x, data.y*offset, data.y_err*offset,
+                label="DMPC bilayer in D2O $\mathregular{(x10^{-2})}$",
+                marker="o", ms=3, lw=0, elinewidth=1, capsize=1.5)
+
+    #Plot Si-DMPC-H2O
+    model, data = bilayer.models[2], bilayer.datasets[2]
+    offset = 1e-3
+    ax.plot(data.x, model(data.x)*offset, color="red", zorder=20)
+    ax.errorbar(data.x, data.y*offset, data.y_err*offset,
+                label="DMPC bilayer in H2O $\mathregular{(x10^{-3})}$",
+                marker="o", ms=3, lw=0, elinewidth=1, capsize=1.5)
+
+    ax.set_xlabel("$\mathregular{Q\ (Å^{-1})}$", fontsize=11, weight='bold')
+    ax.set_ylabel('Reflectivity (arb.)', fontsize=11, weight='bold')
+    ax.set_xscale('log')
+    ax.set_yscale('log')
+    ax.set_ylim(1e-9, 2)
+    ax.legend(loc='lower left')
+
+    save_path = os.path.join('./results', str(bilayer))
+    save_plot(fig, save_path, 'fitted_reflectivity_paper')
