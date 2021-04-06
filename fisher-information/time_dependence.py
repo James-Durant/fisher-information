@@ -2,22 +2,23 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 
-from typing import List, Tuple, Dict, Callable
+from typing import List, Callable
+from numpy.typing import ArrayLike
+
 from sklearn.linear_model import LinearRegression
 
 from refnx.dataset import ReflectDataset
 from refnx.reflect import ReflectModel
 from refnx.analysis import Parameter, Objective, CurveFitter
 
-from simulate import simulate_single_contrast
+from simulate import simulate_single_contrast, AngleTimes
 from structures import QCS_sample
 
 from utils import vary_structure, fisher_single_contrast
 from plotting import save_plot
 
-def simulated_projections(structure: Callable,
-                          angle_times: Dict[float, Tuple[int, int]],
-                          multipliers: np.ndarray, save_path: str) -> None:
+def simulated_projections(structure: Callable, angle_times: AngleTimes,
+                          multipliers: ArrayLike, save_path: str) -> None:
     """Compares the predicted (using the uncertainty inversely proportional to
        time squared relationship) and actual parameter uncertainties vs.
        increasing measurement time for simulated data of a given structure.
@@ -64,9 +65,9 @@ def measured_projections(data_path: str, save_path: str, scale: float=1,
     Args:
         data_path (str): path to directory containing measured QCS data.
         save_path (str): path to directory to save figures to.
-        scale (float): model's experimental scale factor.
-        bkg (float): model's background parameter.
-        dq (float): model's instrument resolution parameter.
+        scale (float): model experimental scale factor.
+        bkg (float): model background parameter.
+        dq (float): model instrument resolution.
 
     """
     data_path = os.path.join(data_path, 'QCS_sample', 'time_data')
@@ -112,7 +113,7 @@ def measured_projections(data_path: str, save_path: str, scale: float=1,
     time_factors = np.arange(1, 11, 1)
     plot_projections(time_factors, errors, xi, save_path)
 
-def plot_projections(multipliers: np.ndarray, errors: np.ndarray,
+def plot_projections(multipliers: ArrayLike, errors: ArrayLike,
                      xi: List[Parameter], save_path: str) -> None:
     """Plots uncertainty projections (using initial errors) and actual
        uncertainties vs. measurement time.
@@ -144,9 +145,8 @@ def plot_projections(multipliers: np.ndarray, errors: np.ndarray,
     ax.legend()
     save_plot(fig, save_path, 'error_projection') # Save the plot.
 
-def compare_errors(structure: Callable,
-                   angle_times: Dict[float, Tuple[int, int]],
-                   multipliers: np.ndarray, save_path: str) -> None:
+def compare_errors(structure: Callable, angle_times: AngleTimes,
+                   multipliers: ArrayLike, save_path: str) -> None:
     """Compares traditional fitting errors and FIM errors with increasing time.
 
     Args:
@@ -204,8 +204,8 @@ def compare_errors(structure: Callable,
     FIM_errors = np.asarray(FIM_errors)
     plot_errors(multipliers, fit_errors, FIM_errors, names, save_path)
 
-def plot_errors(multipliers: np.ndarray, fit_errors: np.ndarray,
-                FIM_errors: np.ndarray, names: List[str], save_path: str) -> None:
+def plot_errors(multipliers: ArrayLike, fit_errors: ArrayLike,
+                FIM_errors: ArrayLike, names: List[str], save_path: str) -> None:
     """Plots log fitting error and log FIM error vs. log time multiplier for
        each parameter and performs linear regression for gradient in each case.
 
@@ -271,13 +271,13 @@ if __name__ == '__main__':
                    2.0: (70, 4)}
 
     # Investigates how FIM and fitting errors change with measurement time.
-    multipliers = 10**np.arange(0.5, 5.5, 0.1, dtype=float)
+    multipliers = 10**np.arange(0.5, 5.5, 2, dtype=float)
     compare_errors(structure, angle_times, multipliers, save_path)
 
     # Investigates how the uncertainty inversely proportional to time squared
     # relationship holds in practice.
-    reduction_range = np.arange(1, 10, 0.25)
-    simulated_projections(structure, angle_times, reduction_range, save_path)
+    #reduction_range = np.arange(1, 10, 0.25)
+    #simulated_projections(structure, angle_times, reduction_range, save_path)
 
     data_path = './data'
-    measured_projections(data_path, save_path)
+    #measured_projections(data_path, save_path)

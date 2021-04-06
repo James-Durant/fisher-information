@@ -3,25 +3,26 @@ import numpy as np
 import os
 
 from typing import List, Tuple, Dict, Callable
+from numpy.typing import ArrayLike
+
 from refnx.analysis import Parameter, Objective, GlobalObjective, CurveFitter
 
 from structures import Bilayer
-from simulate import simulate_single_contrast
+from simulate import simulate_single_contrast, AngleTimes
 
 from utils import vary_structure, get_ground_truths, Sampler
 from plotting import save_plot
 
-def fitting_biases(structure: Callable,
-                   angle_times: Dict[float, Tuple[int, int]],
+def fitting_biases(structure: Callable, angle_times: AngleTimes,
                    save_path: str, n: int=500) -> None:
     """Investigates fitting biases in differential evolution with and without
        following up with L-BFGS-B and in nested sampling.
 
     Args:
-        structure (function): structure to investigate the biases with.
+        structure (function): structure to investigate biases with.
         angle_times (dict): points and measurement times for each angle.
-        save_path (str): path to directory to save the bias results to.
-        n (int): number of fits to calculate the bias with.
+        save_path (str): path to directory to save bias results to.
+        n (int): number of fits to calculate bias with.
 
     """
     true = get_ground_truths(structure)
@@ -65,7 +66,7 @@ def fitting_biases(structure: Callable,
     save_biases(lbfgs_biases, names, 'L-BFGS-B', save_path)
     save_biases(sampling_biases, names, 'Sampling', save_path)
 
-def save_biases(biases: np.ndarray, names: List[str], method: str,
+def save_biases(biases: ArrayLike, names: List[str], method: str,
                 save_path: str) -> None:
     """Saves calculated biases to a .txt file.
 
@@ -89,9 +90,8 @@ def save_biases(biases: np.ndarray, names: List[str], method: str,
             file.write('{0}: {1}\n'.format(name, bias))
         file.write('\n')
 
-def time_biases(structure: Callable,
-                angle_times: Dict[float, Tuple[int, int]],
-                multipliers: np.ndarray, save_path: str, n: int=100) -> None:
+def time_biases(structure: Callable, angle_times: AngleTimes,
+                multipliers: ArrayLike, save_path: str, n: int=100) -> None:
     """Investigates how fitting biases change with increasing measurement time.
 
     Args:
@@ -140,19 +140,18 @@ def time_biases(structure: Callable,
                 save_path, 'time_biases')
 
 def contrast_biases(bilayer: Bilayer, initial_contrast: float,
-                    new_contrasts: np.ndarray,
-                    angle_times: Dict[float, Tuple[int, int]],
+                    new_contrasts: ArrayLike, angle_times: AngleTimes,
                     save_path: str, n: int=10) -> None:
     """Investigates how fitting biases change with second contrast choice
        for a bilayer model.
 
     Args:
-        bilayer (Bilayer): bilayer model to calculate the fitting bias on.
+        bilayer (Bilayer): bilayer model to calculate fitting bias on.
         initial_contrast (float): initial measurement contrast.
         new_contrasts (numpy.ndarray): second contrasts to measure.
         angle_times (dict): points and measurement times for each angle.
-        save_path (str): path to directory to save the bias plot to.
-        n (int): number of fits to calculate the bias with.
+        save_path (str): path to directory to save bias plot to.
+        n (int): number of fits to calculate bias with.
 
     """
     xi = bilayer.parameters
@@ -204,16 +203,16 @@ def contrast_biases(bilayer: Bilayer, initial_contrast: float,
                 '$\mathregular{Contrast\ SLD\ (10^{-6} \AA^{-2})}$',
                 save_path, 'contrast_biases')
 
-def plot_biases(x: np.ndarray, biases: np.ndarray, xi: List[Parameter],
+def plot_biases(x: ArrayLike, biases: ArrayLike, xi: List[Parameter],
                 x_label: str, save_path: str, file_name: str) -> None:
     """Plots fitting biases against either measurement time or contrast choice.
 
     Args:
         x (np.ndarray): either measurement times or contrast SLDs.
-        biases (np.ndarray): biases corresponding to the x array.
-        x_label (str): label to use for the x-axis
-        save_path (str): path to directory to save the bias plot to.
-        file_name (str): name to use for the bias plot file.
+        biases (np.ndarray): biases corresponding to x array.
+        x_label (str): label to use for x-axis
+        save_path (str): path to directory to save bias plot to.
+        file_name (str): name to use for bias plot file.
 
     """
     fig = plt.figure(figsize=[9,7], dpi=600)

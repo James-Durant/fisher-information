@@ -1,14 +1,13 @@
 import numpy as np
 import os
 
-from typing import Callable, Dict, Tuple
+from typing import Callable
 from refnx.analysis import Objective, CurveFitter
 
-from simulate import simulate_single_contrast
+from simulate import simulate_single_contrast, AngleTimes
 from utils import vary_structure, fisher_single_contrast
 
-def compare_fit_variance(structure: Callable,
-                         angle_times: Dict[float, Tuple[int, int]],
+def compare_fit_variance(structure: Callable, angle_times: AngleTimes,
                          save_path: str, n: int=500) -> None:
     """Compares the inverse FIM with variance in parameter estimation using
        traditional a fitting algorithm for `n` fits.

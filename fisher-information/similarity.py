@@ -4,6 +4,8 @@ import os, sys
 sys.path.append('./') # MCMC sampling cannot find structures code without this?
 
 from typing import List, Tuple, Dict
+from numpy.typing import ArrayLike
+
 from scipy.stats import t
 
 from refnx.dataset import ReflectDataset
@@ -16,14 +18,14 @@ from simulate import run_experiment
 from plotting import save_plot, plot_objective
 from utils import vary_structure, Sampler
 
-RefData = Dict[float, Tuple[np.ndarray, np.ndarray, np.ndarray]]
+RefData = Dict[float, Tuple[ArrayLike, ArrayLike, ArrayLike]]
 
 def sample_measured_data(data_path: str, bkg: float, dq: float,
                          save_path: str) -> None:
     """Samples data in the 'QCS_all.dat' file using MCMC and nested sampling.
 
     Args:
-        data_path (str): path to directory containing the 'QCS_all.dat' file.
+        data_path (str): path to directory containing 'QCS_all.dat' file.
         bkg (float): model background.
         dq (float): model instrument resolution.
         save_path (str): path to directory to save sampling corner plots to.
@@ -49,10 +51,10 @@ def plot_measured_all(data_path: str, bkg: float, dq: float,
     """Plots the binned measured data (combined data for all angles).
 
     Args:
-        data_path (str): path to directory containing the 'QCS_all.dat' file.
+        data_path (str): path to directory containing 'QCS_all.dat' file.
         bkg (float): model background.
         dq (float): model instrument resolution.
-        save_path (str): path to directory to save the plot to.
+        save_path (str): path to directory to save plot to.
 
     """
     # Define the model, load and scale the data.
@@ -66,16 +68,16 @@ def plot_measured_all(data_path: str, bkg: float, dq: float,
     save_plot(fig, save_path, 'measured_fit')
 
 def simulate_measured_data(data_path: str, files: List[str], scale: float,
-                           bkg: float, dq: float,angles: List[float],
+                           bkg: float, dq: float, angles: List[float],
                            time: float) -> Tuple[RefData, RefData]:
     """Loads each measured angle's data and simulates experiments for each.
 
     Args:
         data_path (str): path to directory containing the measured data.
         files (list): list of file names for each angle's data.
-        scale (float): model experimental scale factor.
-        bkg (float): model background parameter.
-        dq (float): model instrument resolution.
+        scale (float): instrument experimental scale factor.
+        bkg (float): instrument background parameter.
+        dq (float): instrument resolution.
         angles (list): angles used in measuring the data.
         time (float): measurement time for the measured data.
 
@@ -152,7 +154,7 @@ def similarity(measured: RefData, simulated: RefData) -> Tuple[float, float]:
 
     Returns:
         t_statistic (float): Hotelling T-squared statistic.
-        pval (float): associated p-value for the t-statistic.
+        pval (float): associated p-value for t-statistic.
 
     """
     # Get the measured and simulated reflectivity and errors for all angles.

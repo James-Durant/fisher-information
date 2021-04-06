@@ -3,25 +3,26 @@ import numpy as np
 import os
 
 from typing import List, Tuple
+from numpy.typing import ArrayLike
 
 from refnx.dataset import ReflectDataset
 from refnx.reflect import Structure, ReflectModel
 from refnx.analysis import Objective
 
-def plot_sld_profile(structure: Structure, distances: np.ndarray=None,
+def plot_sld_profile(structure: Structure, distances: ArrayLike=None,
                      colour: str='black', label: bool=False
-                     ) -> Tuple[plt.Figure, plt.Axis]:
+                     ) -> Tuple[plt.Figure, plt.Axes]:
     """Plots the SLD profile of a given structure.
 
     Args:
         structure (refnx.reflect.Structure): structure to plot SLD profile of.
         distances (numpy.ndarray): range of values to use on the x-axis.
         colour (str): colour to use for the SLD profile.
-        label (bool): whether to use structure's name in the plot's legend.
+        label (bool): whether to use structure's name in plot's legend.
 
     Returns:
-        fig (matplotlib.pyplot.Figure): figure containing a plotted SLD profile.
-        ax (matplotlib.pyplot.Axis): axis containing a plotted SLD profile.
+        fig (matplotlib.pyplot.Figure): figure containing plotted SLD profile.
+        ax (matplotlib.pyplot.Axes): axis containing plotted SLD profile.
 
     """
     fig = plt.figure(figsize=[9,7], dpi=600)
@@ -37,18 +38,18 @@ def plot_sld_profile(structure: Structure, distances: np.ndarray=None,
                   fontsize=11, weight='bold')
     return fig, ax
 
-def plot_sld_profiles(structures: List[Structure], distances: np.ndararay=None,
-                      label: bool=True) -> Tuple[plt.Figure, plt.Axis]:
+def plot_sld_profiles(structures: List[Structure], distances: ArrayLike=None,
+                      label: bool=True) -> Tuple[plt.Figure, plt.Axes]:
     """Plots the SLD profiles of a given list structures.
 
     Args:
-        structures (list): structures to plot the SLD profiles of.
+        structures (list): structures to plot SLD profiles of.
         distances (numpy.ndarray): range of values to use on the x-axis.
-        label (bool): whether to use structures' name in the plot's legend.
+        label (bool): whether to use the structures' name in the plot's legend.
 
     Returns:
         fig (matplotlib.pyplot.Figure): figure containing plotted SLD profiles.
-        ax (matplotlib.pyplot.Axis): axis containing plotted SLD profiles.
+        ax (matplotlib.pyplot.Axes): axis containing plotted SLD profiles.
 
     """
     # Get the figure and axis by plotting the first structure by itself.
@@ -65,17 +66,17 @@ def plot_sld_profiles(structures: List[Structure], distances: np.ndararay=None,
     return fig, ax
 
 def plot_objective(objective: Objective, colour: str='black',
-                   label: bool=False) -> Tuple[plt.Figure, plt.Axis]:
+                   label: bool=False) -> Tuple[plt.Figure, plt.Axes]:
     """Plots the fit of a given objective against the objective's data.
 
     Args:
         objective (refnx.analysis.Objective): objective to plot.
-        colour (str): colour to use for the objective's data points.
+        colour (str): colour to use for objective's data points.
         label (bool): whether to use structure's name in the plot's legend.
 
     Returns:
-        fig (matplotlib.pyplot.Figure): figure containing a plotted objective.
-        ax (matplotlib.pyplot.Axis): axis containing a plotted objective.
+        fig (matplotlib.pyplot.Figure): figure containing plotted objective.
+        ax (matplotlib.pyplot.Axes): axis containing plotted objective.
 
     """
     # Plot the reflectivity data.
@@ -89,7 +90,7 @@ def plot_objective(objective: Objective, colour: str='black',
     return fig, ax
 
 def plot_objectives(objectives: List[Objective], label: bool=True
-                    ) -> Tuple[plt.Figure, plt.Axis]:
+                    ) -> Tuple[plt.Figure, plt.Axes]:
     """Plots fits of a given list of objectives against the objectives' data.
 
     Args:
@@ -98,7 +99,7 @@ def plot_objectives(objectives: List[Objective], label: bool=True
 
     Returns:
         fig (matplotlib.pyplot.Figure): figure containing plotted objectives.
-        ax (matplotlib.pyplot.Axis): axis containing plotted objectives.
+        ax (matplotlib.pyplot.Axes): axis containing plotted objectives.
 
     """
     # Get the figure and axis by plotting the first objective by itself.
@@ -122,17 +123,17 @@ def plot_objectives(objectives: List[Objective], label: bool=True
     return fig, ax
 
 def plot_refdata(data: ReflectDataset, colour: str='black',
-                 label: bool=None) -> Tuple[plt.Figure, plt.Axis]:
+                 label: bool=None) -> Tuple[plt.Figure, plt.Axes]:
     """Plots a given reflectivity dataset.
 
     Args:
         data (refnx.dataset.ReflectDataset): dataset to plot.
-        colour (str): colour to plot the data points using
+        colour (str): colour to use when ploting the data points.
         label (str): label of dataset for inclusion in plot's legend.
 
     Returns:
         fig (matplotlib.pyplot.Figure): figure containing reflectivity data.
-        ax (matplotlib.pyplot.Axis): axis containing reflectivity data.
+        ax (matplotlib.pyplot.Axes): axis containing reflectivity data.
 
     """
     fig = plt.figure(figsize=[9,7], dpi=600)
@@ -151,7 +152,7 @@ def plot_refdata(data: ReflectDataset, colour: str='black',
 
 def plot_reflectivity_curve(structure: Structure, q_min: float=0.005,
                             q_max: float=0.3, points: int=500, dq: float=2,
-                            bkg: float=1e-7) -> Tuple[plt.Figure, plt.Axis]:
+                            bkg: float=1e-7) -> Tuple[plt.Figure, plt.Axes]:
     """Plots the model reflectivity curve of a given structure.
 
     Args:
@@ -164,7 +165,7 @@ def plot_reflectivity_curve(structure: Structure, q_min: float=0.005,
 
     Returns:
         fig (matplotlib.pyplot.Figure): figure containing reflectivity curve.
-        ax (matplotlib.pyplot.Axis): axis containing reflectivity curve.
+        ax (matplotlib.pyplot.Axes): axis containing reflectivity curve.
 
     """
     model = ReflectModel(structure, scale=1, bkg=bkg, dq=dq) # Define a model.

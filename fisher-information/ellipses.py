@@ -3,23 +3,23 @@ import numpy as np
 import os, sys
 sys.path.append("./") # MCMC sampling cannot find structures code without this?
 
-from typing import List, Tuple, Dict, Callable
+from typing import List, Callable
+from numpy.typing import ArrayLike
 
 from refnx.analysis import Parameter, Objective
 
 from plotting import plot_objective, save_plot
-from simulate import simulate_single_contrast
+from simulate import simulate_single_contrast, AngleTimes
 from utils import vary_structure, fisher_single_contrast, Sampler
 
-def compare_ellipses(structure: Callable,
-                     angle_times: Dict[float, Tuple[int, int]],
+def compare_ellipses(structure: Callable, angle_times: AngleTimes,
                      save_path: str) -> None:
     """Calculates parameter uncertainties for a given structure using MCMC
        and nested sampling, calculates the FIM and plots the FIM confidence
        ellipses against the sampling corner plots.
 
     Args:
-        structure (function): structure to simulate the experiment on.
+        structure (function): structure to simulate experiment on.
         angle_times (dict): times and points for each measurement angle.
         save_path (str): path to directory for saving data and figures.
 
@@ -55,7 +55,7 @@ def compare_ellipses(structure: Callable,
     save_plot(fig3, save_path, 'confidence_ellipses_nested')
     save_plot(fig4, save_path, 'fit_nested')
 
-def plot_ellipses(g: np.ndarray, xi: List[Parameter], fig: plt.Figure) -> None:
+def plot_ellipses(g: ArrayLike, xi: List[Parameter], fig: plt.Figure) -> None:
     """Plots the FIM confidence ellipses against the corner plot from either
        MCMC or nested sampling.
 
@@ -79,8 +79,8 @@ def plot_ellipses(g: np.ndarray, xi: List[Parameter], fig: plt.Figure) -> None:
 
     axes[m-1, m-1].set_xlabel(xi[i].name)
 
-def confidence_ellipse(g: np.ndarray, i: int, j: int, param1: Parameter,
-                       param2: Parameter, axis: plt.Axis, show_xlabel: bool,
+def confidence_ellipse(g: ArrayLike, i: int, j: int, param1: Parameter,
+                       param2: Parameter, axis: plt.Axes, show_xlabel: bool,
                        show_ylabel: bool) -> None:
     """Plots the confidence ellipse between `param1` and `param2`.
 
@@ -90,9 +90,9 @@ def confidence_ellipse(g: np.ndarray, i: int, j: int, param1: Parameter,
         j (int): index of `param2` in the FIM.
         param1 (refnx.analysis.Parameter): 1st parameter corresponding to `i`.
         param2 (refnx.analysis.Parameter): 2nd parameter corresponding to `j`.
-        axis (matplotlib.pyplot.axis): subplot of the corner plot to plot on.
-        show_xlabel (Boolean): whether to display the x-axis label.
-        show_ylabel (Boolean): whether to display the y-axis label.
+        axis (matplotlib.pyplot.Axes): subplot of corner plot to plot on.
+        show_xlabel (bool): whether to display x-axis label.
+        show_ylabel (bool): whether to display y-axis label.
 
     """
     # Retrieve the elements of the FIM for the given parameters.

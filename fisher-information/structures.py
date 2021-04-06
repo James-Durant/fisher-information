@@ -2,17 +2,14 @@ import numpy as np
 import os
 
 from refnx.dataset import ReflectDataset
-from refnx.reflect import SLD, Slab, ReflectModel
+from refnx.reflect import SLD, Slab, Structure, ReflectModel
 from refnx.analysis import Parameter, Objective, GlobalObjective, CurveFitter
-
-from simulate import simulate_single_contrast
-from utils import vary_structure
 
 from plotting import plot_sld_profile, plot_sld_profiles, save_plot
 from plotting import plot_reflectivity_curve, plot_objectives
 
 class Bilayer:
-    def fit(self, fit_bkg=False):
+    def fit(self, fit_bkg: bool=False) -> None:
         global_objective = GlobalObjective(self.objectives)
         
         if fit_bkg:
@@ -31,13 +28,13 @@ class Bilayer:
         for param in global_objective.varying_parameters():
             print('{0}: {1}'.format(param.name, param.value))
     
-    def plot_sld_profiles(self, save_path):
+    def plot_sld_profiles(self, save_path: str) -> None:
         fig, ax = plot_sld_profiles(self.structures, self.distances)
         
         save_path = os.path.join(save_path, str(self))
         save_plot(fig, save_path, 'sld_profiles')
     
-    def plot_objectives(self, save_path):
+    def plot_objectives(self, save_path: str) -> None:
         fig, ax = plot_objectives(self.objectives)
         ax.set_xscale('log')
         
@@ -45,7 +42,7 @@ class Bilayer:
         save_plot(fig, save_path, 'fitted_reflectivity')
 
 class SymmetricBilayer(Bilayer):
-    def __init__(self):
+    def __init__(self) -> None:
         self.data_path = './data/symmetric_bilayer'
         self.scales = [0.677763, 0.645217, 0.667776]
         self.bkgs = [3.20559e-06, 2.05875e-06, 2.80358e-06]
@@ -87,7 +84,7 @@ class SymmetricBilayer(Bilayer):
         
         self.create_objectives()
     
-    def create_objectives(self):
+    def create_objectives(self) -> None:
         d2o_sl  = 2e-4
         d2o_sld = 6.19
         h2o_sl  = -1.64e-5
@@ -142,7 +139,7 @@ class SymmetricBilayer(Bilayer):
         self.objectives = [Objective(model, data) 
                            for model, data in list(zip(self.models, self.datasets))]
 
-    def using_contrast(self, contrast_sld):
+    def using_contrast(self, contrast_sld: float) -> Structure:
         hg_sld = contrast_sld*0.27 + 1.98*0.73
         
         vol_hg = self.dmpc_hg_vol + self.hg_waters*self.water_vol
@@ -163,7 +160,7 @@ class SymmetricBilayer(Bilayer):
         return 'symmetric_bilayer'
 
 class AsymmetricBilayer(Bilayer):
-    def __init__(self):
+    def __init__(self) -> None:
         self.data_path = './data/asymmetric_bilayer'
         self.contrast_slds = [6.14, 2.07, -0.56]
         self.scale = 0.8
@@ -212,7 +209,7 @@ class AsymmetricBilayer(Bilayer):
         for param in self.parameters:
             param.vary=True
         
-    def create_objectives(self):
+    def create_objectives(self) -> None:
         self.structures = [self.using_contrast(sld, name)
                            for sld, name in list(zip(self.contrast_slds, self.names))]
 
@@ -225,7 +222,7 @@ class AsymmetricBilayer(Bilayer):
         self.objectives = [Objective(model, data)
                            for model, data in list(zip(self.models, self.datasets))]
         
-    def using_contrast(self, contrast_sld, name=''):
+    def using_contrast(self, contrast_sld: float, name: str='') -> Structure:
         contrast_point = (contrast_sld + 0.56) / (6.35 + 0.56)
         
         core_sld = contrast_point*self.core_D2O + (1-contrast_point)*self.core_H2O
@@ -247,7 +244,7 @@ class AsymmetricBilayer(Bilayer):
         return structure
     
 class SingleAsymmetricBilayer(AsymmetricBilayer):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         
         self.asym_value = Parameter(0.95, 'Asymmetric value', (0,1), True)
@@ -258,11 +255,11 @@ class SingleAsymmetricBilayer(AsymmetricBilayer):
         
         self.create_objectives()
     
-    def __str__(self):
+    def __str__(self) -> str:
         return 'single_asymmetric_bilayer'
         
 class DoubleAsymmetricBilayer(AsymmetricBilayer):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         
         self.inner_tg_pc = Parameter(0.95, 'Inner TG PC', (0,1), True)
@@ -275,10 +272,10 @@ class DoubleAsymmetricBilayer(AsymmetricBilayer):
         
         self.create_objectives()
 
-    def __str__(self):
+    def __str__(self) -> str:
         return 'double_asymmetric_bilayer'
     
-def QCS_sample():
+def QCS_sample() -> Structure:
     """Creates the QCS (quartz, copper, silicon) sample for which data was measured.
 
     Returns:
@@ -291,21 +288,21 @@ def QCS_sample():
     substrate = SLD(3.354, name='Substrate - Quartz')(thick=0, rough=12.9)
     return air | layer1 | layer2 | substrate
 
-def easy_sample():
+def easy_sample() -> Structure:
     air       = SLD(0, name='Air')
     layer1    = SLD(4, name='Layer 1')(thick=100, rough=2)
     layer2    = SLD(8, name='Layer 2')(thick=150, rough=2)
     substrate = SLD(2.047, name='Substrate')(thick=0, rough=2)
     return air | layer1 | layer2 | substrate
 
-def thin_layer_sample_1():
+def thin_layer_sample_1() -> Structure:
     air       = SLD(0, name='Air')
     layer1    = SLD(4, name='Layer 1')(thick=200, rough=2)
     layer2    = SLD(6, name='Layer 2')(thick=6, rough=2)
     substrate = SLD(2.047, name='Substrate')(thick=0, rough=2)
     return air | layer1 | layer2 | substrate
 
-def thin_layer_sample_2():
+def thin_layer_sample_2() -> Structure:
     air       = SLD(0, name='Air')
     layer1    = SLD(4, name='Layer 1')(thick=200, rough=2)
     layer2    = SLD(5, name='Layer 2')(thick=30, rough=6)
@@ -313,14 +310,14 @@ def thin_layer_sample_2():
     substrate = SLD(2.047, name='Substrate')(thick=0, rough=2)
     return air | layer1 | layer2 | layer3 | substrate
 
-def similar_sld_sample_1():
+def similar_sld_sample_1() -> Structure:
     air       = SLD(0,   name='Air')
     layer1    = SLD(0.9, name='Layer 1')(thick=80, rough=2)
     layer2    = SLD(1.0, name='Layer 2')(thick=50, rough=6)
     substrate = SLD(2.047, name='Substrate')(thick=0, rough=2)
     return air | layer1 | layer2 | substrate
 
-def similar_sld_sample_2():
+def similar_sld_sample_2() -> Structure:
     air       = SLD(0,   name='Air')
     layer1    = SLD(3.0, name='Layer 1')(thick=50, rough=2)
     layer2    = SLD(5.5, name='Layer 2')(thick=30, rough=6)
@@ -328,7 +325,7 @@ def similar_sld_sample_2():
     substrate = SLD(2.047, name='Substrate')(thick=0, rough=2)
     return air | layer1 | layer2 | layer3 | substrate
 
-def many_param_sample():
+def many_param_sample() -> Structure:
     air       = SLD(0,   name='Air')
     layer1    = SLD(2.0, name='Layer 1')(thick=50, rough=6)
     layer2    = SLD(1.7, name='Layer 2')(thick=15, rough=2)

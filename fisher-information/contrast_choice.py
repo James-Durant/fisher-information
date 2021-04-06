@@ -3,23 +3,24 @@ import numpy as np
 import os
 
 from typing import List, Tuple, Dict
+from numpy.typing import ArrayLike
+
 from refnx.analysis import Parameter
 
 from structures import Bilayer
-from simulate import simulate_single_contrast
+from simulate import simulate_single_contrast, AngleTimes
 
 from plotting import save_plot
 from utils import fisher_single_contrast, fisher_multiple_contrasts
 
-def contrast_choice(bilayer: Bilayer, contrasts: np.ndarray,
-                    angle_times: Dict[float, Tuple[int, int]],
-                    save_path: str) -> None:
+def contrast_choice(bilayer: Bilayer, contrasts: ArrayLike,
+                    angle_times: AngleTimes, save_path: str) -> None:
     """Investigates how the FIM changes, for each parameter of a bilayer model,
        for each contrast SLD in a given array of contrasts.
 
     Args:
-        bilayer (Bilayer): bilayer model to find the optimal contrast for.
-        contrasts (numpy.ndarray): contrast SLDs to calculate the FIM with.
+        bilayer (Bilayer): bilayer model to find optimal contrast for.
+        contrasts (numpy.ndarray): contrast SLDs to calculate FIM with.
         angle_times (dict): points and measurement times for each angle.
         save_path (str): path to directory to save FIM plot to.
 
@@ -45,7 +46,7 @@ def contrast_choice(bilayer: Bilayer, contrasts: np.ndarray,
     plot_information(information, xi, save_path, normalise=False)
     plot_information(information, xi, save_path, normalise=True)
 
-def plot_information(information: np.ndarray, xi: List[Parameter],
+def plot_information(information: ArrayLike, xi: List[Parameter],
                      save_path: str, normalise: bool=False) -> None:
     """Plots the FIM for each parameter of a bilayer model against contrast SLD.
 
@@ -87,14 +88,13 @@ def plot_information(information: np.ndarray, xi: List[Parameter],
         save_plot(fig, save_path, 'contrast_choice_log')
 
 def confidence_gain(bilayer: Bilayer, initial_contrast: float,
-                    new_contrasts: np.ndarray,
-                    angle_times: Dict[float, Tuple[int, int]],
+                    new_contrasts: ArrayLike, angle_times: AngleTimes,
                     save_path: str) -> None:
     """Investigates how the FIM confidences ellipses change in size with second
        measurement contrast SLD.
 
     Args:
-        bilayer (Bilayer): bilayer model to calculate the ellipses on.
+        bilayer (Bilayer): bilayer model to calculate ellipses on.
         initial_contrast (float): initial measured contrast for the bilayer.
         new_contrasts (numpy.ndarray): second measurement contrasts.
         angle_times (dict): points and measurement times for each angle.
@@ -146,15 +146,15 @@ def confidence_gain(bilayer: Bilayer, initial_contrast: float,
     # Plot the reduction in ellipse sizes against contrast SLD.
     plot_confidences(new_contrasts, heights_new, save_path)
 
-def ellipse_height(g: np.ndarray, i: int, j: int, k: int=1) -> float:
+def ellipse_height(g: ArrayLike, i: int, j: int, k: int=1) -> float:
     """Calculates the size of the semi-minor axis of the confidence ellipse
        between two given parameters.
 
     Args:
-        g (numpy.ndarray): Fisher information matrix to calculate the ellipses.
-        i (int): index of the 1st parameter in the matrix.
-        j (int): index of the 2nd parameter in the matrix.
-        k (int): size of the ellipse (number of standard deviations).
+        g (numpy.ndarray): Fisher information matrix to calculate ellipses with.
+        i (int): index of 1st parameter in the matrix.
+        j (int): index of 2nd parameter in the matrix.
+        k (int): size of confidence ellipse in number of standard deviations.
 
     Returns:
         float: confidence ellipse semi-minor axis
@@ -186,7 +186,7 @@ def ellipse_height(g: np.ndarray, i: int, j: int, k: int=1) -> float:
     # Return the distance between the min and max points.
     return np.linalg.norm(max_coords-min_coords)
 
-def plot_confidences(contrasts: np.ndarray, confidence_gains: np.ndarray,
+def plot_confidences(contrasts: ArrayLike, confidence_gains: ArrayLike,
                      save_path: str) -> None:
     """Plots the reduction in confidence ellipse size as a function of second
        measurement contrast SLD for each parameter pair.

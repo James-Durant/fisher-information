@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from typing import Optional, List, Tuple
+from numpy.typing import ArrayLike
 
 from refnx.dataset import ReflectDataset
 from refnx.reflect import SLD, Component, Structure, ReflectModel
@@ -104,7 +105,7 @@ class Sampler:
                                      truths=np.zeros(self.ndim),
                                      truth_color='black')[0]
 
-    def logl(self, x: np.ndarray) -> float:
+    def logl(self, x: ArrayLike) -> float:
         """Calculates the log-likelihood of the parameters `x` against the model.
 
         Args:
@@ -259,8 +260,8 @@ def vary_structure(structure: Structure, random_init: bool=False,
 
     return structure
 
-def fisher_single_contrast(q: np.ndarray, xi: List[Parameter],
-                           counts: np.ndarray, model: ReflectModel) -> np.ndarray:
+def fisher_single_contrast(q: ArrayLike, xi: List[Parameter], counts: ArrayLike,
+                           model: ReflectModel) -> ArrayLike:
     """Calculates the Fisher information metric (FIM) matrix for a given `model`.
 
     Args:
@@ -286,9 +287,9 @@ def fisher_single_contrast(q: np.ndarray, xi: List[Parameter],
     M = np.diag(counts/r, k=0)
     return np.dot(np.dot(J.T, M), J)
 
-def fisher_multiple_contrasts(qs: List[np.ndarray], xi: List[Parameter],
-                              counts: List[np.ndarray],
-                              models: List[ReflectModel]) -> np.ndarray:
+def fisher_multiple_contrasts(qs: List[ArrayLike], xi: List[Parameter],
+                              counts: List[ArrayLike],
+                              models: List[ReflectModel]) -> ArrayLike:
     """Calculates the Fisher information metric (FIM) matrix for a given list
        of `models` and set of parameters, `xi`.
 
@@ -347,7 +348,7 @@ def gradient(model: ReflectModel, parameter: Parameter, q_point: float,
     parameter.value = old # Reset parameter
     return (y2-y1) / (x2-x1) # Return the gradient
 
-def get_ground_truths(structure: Structure) -> np.ndarray:
+def get_ground_truths(structure: Structure) -> ArrayLike:
     """Gets the stucture's true values of the layers' thicknesses and SLDs.
 
     Args:
@@ -389,7 +390,7 @@ def usefulness(objective: Objective) -> float:
     # 1 minus so that most useful is 1 and least useful is 0.
     return 1 - np.mean(np.abs(pearson_rs))
 
-def select_model(dataset: ReflectDataset, counts: np.ndarray,
+def select_model(dataset: ReflectDataset, counts: ArrayLike,
                  layers: Tuple[int, int]=(1,5)) -> ReflectModel:
     """Selects the best model for a given dataset.
 
@@ -406,7 +407,7 @@ def select_model(dataset: ReflectDataset, counts: np.ndarray,
 
     # Iterate over the layers to consider for the model.
     objectives, logls, AICs, BICs, KICs = [], [], [], [], []
-    for layer in layers:
+    for layer in range(layers[0], layers[1]+1):
         # Display progress.
         print('>>> Fitting {}-layer model'.format(layer))
 
@@ -461,6 +462,7 @@ if __name__ == '__main__':
     _, dataset, counts = simulate_single_contrast(structure(), angle_times,
                                                   include_counts=True)
     model = select_model(dataset, counts, layers=(1,4))
+    print()
 
     # Calculate the usefulness of all structures in the structures file.
     print('----------- Usefulness Metrics -----------')
