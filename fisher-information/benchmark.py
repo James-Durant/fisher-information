@@ -46,7 +46,7 @@ def benchmark(layers: int, num_samples: int
         # Sample using nested sampling.
         print('>>> Nested Sampling {0}/{1}'.format(i+1, len(models_data)))
         start = time.time()
-        sampler.sample_nested(show_fig=False, verbose=True)
+        sampler.sample_nested(show_fig=False, verbose=False)
         end = time.time()
         times_nested.append(end-start)
 

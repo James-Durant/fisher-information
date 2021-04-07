@@ -11,7 +11,7 @@ from refnx.analysis import Objective
 
 from plotting import plot_objective
 
-DIRECTBEAM_PATH = 'data/directbeam/directbeam_wavelength.dat'
+DIRECTBEAM_PATH = './data/directbeam/directbeam_wavelength.dat'
 AngleTimes = Dict[float, Tuple[int, int]]
 
 def simulate_single_contrast(structure: Structure, angle_times: AngleTimes,
@@ -157,13 +157,8 @@ def run_experiment(model: ReflectModel, angle: float, points: int, time: float,
         counts (list): total number of incident neutrons for each Q bin.
 
     """
-    # Get the path to the directbeam_wavelength.dat file
-    # irrespective of current directory.
-    path = os.path.abspath('').split('\\fisher-information\\')[0]
-    path = os.path.join(path, DIRECTBEAM_PATH)
-
     # Load the directbeam_wavelength.dat file.
-    direct_beam = np.loadtxt(path, delimiter=',')
+    direct_beam = np.loadtxt(DIRECTBEAM_PATH, delimiter=',')
     wavelengths = direct_beam[:,0] # 1st column is wavelength, 2nd is flux.
 
     # Adjust flux by measurement angle.
