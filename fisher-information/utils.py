@@ -325,7 +325,7 @@ def fisher_multiple_contrasts(qs: List[ArrayLike], xi: List[Parameter],
 
 def gradient(model: ReflectModel, parameter: Parameter, q_point: float,
              step: float=0.005) -> float:
-    """Calculate a two-point gradient of model reflectivity with model parameter.
+    """Calculate two-point gradient of model reflectivity with model parameter.
 
     Args:
         model (refnx.reflect.ReflectModel): model to calculate gradient.

@@ -68,7 +68,7 @@ class Bilayer:
         save_plot(fig, save_path, 'fitted_reflectivity')
 
 class SymmetricBilayer(Bilayer):
-    """Defines a model describing a symmetric bilayer system.
+    """Defines a model describing a symmetric bilayer.
 
     Attributes:
         data_path (str): path to directory containing measured data.
