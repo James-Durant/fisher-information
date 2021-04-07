@@ -1,0 +1,12 @@
+------------ Fitting Biases ------------
+Layer 1 - Si - thick: 0.18597786923430704
+Layer 1 - Si - sld: 0.007354252149182505
+Layer 2 - Cu - thick: 0.014008560928743918
+Layer 2 - Cu - sld: 0.0013066941968951085
+
+------------ Sampling Biases ------------
+Layer 1 - Si - thick: 0.1905606456100486
+Layer 1 - Si - sld: 0.007411227010867494
+Layer 2 - Cu - thick: 0.013718029090512118
+Layer 2 - Cu - sld: 0.0012666356923727307
+
