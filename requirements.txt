@@ -1,6 +1,6 @@
 corner==2.1.0
 dynesty==1.0.1
-matplotlib=3.2.2
+matplotlib==3.2.2
 numpy==1.20.1
 refnx==0.1.19
 scikit-learn==0.23.2
