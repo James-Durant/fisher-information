@@ -5,8 +5,7 @@ sys.path.append('./') # MCMC sampling cannot find structures code without this?
 from typing import List, Tuple
 from refnx.analysis import Objective
 
-from utils import ModelGenerator
-from utils import fisher_single_contrast, Sampler
+from utils import fisher_single_contrast, Sampler, ModelGenerator
 
 def benchmark(layers: int, num_samples: int
               ) -> Tuple[List[float], List[float], List[float]]:
@@ -27,7 +26,8 @@ def benchmark(layers: int, num_samples: int
     print('-------- {}-Layer Samples --------'.format(layers))
 
     # Generate the random samples and simulate experiments using them.
-    models_data = ModelGenerator.generate(num_samples, layers)
+    generator = ModelGenerator()
+    models_data = generator.generate(num_samples, layers)
 
     # Iterate over each sample and run MCMC and nested sampling, and calculate the FIM.
     times_MCMC, times_nested, times_FIM = [], [], []
@@ -46,7 +46,7 @@ def benchmark(layers: int, num_samples: int
         # Sample using nested sampling.
         print('>>> Nested Sampling {0}/{1}'.format(i+1, len(models_data)))
         start = time.time()
-        sampler.sample_nested(show_fig=False, verbose=False)
+        sampler.sample_nested(show_fig=False, verbose=True)
         end = time.time()
         times_nested.append(end-start)
 
@@ -68,7 +68,7 @@ if __name__ == '__main__':
 
     # Run the benchmark for 10 samples for layers in the interval [1,6]
     with open(os.path.join(save_path, 'benchmark.txt'), 'w') as file:
-        for layer in range(1,7):
+        for layer in range(2,7):
             times_MCMC, times_nested, times_FIM = benchmark(layer, num_samples=num_samples)
             file.write('------------------ {}-Layer Samples ------------------\n'.format(layer))
             file.write('MCMC Sampling:   {}\n'.format(times_MCMC))

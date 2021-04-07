@@ -12,6 +12,8 @@ from dynesty import NestedSampler, DynamicNestedSampler
 from dynesty import plotting as dyplot
 from dynesty import utils as dyfunc
 
+from simulate import simulate_single_contrast
+
 class Sampler:
     """Samples an objective using MCMC and nested sampling.
 
@@ -159,7 +161,7 @@ class ModelGenerator:
         for layers in range(num_samples):
             # Get a random structure and simulate an experiment using it.
             structure = vary_structure(self.random_structure(layers),
-                                       vary_rough=True, bound_size=0.2)
+                                       vary_rough=True, bound_size=0.25)
 
             models_data.append(simulate_single_contrast(structure,
                                                         self.angle_times,

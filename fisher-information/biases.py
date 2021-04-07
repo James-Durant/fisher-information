@@ -160,7 +160,6 @@ def contrast_biases(bilayer: Bilayer, initial_contrast: float,
     structure = bilayer.using_contrast(initial_contrast)
     objective_initial = Objective(*simulate_single_contrast(structure,
                                                             angle_times))
-
     # Ground truth parameter values.
     true = np.asarray([param.value for param in xi])
 
@@ -233,10 +232,7 @@ if __name__ == '__main__':
     from structures import similar_sld_sample_1, similar_sld_sample_2
     from structures import thin_layer_sample_1, thin_layer_sample_2
     from structures import easy_sample, QCS_sample, many_param_sample
-
-    from structures import SymmetricBilayer
-    from structures import SingleAsymmetricBilayer, DoubleAsymmetricBilayer
-
+    
     save_path = './results'
 
     structure = easy_sample
@@ -250,8 +246,11 @@ if __name__ == '__main__':
     multipliers = np.arange(1, 10, 0.2)
     time_biases(structure, angle_times, multipliers, save_path, 50)
 
+    from structures import SymmetricBilayer
+    from structures import SingleAsymmetricBilayer, DoubleAsymmetricBilayer
+
     # Investigate how biases change with measurement contrast.
-    bilayer = SymmetricBilayer()
+    bilayer = DoubleAsymmetricBilayer()
     initial = 6.36
-    contrasts = np.arange(-0.56, 6.36, 0.05)
-    contrast_biases(initial, contrasts, angle_times, save_path, 50)
+    contrasts = np.arange(-0.56, 6.36, 0.1)
+    contrast_biases(bilayer, initial, contrasts, angle_times, save_path, 50)
