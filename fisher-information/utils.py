@@ -52,7 +52,7 @@ class Sampler:
             show_fig (bool): whether to create and return a corner plot.
 
         Returns:
-            (matplotlib.pyplot.Figure, optional): MCMC sampling corner plot.
+            matplotlib.pyplot.Figure, optional: MCMC sampling corner plot.
 
         """
         # Initially fit with differential evolution if requested.
@@ -80,7 +80,7 @@ class Sampler:
             show_fig (bool): whether to create and return a corner plot.
 
         Returns:
-            (matplotlib.pyplot.Figure, optional): nested sampling corner plot.
+            matplotlib.pyplot.Figure, optional: nested sampling corner plot.
 
         """
         # Sample using dynamic or nested sampling.
@@ -133,9 +133,9 @@ class ModelGenerator:
         angle_times (dict): points and times for each measurement angle.
 
     """
-    def __init__(self, sld_bounds: Tuple[int, int]=(-1,10),
-                 thick_bounds: Tuple[int, int]=(20,1000),
-                 rough_bounds: Tuple[int, int]=(2,8),
+    def __init__(self, sld_bounds: Tuple[float, float]=(-1,10),
+                 thick_bounds: Tuple[float, float]=(20,1000),
+                 rough_bounds: Tuple[float, float]=(2,8),
                  substrate_sld: float=2.047) -> None:
 
         self.sld_bounds = sld_bounds
@@ -166,7 +166,6 @@ class ModelGenerator:
             models_data.append(simulate_single_contrast(structure,
                                                         self.angle_times,
                                                         include_counts=True))
-
         return models_data
 
     def random_structure(self, layers: int) -> Structure:
@@ -176,15 +175,16 @@ class ModelGenerator:
             layers (int): number of layers for generated structures.
 
         Returns:
-            (refnx.reflect.Structure): randomly generated structure.
+            refnx.reflect.Structure: randomly generated structure.
 
         """
         # Air followed by each layer and then finally the substrate.
         structure = SLD(0, name='Air')
         for i in range(layers):
-            structure = structure | self.make_component(substrate=False)
+            structure |= self.make_component(substrate=False)
 
-        return structure | self.make_component(substrate=True)
+        structure |= self.make_component(substrate=True)
+        return structure
 
     def make_component(self, substrate: bool) -> Component:
         """Generates a single layer of a structure.
@@ -193,7 +193,7 @@ class ModelGenerator:
             substrate (bool): whether the component is the substrate or not.
 
         Returns:
-            (refnx.reflect.Component): randomly generated layer.
+            refnx.reflect.Component: randomly generated layer.
 
         """
         if substrate:

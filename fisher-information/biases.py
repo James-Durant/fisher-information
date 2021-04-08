@@ -146,7 +146,7 @@ def contrast_biases(bilayer: Bilayer, initial_contrast: float,
        for a bilayer model.
 
     Args:
-        bilayer (Bilayer): bilayer model to calculate fitting bias on.
+        bilayer (Bilayer): bilayer model to calculate fitting biases with.
         initial_contrast (float): initial measurement contrast.
         new_contrasts (numpy.ndarray): second contrasts to measure.
         angle_times (dict): points and measurement times for each angle.
@@ -228,11 +228,107 @@ def plot_biases(x: ArrayLike, biases: ArrayLike, xi: List[Parameter],
 
     save_plot(fig, save_path, file_name) # Save the plot.
 
+def bias_derivative(bilayer: Bilayer, initial_contrast: float,
+                    new_contrasts: ArrayLike, param_name: str,
+                    param_range: ArrayLike, angle_times: AngleTimes,
+                    save_path: str, n: int=50):
+    """Investigates how fitting biases change with second contrast choice in a
+       chosen parameter for a bilayer model. This is repeated with the
+       parameter of choice set to each value in the given `param_range`.
+
+    Args:
+        bilayer (Bilayer): bilayer model to calculate fitting biases with.
+        initial_contrast (float): initial measurement contrast.
+        new_contrasts (numpy.ndarray): second contrasts to measure.
+        param_name (str): name of parameter to vary.
+        param_range (numpy.ndarray): values to set the varying parameter to.
+        angle_times (dict): points and measurement times for each angle.
+        save_path (str): path to directory to save bias plot to.
+        n (int): number of fits to calculate bias with.
+
+    """
+    # Get the parameter of interest from the model.
+    parameter = None
+    for param in bilayer.parameters:
+        if param.name == param_name:
+            parameter = param
+
+    if parameter is None:
+        # `param_name` does not match any parameters in the `bilayer` model.
+        raise RuntimeError('parameter not in model')
+
+    biases = []
+    for value in param_range:
+        # Set the chosen parameter to each value in the given range.
+        parameter.value = value
+        # Set the bound on the parameter to 25 % above and below the true value.
+        parameter.setp(vary=True, bounds=(value*0.75, value*1.25))
+
+        # Simulate an experiment using the initial contrast with this value.
+        structure = bilayer.using_contrast(initial_contrast)
+        model, data = simulate_single_contrast(structure, angle_times)
+        objective_initial = Objective(model, data)
+
+        # Iterate over each second contrast SLD to measure.
+        value_biases = []
+        for i, new_contrast in enumerate(new_contrasts, 1):
+            fitted = []
+
+            # Calculate fitting bias over `n` fits with this parameter value.
+            for _ in range(n):
+                # Simulate an experiment using the second measurement contrast.
+                structure = bilayer.using_contrast(new_contrast)
+                model, data = simulate_single_contrast(structure, angle_times)
+                objective_new = Objective(model, data)
+
+                # Set the parameter to a range value within its bounds.
+                parameter.value = np.random.uniform(parameter.bounds.lb,
+                                                    parameter.bounds.ub)
+
+                # Fit the initial and new contrast data.
+                objectives = [objective_initial, objective_new]
+                global_objective = GlobalObjective(objectives)
+                global_objective.varying_parameters = lambda: [parameter]
+
+                fitter = CurveFitter(global_objective)
+                fitter.fit('differential_evolution', verbose=False)
+
+                # Record the fitted value.
+                fitted.append(parameter.value)
+
+            # Calculate the bias from the `n` fits.
+            value_biases.append(np.mean(fitted) - value)
+
+            # Display progress.
+            print(">>> {0}/{1}".format(i, len(new_contrasts)))
+
+        # Record the biases for each contrast for this parameter value.
+        biases.append(value_biases)
+        print()
+
+    # Create plot.
+    fig = plt.figure(figsize=[9,7], dpi=600)
+    ax = fig.add_subplot(111)
+
+    # Plot bias vs. second measurement contrast SLD for each parameter value.
+    for i, value in enumerate(param_range):
+        ax.plot(contrasts, biases[i], label=param_name+'='+str(value))
+
+    ax.set_xlabel("$\mathregular{Contrast\ SLD\ (10^{-6} \AA^{-2})}$",
+                  fontsize=11, weight='bold')
+    ax.set_ylabel("$\mathregular{Bias\ (\AA)}$", fontsize=11, weight='bold')
+    ax.legend(loc='upper right')
+
+    # Save the plot.
+    save_path = os.path.join(save_path, str(bilayer))
+    file_name = param_name.lower().replace(' ', '-')
+    save_plot(fig, save_path, "{}_bias_derivative".format(file_name))
+
 if __name__ == '__main__':
     from structures import similar_sld_sample_1, similar_sld_sample_2
     from structures import thin_layer_sample_1, thin_layer_sample_2
     from structures import easy_sample, QCS_sample, many_param_sample
-    
+
     save_path = './results'
 
     structure = easy_sample
@@ -249,8 +345,18 @@ if __name__ == '__main__':
     from structures import SymmetricBilayer
     from structures import SingleAsymmetricBilayer, DoubleAsymmetricBilayer
 
-    # Investigate how biases change with measurement contrast.
-    bilayer = DoubleAsymmetricBilayer()
+    bilayer = SingleAsymmetricBilayer()
     initial = 6.36
-    contrasts = np.arange(-0.56, 6.36, 0.1)
+    contrasts = np.arange(-0.56, 6.36, 0.25)
+    angle_times = {0.7: (70, 10),
+                   2.0: (70, 40)}
+
+    # Investigate how biases change with measurement contrast.
     contrast_biases(bilayer, initial, contrasts, angle_times, save_path, 50)
+
+    # Investigate the bias in the chosen parameter for each value of the
+    # parameter in the given parameter range.
+    param_name = 'Inner HG thick'
+    param_range = np.arange(12, 22, 1)
+    bias_derivative(bilayer, initial, contrasts, param_name, param_range,
+                    angle_times, save_path, 50)

@@ -66,7 +66,7 @@ if __name__ == '__main__':
     save_path = './results'
     num_samples = 10
 
-    # Run the benchmark for 10 samples for layers in the interval [1,6]
+    # Run the benchmark for 10 samples for layers in interval [1,6] (excluding substrate).
     with open(os.path.join(save_path, 'benchmark.txt'), 'w') as file:
         for layer in range(2,7):
             times_MCMC, times_nested, times_FIM = benchmark(layer, num_samples=num_samples)
