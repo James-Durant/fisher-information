@@ -1,2 +1,2 @@
-Hotelling t-squared statistic: 0.15750952253781123
-p-value: 0.8748716689910608
+Hotelling t-squared statistic: 0.15863458403260738
+p-value: 0.8739853524439667

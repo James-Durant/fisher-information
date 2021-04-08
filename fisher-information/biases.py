@@ -356,7 +356,7 @@ if __name__ == '__main__':
 
     # Investigate the bias in the chosen parameter for each value of the
     # parameter in the given parameter range.
-    param_name = 'Inner HG thick'
+    param_name = 'Inner Headgroup Thickness'
     param_range = np.arange(12, 22, 1)
     bias_derivative(bilayer, initial, contrasts, param_name, param_range,
                     angle_times, save_path, 50)

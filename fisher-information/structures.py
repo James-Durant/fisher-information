@@ -120,14 +120,14 @@ class SymmetricBilayer(Bilayer):
         self.tg_sld = (self.dmpc_tg_sl / self.dmpc_tg_vol) * 1e6
 
         # Define the free parameters of the model.
-        self.si_rough      = Parameter(2,     'Si/SiO2 rough',          (1,8))
-        self.sio2_thick    = Parameter(14.7,  'SiO2 thick',             (5,20))
-        self.sio2_rough    = Parameter(2,     'SiO2/DMPC rough',        (1,8))
-        self.sio2_solv     = Parameter(0.245, 'SiO2 solv',              (0,1))
-        self.dmpc_apm      = Parameter(49.9,  'DMPC apm',               (30,60))
-        self.bilayer_rough = Parameter(6.57,  'Bilayer rough',          (1,8))
-        self.bilayer_solv  = Parameter(0.074, 'Bilayer solv',           (0,1))
-        self.hg_waters     = Parameter(3.59,  'Headgroup bound waters', (0,20))
+        self.si_rough      = Parameter(2,     'Si/SiO2 Roughness',      (1,8))
+        self.sio2_thick    = Parameter(14.7,  'SiO2 Thickness',         (5,20))
+        self.sio2_rough    = Parameter(2,     'SiO2/DMPC Roughness',    (1,8))
+        self.sio2_solv     = Parameter(0.245, 'SiO2 Hydration',         (0,1))
+        self.dmpc_apm      = Parameter(49.9,  'DMPC Area Per Molecule', (30,60))
+        self.bilayer_rough = Parameter(6.57,  'Bilayer Roughness',      (1,8))
+        self.bilayer_solv  = Parameter(0.074, 'Bilayer Hydration',      (0,1))
+        self.hg_waters     = Parameter(3.59,  'Headgroup Bound Waters', (0,20))
 
         self.parameters = [self.si_rough,
                            self.sio2_thick,
@@ -303,18 +303,18 @@ class AsymmetricBilayer(Bilayer):
         self.core_D2O  =  4.2
         self.core_H2O  =  2.01
 
-        self.si_rough       = Parameter(5.5,    'Si/SiO2 rough',   (3,8))
-        self.sio2_thick     = Parameter(13.4,   'SiO2 thick',      (10,30))
-        self.sio2_rough     = Parameter(3.2,    'SiO2/DPPC rough', (2,5))
-        self.sio2_solv      = Parameter(0.038,  'SiO2 solv',       (0,0.5))
-        self.inner_hg_thick = Parameter(9.0,    'Inner HG thick',  (5,20))
-        self.inner_hg_solv  = Parameter(0.39,   'Inner HG solv',   (0,1))
-        self.bilayer_rough  = Parameter(4.0,    'Bilayer rough',   (0,12))
-        self.inner_tg_thick = Parameter(16.7,   'Inner TG thick',  (10,20))
-        self.outer_tg_thick = Parameter(14.9,   'Outer TG thick',  (10,20))
-        self.tg_solv        = Parameter(0.0085, 'TG solv',         (0,1))
-        self.core_thick     = Parameter(28.7,   'Core thick',      (0,50))
-        self.core_solv      = Parameter(0.26,   'Core solv',       (0,1))
+        self.si_rough       = Parameter(5.5,    'Si/SiO2 Roughness',         (3,8))
+        self.sio2_thick     = Parameter(13.4,   'SiO2 Thickness',            (10,30))
+        self.sio2_rough     = Parameter(3.2,    'SiO2/Bilayer Roughness',    (2,5))
+        self.sio2_solv      = Parameter(0.038,  'SiO2 Hydration',            (0,0.5))
+        self.inner_hg_thick = Parameter(9.0,    'Inner Headgroup Thickness', (5,20))
+        self.inner_hg_solv  = Parameter(0.39,   'Inner Headgroup Hydration', (0,1))
+        self.bilayer_rough  = Parameter(4.0,    'Bilayer Roughness',         (0,12))
+        self.inner_tg_thick = Parameter(16.7,   'Inner Tailgroup Thickness', (10,20))
+        self.outer_tg_thick = Parameter(14.9,   'Outer Tailgroup Thickness', (10,20))
+        self.tg_solv        = Parameter(0.0085, 'Tailgroup Hydration',       (0,1))
+        self.core_thick     = Parameter(28.7,   'Core Thickness',            (0,50))
+        self.core_solv      = Parameter(0.26,   'Core Hydration',            (0,1))
 
         # Define the free parameters of the model.
         self.parameters = [self.si_rough,
@@ -394,7 +394,7 @@ class SingleAsymmetricBilayer(AsymmetricBilayer):
     def __init__(self) -> None:
         super().__init__()
 
-        self.asym_value = Parameter(0.95, 'Asymmetric value', (0,1), True)
+        self.asym_value = Parameter(0.95, 'Asymmetry Value', (0,1), True)
         self.parameters.append(self.asym_value)
 
         self.inner_tg_sld = SLD(self.asym_value*self.dPC_tg  + (1-self.asym_value)*self.hLPS_tg)
@@ -419,8 +419,8 @@ class DoubleAsymmetricBilayer(AsymmetricBilayer):
     def __init__(self) -> None:
         super().__init__()
 
-        self.inner_tg_pc = Parameter(0.95, 'Inner TG PC', (0,1), True)
-        self.outer_tg_pc = Parameter(0.063, 'Outer TG PC', (0,1), True)
+        self.inner_tg_pc = Parameter(0.95, 'Inner Tailgroup PC', (0,1), True)
+        self.outer_tg_pc = Parameter(0.063, 'Outer Tailgroup PC', (0,1), True)
         self.parameters.append(self.inner_tg_pc)
         self.parameters.append(self.outer_tg_pc)
 

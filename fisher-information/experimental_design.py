@@ -110,7 +110,7 @@ def plot_information(x: ArrayLike, information: ArrayLike, xi: List[Parameter],
             ax.plot(x, information[:,i], label=param.name)
 
     # Add the correct x-axis label.
-    ax.legend()
+    ax.legend(loc='upper right')
     if x_label == 'contrast':
         ax.set_xlabel('$\mathregular{Contrast\ SLD\ (10^{-6} \AA^{-2})}$',
                       fontsize=11, weight='bold')
