@@ -312,7 +312,7 @@ def plot_confidences(contrasts: ArrayLike, confidence_gains: ArrayLike,
     labels = [param.name for param in confidence_gains]
     for i, param in enumerate(confidence_gains):
         fig = plt.figure(figsize=[9,7], dpi=600)
-        ax  = fig.add_subplot(111)
+        ax = fig.add_subplot(111)
 
         # Iterate over all other parameters.
         gain = np.array(confidence_gains[param])

@@ -140,7 +140,7 @@ def plot_angle_data(angle_data: RefData, data_type: str,
     ax.set_yscale('log')
     ax.set_xlim(0, 0.18) # Only plot up to the maximum Q in the measured data.
     ax.set_ylim(1e-7, 2)
-    ax.legend()
+    ax.legend(loc='upper right')
 
     save_plot(fig, save_path, '{}_reflectivity.png'.format(data_type.lower()))
 

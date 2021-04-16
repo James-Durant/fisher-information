@@ -226,7 +226,7 @@ def plot_biases(x: ArrayLike, biases: ArrayLike, xi: List[Parameter],
 
     ax.set_xlabel(x_label, fontsize=11, weight='bold')
     ax.set_ylabel('Bias', fontsize=11, weight='bold')
-    ax.legend()
+    ax.legend(loc='upper right')
 
     save_plot(fig, save_path, file_name) # Save the plot.
 

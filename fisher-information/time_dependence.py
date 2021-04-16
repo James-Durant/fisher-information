@@ -56,7 +56,7 @@ def simulated_projections(structure: Callable, angle_times: AngleTimes,
     # Plot the uncertainty projections and actual uncertainties vs. time.
     uncertainties = np.asarray(uncertainties)
     xi = objective.varying_parameters()
-    plot_projections(multipliers, uncertainties, xi, save_path)
+    plot_projections(multipliers, uncertainties, xi, 'simulated', save_path)
 
 def measured_projections(data_path: str, save_path: str, scale: float=1,
                          bkg: float=8e-7, dq: float=2.5) -> None:
@@ -115,10 +115,10 @@ def measured_projections(data_path: str, save_path: str, scale: float=1,
     # Plot the uncertainty projections and actual uncertainties vs. time.
     uncertainties = np.asarray(uncertainties)
     time_factors = np.arange(1, 11, 1)
-    plot_projections(time_factors, uncertainties, xi, save_path)
+    plot_projections(time_factors, uncertainties, xi, 'measured', save_path)
 
 def plot_projections(multipliers: ArrayLike, uncertainties: ArrayLike,
-                     xi: List[Parameter], save_path: str) -> None:
+                     xi: List[Parameter], source: str, save_path: str) -> None:
     """Plots uncertainty projections (using initial uncertainties) and fitting
        uncertainties vs. measurement time.
 
@@ -126,28 +126,37 @@ def plot_projections(multipliers: ArrayLike, uncertainties: ArrayLike,
         multipliers (numpy.ndarray): array of time multipliers.
         uncertainties (numpy.ndarray): array of uncertainties from fitting.
         xi (list): parameters that were varied when fitting.
+        source (str): either 'simulated' or 'measured'.
         save_path (str): path to directory to save figures to.
 
     """
-    fig = plt.figure(figsize=[7,5], dpi=600)
+    fig = plt.figure(figsize=[9,7], dpi=600)
     ax = fig.add_subplot(111)
+
+    colours = plt.rcParams['axes.prop_cycle'].by_key()['color']
 
     # Iterate over each parameter.
     for i, param in enumerate(xi):
         # Plot the fitting uncertainty vs. time for the parameter.
-        ax.plot(multipliers, uncertainties[:,i], label=param.name,
-                linestyle='', marker='x', zorder=2)
+        ax.plot(multipliers, uncertainties[:,i], label=param.name+' Actual',
+                color=colours[i], linestyle='', marker='x', zorder=2)
 
         # Plot the projected uncertainty vs. time for the parameter.
         # The projection is taken using the initial uncertainties.
         times = np.arange(multipliers [0], multipliers [-1], 0.01)
         ax.plot(times, uncertainties[0][i]/np.sqrt(times),
-                color='black', lw=0.8, zorder=1)
+                label=param.name+' Projected', color=colours[i],
+                lw=0.8, zorder=1)
 
-    ax.set_xlabel('Time')
-    ax.set_ylabel('Parameter Uncertainty')
-    ax.legend()
-    save_plot(fig, save_path, ' uncertainty_projection') # Save the plot.
+    ax.set_ylabel('Parameter Uncertainty', weight='bold')
+    ax.legend(loc='upper right')
+
+    if source == 'simulated':
+        ax.set_xlabel('Time Multipler', fontsize=11, weight='bold')
+        save_plot(fig, save_path, 'uncertainty_projection_simulated')
+    else:
+        ax.set_xlabel('Time', fontsize=11, weight='bold')
+        save_plot(fig, save_path, 'uncertainty_projection_measured')
 
 def compare_uncertainties(structure: Callable, angle_times: AngleTimes,
                           multipliers: ArrayLike, save_path: str) -> None:
@@ -272,8 +281,8 @@ def plot_uncertainties(multipliers: ArrayLike, fit_uncertainties: ArrayLike,
         fit_ax.plot(log_time, log_fit, label=names[i]+', m='+fit_m)
         FIM_ax.plot(log_time, log_FIM, label=names[i]+', m='+FIM_m)
 
-    fit_ax.legend()
-    FIM_ax.legend()
+    fit_ax.legend(loc='upper right')
+    FIM_ax.legend(loc='upper right')
 
     save_plot(fit_fig, save_path, 'fitting_uncertainties_vs_time') # Save plots.
     save_plot(FIM_fig, save_path, 'FIM_uncertainties_vs_time')
@@ -302,7 +311,7 @@ def plot_fitting_error(multipliers: ArrayLike, errors: ArrayLike,
 
     ax.set_xlabel('Log Time Multiplier', weight='bold')
     ax.set_ylabel('Mean Absolute Error', weight='bold')
-    ax.legend()
+    ax.legend(loc='upper right')
 
     save_plot(fig, save_path, 'fitting_error_vs_time') # Save the plot.
 
@@ -316,15 +325,15 @@ if __name__ == '__main__':
     structure = easy_sample # Choose structure here.
     angle_times = {0.7: (70, 1), # Angle: (Points, Time)
                    2.0: (70, 4)}
+    multipliers = 10**np.arange(0, 2, 0.05, dtype=float)
 
     # Investigates how FIM and fitting uncertainties change with time.
-    multipliers = 10**np.arange(0, 2, 0.01, dtype=float)
     compare_uncertainties(structure, angle_times, multipliers, save_path)
 
     # Investigates how the uncertainty inversely proportional to time squared
     # relationship holds in practice.
     reduction_range = np.arange(1, 10, 0.25)
-    simulated_projections(structure, angle_times, reduction_range, save_path)
+    simulated_projections(structure, angle_times, multipliers, save_path)
 
     data_path = './data'
     measured_projections(data_path, save_path)

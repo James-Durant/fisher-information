@@ -61,7 +61,7 @@ def plot_sld_profiles(structures: List[Structure], distances: ArrayLike=None,
                 label=structure.name if label else None)
 
     if label: # If labelling, create the legend.
-        ax.legend()
+        ax.legend(loc='upper right')
 
     return fig, ax
 
@@ -119,7 +119,7 @@ def plot_objectives(objectives: List[Objective], label: bool=True
         ax.plot(q, objective.model(q), color='red', zorder=20)
 
     if label: # If labelling, create the legend.
-        ax.legend()
+        ax.legend(loc='upper right')
 
     return fig, ax
 
@@ -176,7 +176,7 @@ def plot_reflectivity_curve(structure: Structure, q_min: float=0.005,
 
     # Plot the model reflectivity against Q.
     fig = plt.figure(figsize=[9,7], dpi=600)
-    ax  = fig.add_subplot(111)
+    ax = fig.add_subplot(111)
     ax.plot(q, r, color='black')
     ax.set_xlabel('$\mathregular{Q\ (Å^{-1})}$', fontsize=11, weight='bold')
     ax.set_ylabel('Reflectivity (arb.)', fontsize=11, weight='bold')
