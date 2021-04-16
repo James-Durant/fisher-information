@@ -97,8 +97,8 @@ def simulate_measured_data(data_path: str, files: List[str], scale: float,
         r_error_measured = data_measured[:,2]
         measured[angle] = (q_measured, r_measured, r_error_measured)
 
-        # For simulation, we need the edges of the Q bins but the measured data
-        # contains Q bin centres so approximate the edges.
+        # For simulation, we need the edges of the Q bins but the measured
+        # data contains Q bin centres so approximate the edges.
         points = len(q_measured)
         temp = [q_measured[0]-(q_measured[1]-q_measured[0])/2]
         temp += q_measured.tolist()
@@ -131,9 +131,10 @@ def plot_angle_data(angle_data: RefData, data_type: str,
     #Iterate over each simulated/measured angle.
     for angle in angle_data:
         q, r, r_error = angle_data[angle]
-        # Plot Q values vs. reflectivity with associated reflectivity error bars.
-        ax.errorbar(q, r, r_error, marker='o', ms=3, lw=0, elinewidth=1,
-                    capsize=1.5, label='{0} {1}°'.format(data_type, str(angle)))
+        # Q values vs. reflectivity with associated reflectivity error bars.
+        ax.errorbar(q, r, r_error,
+                    marker='o', ms=3, lw=0, elinewidth=1, capsize=1.5,
+                    label='{0} {1}°'.format(data_type, str(angle)))
 
     ax.set_xlabel('$\mathregular{Q\ (Å^{-1})}$', fontsize=11, weight='bold')
     ax.set_ylabel('Reflectivity (arb.)', fontsize=11, weight='bold')

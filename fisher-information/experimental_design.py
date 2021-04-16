@@ -194,8 +194,8 @@ def plot_information(x: ArrayLike, information: ArrayLike,
 def confidence_gain(bilayer: Bilayer, initial_contrast: float,
                     new_contrasts: ArrayLike, angle_times: AngleTimes,
                     save_path: str) -> None:
-    """Investigates how the FIM confidences ellipses change in size with second
-       measurement contrast SLD.
+    """Investigates how the FIM confidences ellipses change in size with
+       second measurement contrast SLD.
 
     Args:
         bilayer (structures.Bilayer): bilayer to calculate ellipses on.
@@ -243,7 +243,7 @@ def confidence_gain(bilayer: Bilayer, initial_contrast: float,
         # Record the difference in size between the initial and new ellipse
         # sizes for each parameter pair.
         g = fisher_multiple_contrasts(qs, xi, counts, models)
-        g_relative = g * param_values[np.newaxis, :] * param_values[:, np.newaxis]
+        g_relative = g*param_values[np.newaxis, :]*param_values[:, np.newaxis]
 
         for i, param in enumerate(xi):
             heights = np.asarray([ellipse_height(g_relative, i, j)
@@ -262,7 +262,7 @@ def ellipse_height(g: ArrayLike, i: int, j: int, k: int=1) -> float:
        between two given parameters.
 
     Args:
-        g (numpy.ndarray): Fisher information matrix to calculate ellipses with.
+        g (numpy.ndarray): FIM matrix to calculate ellipses with.
         i (int): index of 1st parameter in the matrix.
         j (int): index of 2nd parameter in the matrix.
         k (int): size of confidence ellipse in number of standard deviations.

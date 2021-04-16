@@ -24,7 +24,7 @@ def simulate_single_contrast(structure: Structure, angle_times: AngleTimes,
     """Simulates a single contrast experiment measured over a number of angles.
 
     Args:
-        structure (refnx.reflect.Structure): structure to simulate experiment on.
+        structure (refnx.reflect.Structure): structure to simulate on.
         angle_times (dict): points and times for each measured angle.
         scale (float): instrument experimental scale factor.
         bkg (float): level of the background to add.
@@ -52,13 +52,13 @@ def simulate_single_contrast(structure: Structure, angle_times: AngleTimes,
         q_angle, r_angle, r_error_angle, counts_angle = simulated
 
         # Save combined dataset to .dat file if requested to save data.
+        str_angle = str(angle).replace('.', '')
         if save_path:
             if file_name:
-                name = '{0}_{1}_simulated.dat'.format(file_name,
-                                                      str(angle).replace('.', ''))
+                name = '{0}_{1}_simulated.dat'.format(file_name, str_angle)
                 file_path = os.path.join(save_path, name)
             else:
-                name = '{0}_simulated.dat'.format(str(angle).replace('.', ''))
+                name = '{0}_simulated.dat'.format(str_angle)
                 file_path = os.path.join(save_path, name)
 
             # Save reflectivity data as a 3-column ASCII file: Q, R, dR
@@ -95,7 +95,8 @@ def simulate_single_contrast(structure: Structure, angle_times: AngleTimes,
 def simulate_multiple_contrasts(structures: List[Structure],
                                 angle_times: AngleTimes,
                                 scale: float=1, bkg: float=1e-7, dq: float=2,
-                                include_counts: bool=False, save_path: str=None
+                                include_counts: bool=False,
+                                save_path: str=None
                                 ) -> Tuple[List[ReflectModel],
                                            List[ReflectDataset],
                                            Optional[List[ArrayLike]]]:
@@ -210,7 +211,7 @@ def difference_plots(structure: Structure, angle_times: AngleTimes) -> None:
        simulated reflectivity for a given structure.
 
     Args:
-        structure (refnx.reflect.Structure): structure to simulate experiment on.
+        structure (refnx.reflect.Structure): structure to simulate on.
         angle_times (dict): points and times for each measured angle.
 
     """
@@ -224,7 +225,8 @@ def difference_plots(structure: Structure, angle_times: AngleTimes) -> None:
     data_true = objective.model(objective.data.x)
 
     # Calculate the fractional error between the simulated and model data.
-    diff = (data_true - data_sim) / np.asarray([sum(x) for x in zip(data_true, data_sim)])
+    true_sim_sum = np.asarray([sum(x) for x in zip(data_true, data_sim)])
+    diff = (data_true - data_sim) / true_sim_sum
 
     # Error bars on difference.
     diff_error = 2*(objective.data.y_err / data_sim)*diff

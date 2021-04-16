@@ -1,6 +1,6 @@
 import numpy as np
 import os, time, sys
-sys.path.append('./') # MCMC sampling cannot find structures code without this?
+sys.path.append('./') # MCMC sampling cannot find structures without this?
 
 from typing import List, Tuple
 from refnx.analysis import Objective

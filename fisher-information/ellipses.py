@@ -26,7 +26,7 @@ def compare_ellipses(structure: Callable, angle_times: AngleTimes,
     """
     save_path = os.path.join(save_path, structure.__name__)
 
-    # Simulate an experiment using the given angles, number of points and times.
+    # Simulate experiment using the given angles, number of points and times.
     structure = vary_structure(structure())
     model, data, counts = simulate_single_contrast(structure, angle_times,
                                                    include_counts=True,
@@ -70,8 +70,9 @@ def plot_ellipses(g: ArrayLike, xi: List[Parameter], fig: plt.Figure) -> None:
     m = len(xi)
     for i in range(m):
         for j in range(m):
-            if i > j: # Plot the confidence ellipse on the plots below the diagonal.
-                confidence_ellipse(g, j, i, xi[j], xi[i], axes[i,j], i==m-1, j==0)
+            if i > j: # Plot the confidence ellipse on plots below diagonal.
+                confidence_ellipse(g, j, i, xi[j], xi[i],
+                                   axes[i,j], i==m-1, j==0)
             elif i == j:
                 continue # Leave diagonal plots as they are.
             else:

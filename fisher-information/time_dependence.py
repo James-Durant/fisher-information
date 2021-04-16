@@ -42,8 +42,9 @@ def simulated_projections(structure: Callable, angle_times: AngleTimes,
                            for angle in angle_times}
 
         # Simulate the experiment and fit.
-        objective = Objective(*simulate_single_contrast(vary_structure(structure()),
-                                                        new_angle_times))
+        model, data = simulate_single_contrast(vary_structure(structure()),
+                                               new_angle_times)
+        objective = Objective(model, data)
         CurveFitter(objective).fit('differential_evolution', verbose=False)
 
         # Record the parameter uncertainties with this time multiplier.
@@ -283,7 +284,7 @@ def plot_uncertainties(multipliers: ArrayLike, fit_uncertainties: ArrayLike,
     fit_ax.legend(loc='upper right')
     FIM_ax.legend(loc='upper right')
 
-    save_plot(fit_fig, save_path, 'fitting_uncertainties_vs_time') # Save plots.
+    save_plot(fit_fig, save_path, 'fitting_uncertainties_vs_time')
     save_plot(FIM_fig, save_path, 'FIM_uncertainties_vs_time')
 
 def plot_fitting_error(multipliers: ArrayLike, errors: ArrayLike,
@@ -320,7 +321,7 @@ if __name__ == '__main__':
 
     save_path = './results'
 
-    structure = similar_sld_sample_1 # Choose structure here.
+    structure = easy_sample # Choose structure here.
     angle_times = {0.7: (70, 5), # Angle: (Points, Time)
                    2.0: (70, 20)}
 

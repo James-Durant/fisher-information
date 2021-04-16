@@ -147,7 +147,8 @@ class ModelGenerator:
 
     def generate(self, num_samples: int, layers: int
                  ) -> List[Tuple[ReflectModel, ReflectDataset, ArrayLike]]:
-        """Generates `num_samples` models and datasets with given number `layers`.
+        """Generates `num_samples` models and datasets with given
+           number of `layers`.
 
         Args:
             num_samples (int): number of models to generate.
@@ -216,7 +217,7 @@ def vary_structure(structure: Structure, random_init: bool=False,
 
     Args:
         structure (refnx.reflect.Structure): structure to vary.
-        random_init (bool): whether to randomly initialise structure parameters.
+        random_init (bool): whether to randomly initialise parameters.
         bound_size (float): size of the bounds to place on the parameters.
         vary_sld (bool): whether to vary the structure's layers' SLDs.
         vary_thick (bool): whether to vary structure's layers' thicknesses.
@@ -233,7 +234,7 @@ def vary_structure(structure: Structure, random_init: bool=False,
             sld_bounds = (component.sld.real.value*(1-bound_size),
                           component.sld.real.value*(1+bound_size))
             component.sld.real.setp(vary=True, bounds=sld_bounds)
-            # Set the parameter to an arbitrary initial value within its bounds.
+            # Set parameter to an arbitrary initial value within its bounds.
             if random_init:
                 component.sld.real.value = np.random.uniform(*sld_bounds)
 
@@ -264,7 +265,7 @@ def vary_structure(structure: Structure, random_init: bool=False,
 
 def fisher_single_contrast(q: ArrayLike, xi: List[Parameter], counts: ArrayLike,
                            model: ReflectModel) -> ArrayLike:
-    """Calculates the Fisher information metric (FIM) matrix for a given `model`.
+    """Calculates the FIM matrix for a given `model`.
 
     Args:
         q (numpy.ndarray): array of Q values.
@@ -374,7 +375,8 @@ def usefulness(objective: Objective) -> float:
        match traditional sampling methods.
 
     Args:
-        objective (refnx.analysis.Objective): objective to calculate usefulness of.
+        objective (refnx.analysis.Objective): objective to calculate
+                                              usefulness of.
 
     Returns:
         float: usefulness metric for the objective.
@@ -438,7 +440,8 @@ def select_model(dataset: ReflectDataset, counts: ArrayLike,
         # Calculate the Kashyap information criterion (KIC)
         logp = objective.logp()
         g = fisher_single_contrast(dataset.x, xi, counts, model)
-        KICs.append(-2*logl - 2*logp + k*np.log(n/(2*np.pi)) + np.log(np.linalg.det(g/n)))
+        KICs.append(-2*logl - 2*logp + k*np.log(n/(2*np.pi)) +
+                    np.log(np.linalg.det(g/n)))
 
     # Display the best model using each information criterion.
     print('\nLog-likelihood: {}-layer'.format(np.argmax(logls)+1))
@@ -469,7 +472,8 @@ if __name__ == '__main__':
     # Calculate the usefulness of all structures in the structures file.
     print('----------- Usefulness Metrics -----------')
     for structure in STRUCTURES:
-        objective = Objective(*simulate_single_contrast(structure(), angle_times))
+        model, data = simulate_single_contrast(structure(), angle_times)
+        objective = Objective(model, data)
         vary_structure(objective.model.structure, random_init=True)
 
         CurveFitter(objective).fit('differential_evolution', verbose=False)

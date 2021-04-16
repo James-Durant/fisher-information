@@ -94,7 +94,7 @@ def save_biases(biases: ArrayLike, names: List[str], method: str,
 
 def time_biases(structure: Callable, angle_times: AngleTimes,
                 multipliers: ArrayLike, save_path: str, n: int=100) -> None:
-    """Investigates how fitting biases change with increasing measurement time.
+    """Investigates how fitting biases change with measurement time.
 
     Args:
         structure (function): structure to investigate the biases with.
@@ -148,7 +148,7 @@ def contrast_biases(bilayer: Bilayer, initial_contrast: float,
        for a bilayer model.
 
     Args:
-        bilayer (structures.Bilayer): bilayer to calculate fitting biases with.
+        bilayer (structures.Bilayer): bilayer to calculate biases with.
         initial_contrast (float): initial measurement contrast.
         new_contrasts (numpy.ndarray): second contrasts to measure.
         angle_times (dict): points and measurement times for each angle.
@@ -206,7 +206,7 @@ def contrast_biases(bilayer: Bilayer, initial_contrast: float,
 
 def plot_biases(x: ArrayLike, biases: ArrayLike, xi: List[Parameter],
                 x_label: str, save_path: str, file_name: str) -> None:
-    """Plots fitting biases against either measurement time or contrast choice.
+    """Plots biases against either measurement time or contrast choice.
 
     Args:
         x (numpy.ndarray): either measurement times or contrast SLDs.
@@ -234,12 +234,12 @@ def bias_derivative(bilayer: Bilayer, initial_contrast: float,
                     new_contrasts: ArrayLike, param_name: str,
                     param_range: ArrayLike, angle_times: AngleTimes,
                     save_path: str, n: int=50):
-    """Investigates how fitting biases change with second contrast choice in a
-       chosen parameter for a bilayer model. This is repeated with the
+    """Investigates how fitting biases change with second contrast choice in
+       a chosen parameter for a bilayer model. This is repeated with the
        parameter of choice set to each value in the given `param_range`.
 
     Args:
-        bilayer (structures.Bilayer): bilayer to calculate fitting biases with.
+        bilayer (structures.Bilayer): bilayer to calculate biases with.
         initial_contrast (float): initial measurement contrast.
         new_contrasts (numpy.ndarray): second contrasts to measure.
         param_name (str): name of parameter to vary.
@@ -263,7 +263,7 @@ def bias_derivative(bilayer: Bilayer, initial_contrast: float,
     for value in param_range:
         # Set the chosen parameter to each value in the given range.
         parameter.value = value
-        # Set the bound on the parameter to 25 % above and below the true value.
+        # Set bound on the parameter to 25 % above and below the true value.
         parameter.setp(vary=True, bounds=(value*0.75, value*1.25))
 
         # Simulate an experiment using the initial contrast with this value.
@@ -278,7 +278,7 @@ def bias_derivative(bilayer: Bilayer, initial_contrast: float,
 
             # Calculate fitting bias over `n` fits with this parameter value.
             for _ in range(n):
-                # Simulate an experiment using the second measurement contrast.
+                # Simulate experiment using the second measurement contrast.
                 structure = bilayer.using_contrast(new_contrast)
                 model, data = simulate_single_contrast(structure, angle_times)
                 objective_new = Objective(model, data)
