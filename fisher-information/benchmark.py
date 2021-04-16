@@ -29,7 +29,8 @@ def benchmark(layers: int, num_samples: int
     generator = ModelGenerator()
     models_data = generator.generate(num_samples, layers)
 
-    # Iterate over each sample and run MCMC and nested sampling, and calculate the FIM.
+    # Iterate over each sample and run MCMC and nested sampling, and
+    # calculate the FIM.
     times_MCMC, times_nested, times_FIM = [], [], []
     for i, (model, data, counts) in enumerate(models_data):
         # Create an objective for the random model and simulated data.
@@ -55,7 +56,7 @@ def benchmark(layers: int, num_samples: int
         xi = objective.varying_parameters()
         start = time.time()
         g = fisher_single_contrast(data.x, xi, counts, model)
-        1 / np.diag(g) # Calculate parameter uncertainties.
+        1 / np.sqrt(np.diag(g)) # Calculate parameter uncertainties.
         end = time.time()
         times_FIM.append(end-start)
 

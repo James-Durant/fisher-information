@@ -20,7 +20,7 @@ def first_contrast_choice(bilayer: Bilayer, contrasts: ArrayLike,
        model, for each contrast SLD in a given array of `contrasts`.
 
     Args:
-        bilayer (Bilayer): bilayer model to find optimal contrast for.
+        bilayer (structures.Bilayer): bilayer to find optimal contrast for.
         contrasts (numpy.ndarray): contrast SLDs to calculate FIM with.
         angle_times (dict): points and measurement times for each angle.
         save_path (str): path to directory to save FIM plot to.
@@ -55,7 +55,7 @@ def second_contrast_choice(bilayer: Bilayer, initial_contrast: float,
        of `contrasts`.
 
     Args:
-        bilayer (Bilayer): bilayer model to find optimal contrast for.
+        bilayer (structures.Bilayer): bilayer to find optimal contrast for.
         initial_contrast (float): initial measured contrast SLD.
         contrasts (numpy.ndarray): second contrast SLDs to calculate FIM with.
         angle_times (dict): points and measurement times for each angle.
@@ -198,7 +198,7 @@ def confidence_gain(bilayer: Bilayer, initial_contrast: float,
        measurement contrast SLD.
 
     Args:
-        bilayer (Bilayer): bilayer model to calculate ellipses on.
+        bilayer (structures.Bilayer): bilayer to calculate ellipses on.
         initial_contrast (float): initial measured contrast for the bilayer.
         new_contrasts (numpy.ndarray): second measurement contrasts.
         angle_times (dict): points and measurement times for each angle.

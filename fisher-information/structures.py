@@ -112,7 +112,7 @@ class SymmetricBilayer(Bilayer):
         bkgs (list): instrument backgrounds for each measured contrast.
         dq (float): instrument resolution used when measuring.
         names (list): labels for each measured contrast.
-        distances (np.ndarray): range of SLD profile x-axis.
+        distances (numpy.ndarray): range of SLD profile x-axis.
         si_sld (float): SLD of silicon (substrate).
         sio2_sld (float): SLD of silicon oxide.
         dmpc_hg_vol (float): headgroup volume of the DMPC bilayer.
@@ -121,14 +121,14 @@ class SymmetricBilayer(Bilayer):
         dmpc_tg_sl (float): tailgroup scattering length of the DMPC bilayer.
         water_vol (float): water volume of measured system.
         tg_sld (float): SLD of the tailgroup of the DMPC bilayer.
-        si_rough (Parameter): silicon (substrate) roughness.
-        sio2_thick (Parameter): silicon oxide thickness.
-        sio2_rough (Parameter): silicon oxide roughness.
-        sio2_solv (Parameter): silicon oxide hydration.
-        dmpc_apm (Parameter): DMPC area per molecule.
-        bilayer_rough (Parameter): bilayer roughness.
-        bilayer_solv (Parameter): bilayer hydration.
-        hg_waters (Parameter): headgroup bound waters.
+        si_rough (refnx.analysis.Parameter): silicon (substrate) roughness.
+        sio2_thick (refnx.analysis.Parameter): silicon oxide thickness.
+        sio2_rough (refnx.analysis.Parameter): silicon oxide roughness.
+        sio2_solv (refnx.analysis.Parameter): silicon oxide hydration.
+        dmpc_apm (refnx.analysis.Parameter): DMPC area per molecule.
+        bilayer_rough (refnx.analysis.Parameter): bilayer roughness.
+        bilayer_solv (refnx.analysis.Parameter): bilayer hydration.
+        hg_waters (refnx.analysis.Parameter): headgroup bound waters.
         parameters (list): all free parameters of the model.
         structures (list): structure for each measured contrast.
         models (list): model for each measured contrast.
@@ -185,6 +185,7 @@ class SymmetricBilayer(Bilayer):
 
     def create_objectives(self) -> None:
         """Creates objectives corresponding to each measured contrast."""
+        
         # Define the known scattering lengths and scattering length densities
         # of the two measured contrasts: D2O and H2O.
         d2o_sl  = 2e-4
@@ -294,7 +295,7 @@ class AsymmetricBilayer(Bilayer):
         bkgs (list): instrument backgrounds for each measured contrast.
         dq (float): instrument resolution.
         names (list): labels for each measured contrast.
-        distances (np.ndarray): range to use for SLD profile x-axis.
+        distances (numpy.ndarray): range to use for SLD profile x-axis.
         si_sld (float): SLD of silicon (substrate).
         sio2_sld (float): SLD of silicon oxide.
         pc_hg_sld (float):
@@ -302,18 +303,18 @@ class AsymmetricBilayer(Bilayer):
         hLPS_tg (float):
         core_D2O (float):
         core_H2O (float):
-        si_rough (Parameter): silicon (substrate) roughness.
-        sio2_thick (Parameter): silicon oxide thickness.
-        sio2_rough (Parameter): silicon oxide roughness.
-        sio2_solv (Parameter): silicon oxide hydration.
-        inner_hg_thick (Parameter): inner headgroup thickness.
-        inner_hg_solv (Parameter): inner headgroup hydration.
-        bilayer_rough (Parameter): bilayer roughness.
-        inner_tg_thick (Parameter): inner tailgroup thickness.
-        outer_tg_thick (Parameter): outer tailgroup thickness.
-        tg_solv (Parameter): tailgroup hydration.
-        core_thick (Parameter): core thickness.
-        core_solv (Parameter): core hydration.
+        si_rough (refnx.analysis.Parameter): silicon (substrate) roughness.
+        sio2_thick (refnx.analysis.Parameter): silicon oxide thickness.
+        sio2_rough (refnx.analysis.Parameter): silicon oxide roughness.
+        sio2_solv (refnx.analysis.Parameter): silicon oxide hydration.
+        inner_hg_thick (refnx.analysis.Parameter): inner headgroup thickness.
+        inner_hg_solv (refnx.analysis.Parameter): inner headgroup hydration.
+        bilayer_rough (refnx.analysis.Parameter): bilayer roughness.
+        inner_tg_thick (refnx.analysis.Parameter): inner tailgroup thickness.
+        outer_tg_thick (refnx.analysis.Parameter): outer tailgroup thickness.
+        tg_solv (refnx.analysis.Parameter): tailgroup hydration.
+        core_thick (refnx.analysis.Parameter): core thickness.
+        core_solv (refnx.analysis.Parameter): core hydration.
         parameters (list): all free parameters of the model.
         structures (list): structure for each measured contrast.
         models (list): model for each measured contrast.
@@ -426,7 +427,7 @@ class SingleAsymmetricBilayer(AsymmetricBilayer):
        asymmetry value. Inherits all of the attributes of the parent class.
 
     Attributes:
-        asym_value (Parameter): describes the asymmetry of the bilayer.
+        asym_value (refnx.analysis.Parameter): asymmetry of the bilayer.
         inner_tg_sld (refnx.reflect.SLD): inner tailgroup SLD.
         outer_tg_sld (refnx.reflect.SLD): outer tailgroup SLD.
 
@@ -453,8 +454,8 @@ class DoubleAsymmetricBilayer(AsymmetricBilayer):
        asymmetry values. Inherits all of the attributes of the parent class.
 
     Attributes:
-        inner_tg_pc (Parameter): describes the asymmetry of the bilayer.
-        outer_tg_pc (Parameter): describes the asymmetry of the bilayer.
+        inner_tg_pc (refnx.analysis.Parameter): 1st asymmetry of the bilayer.
+        outer_tg_pc (refnx.analysis.Parameter): 2nd asymmetry of the bilayer.
         inner_tg_sld (refnx.reflect.SLD): inner tailgroup SLD.
         outer_tg_sld (refnx.reflect.SLD): outer tailgroup SLD.
 

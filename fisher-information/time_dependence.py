@@ -325,14 +325,13 @@ if __name__ == '__main__':
     structure = easy_sample # Choose structure here.
     angle_times = {0.7: (70, 1), # Angle: (Points, Time)
                    2.0: (70, 4)}
-    multipliers = 10**np.arange(0, 2, 0.05, dtype=float)
+    multipliers = 10**np.arange(0, 3, 0.01, dtype=float)
 
     # Investigates how FIM and fitting uncertainties change with time.
     compare_uncertainties(structure, angle_times, multipliers, save_path)
 
     # Investigates how the uncertainty inversely proportional to time squared
     # relationship holds in practice.
-    reduction_range = np.arange(1, 10, 0.25)
     simulated_projections(structure, angle_times, multipliers, save_path)
 
     data_path = './data'

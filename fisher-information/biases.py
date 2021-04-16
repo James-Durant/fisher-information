@@ -148,7 +148,7 @@ def contrast_biases(bilayer: Bilayer, initial_contrast: float,
        for a bilayer model.
 
     Args:
-        bilayer (Bilayer): bilayer model to calculate fitting biases with.
+        bilayer (structures.Bilayer): bilayer to calculate fitting biases with.
         initial_contrast (float): initial measurement contrast.
         new_contrasts (numpy.ndarray): second contrasts to measure.
         angle_times (dict): points and measurement times for each angle.
@@ -209,8 +209,8 @@ def plot_biases(x: ArrayLike, biases: ArrayLike, xi: List[Parameter],
     """Plots fitting biases against either measurement time or contrast choice.
 
     Args:
-        x (np.ndarray): either measurement times or contrast SLDs.
-        biases (np.ndarray): biases corresponding to x array.
+        x (numpy.ndarray): either measurement times or contrast SLDs.
+        biases (numpy.ndarray): biases corresponding to x array.
         x_label (str): label to use for x-axis
         save_path (str): path to directory to save bias plot to.
         file_name (str): name to use for bias plot file.
@@ -239,7 +239,7 @@ def bias_derivative(bilayer: Bilayer, initial_contrast: float,
        parameter of choice set to each value in the given `param_range`.
 
     Args:
-        bilayer (Bilayer): bilayer model to calculate fitting biases with.
+        bilayer (structures.Bilayer): bilayer to calculate fitting biases with.
         initial_contrast (float): initial measurement contrast.
         new_contrasts (numpy.ndarray): second contrasts to measure.
         param_name (str): name of parameter to vary.
