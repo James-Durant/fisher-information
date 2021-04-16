@@ -237,8 +237,7 @@ def plot_uncertainties(multipliers: ArrayLike, fit_uncertainties: ArrayLike,
        approximation of the gradient in each case.
 
     Args:
-        multipliers (numpy.ndarray): multipliers for which uncertainties were
-                                     calculated.
+        multipliers (numpy.ndarray): time multipliers.
         fit_uncertainties (numpy.ndarray): fitting uncertainties for each time.
         FIM_uncertainties (numpy.ndarray): FIM uncertainties for each time.
         names (list): parameter names.
@@ -292,9 +291,8 @@ def plot_fitting_error(multipliers: ArrayLike, errors: ArrayLike,
     """Plots mean absolute error vs. log time multiplier for each parameter.
 
     Args:
-        multipliers (numpy.ndarray): multipliers for which `fitted` values were
-                                     calculated.
-        errors (numpy.ndarray): mean absolute errors for each time multiplier.
+        multipliers (numpy.ndarray): time multipliers.
+        errors (numpy.ndarray): mean absolute errors for each multiplier.
         names (list): parameter names.
         save_path (str): path to directory to save figures to.
 
@@ -322,17 +320,19 @@ if __name__ == '__main__':
 
     save_path = './results'
 
-    structure = easy_sample # Choose structure here.
-    angle_times = {0.7: (70, 1), # Angle: (Points, Time)
-                   2.0: (70, 4)}
-    multipliers = 10**np.arange(0, 3, 0.01, dtype=float)
+    structure = similar_sld_sample_1 # Choose structure here.
+    angle_times = {0.7: (70, 5), # Angle: (Points, Time)
+                   2.0: (70, 20)}
 
     # Investigates how FIM and fitting uncertainties change with time.
+    multipliers = 10**np.arange(0, 3, 0.01, dtype=float)
     compare_uncertainties(structure, angle_times, multipliers, save_path)
 
     # Investigates how the uncertainty inversely proportional to time squared
     # relationship holds in practice.
+    multipliers = 10**np.arange(0, 2, 0.05, dtype=float)
     simulated_projections(structure, angle_times, multipliers, save_path)
 
+    # Plot the relationship for measured data of the QCS sample.
     data_path = './data'
     measured_projections(data_path, save_path)
