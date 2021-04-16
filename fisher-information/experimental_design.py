@@ -10,10 +10,12 @@ from refnx.analysis import Parameter, Objective
 from structures import Bilayer
 from plotting import save_plot
 from simulate import simulate_single_contrast, AngleTimes
-from utils import vary_structure, fisher_single_contrast, fisher_multiple_contrasts
 
-def contrast_choice(bilayer: Bilayer, contrasts: ArrayLike,
-                    angle_times: AngleTimes, save_path: str) -> None:
+from utils import vary_structure
+from utils import fisher_single_contrast, fisher_multiple_contrasts
+
+def first_contrast_choice(bilayer: Bilayer, contrasts: ArrayLike,
+                          angle_times: AngleTimes, save_path: str) -> None:
     """Investigates how the FIM changes, for each parameter of a `bilayer`
        model, for each contrast SLD in a given array of `contrasts`.
 
@@ -34,9 +36,9 @@ def contrast_choice(bilayer: Bilayer, contrasts: ArrayLike,
         structure = bilayer.using_contrast(contrast_sld)
         model, data, counts = simulate_single_contrast(structure, angle_times,
                                                        include_counts=True)
-        # Calculate the FIM
+        # Calculate FIM matrix and convert FIMs to relative values.
         g = fisher_single_contrast(data.x, xi, counts, model)
-        information.append(np.diag(g))
+        information.append(np.diag(g)*np.square([param.value for param in xi]))
 
         # Display progress.
         print('>>> {0}/{1}'.format(i+1, len(contrasts)))
@@ -44,6 +46,61 @@ def contrast_choice(bilayer: Bilayer, contrasts: ArrayLike,
     # Plot the FIM as a function of contrast SLD.
     plot_information(contrasts, information, xi, save_path, 'contrast', False)
     plot_information(contrasts, information, xi, save_path, 'contrast', True)
+
+def second_contrast_choice(bilayer: Bilayer, initial_contrast: float,
+                           contrasts: ArrayLike, angle_times: AngleTimes,
+                           save_path: str) -> None:
+    """Investigates how the FIM changes, for each parameter of a `bilayer`
+       model, for each second measurement contrast SLD in a given array
+       of `contrasts`.
+
+    Args:
+        bilayer (Bilayer): bilayer model to find optimal contrast for.
+        initial_contrast (float): initial measured contrast SLD.
+        contrasts (numpy.ndarray): second contrast SLDs to calculate FIM with.
+        angle_times (dict): points and measurement times for each angle.
+        save_path (str): path to directory to save FIM plot to.
+
+    """
+    save_path = os.path.join(save_path, str(bilayer))
+    xi = bilayer.parameters
+
+    # Simulate an experiment using the given initial contrast.
+    structure = bilayer.using_contrast(initial_contrast)
+    simulated_initial = simulate_single_contrast(structure, angle_times,
+                                                 include_counts=True)
+    model_initial, data_initial, counts_initial = simulated_initial
+
+    param_values = [param.value for param in xi]
+
+    # Iterate over each second contrast SLD in the given array.
+    information = []
+    for i, contrast_sld in enumerate(contrasts):
+        # Simulate data for the given bilayer model with current contrast SLD.
+        structure = bilayer.using_contrast(contrast_sld)
+        simulated_new = simulate_single_contrast(structure, angle_times,
+                                                 include_counts=True)
+        model_new, data_new, counts_new = simulated_new
+
+        # Combine the data from the initial and second contrasts.
+        qs = [data_initial.x, data_new.x]
+        counts = [counts_initial, counts_new]
+        models = [model_initial, model_new]
+
+        # Calculate the FIM matrix for the two contrast dataset.
+        g = fisher_multiple_contrasts(qs, xi, counts, models)
+        # Record the relative parameter FIMs.
+        information.append(np.diag(g)*np.square(param_values))
+
+        # Display progress.
+        print('>>> {0}/{1}'.format(i+1, len(contrasts)))
+
+    # Plot the FIM as a function of second contrast SLD.
+    plot_information(contrasts, information, xi,
+                     save_path, 'second_contrast', False)
+
+    plot_information(contrasts, information, xi,
+                     save_path, 'second_contrast', True)
 
 def angle_choice(structure: Callable, angles: ArrayLike, points: int,
                  time: float, save_path: str) -> None:
@@ -73,9 +130,10 @@ def angle_choice(structure: Callable, angles: ArrayLike, points: int,
         objective = Objective(model, data)
         xi = objective.varying_parameters()
 
-        # Calculate the FIM
+        # Calculate relative FIM values.
         g = fisher_single_contrast(data.x, xi, counts, model)
-        information.append(np.diag(g))
+        info = np.diag(g) * (np.asarray([param.value for param in xi])**2)
+        information.append(info)
 
         # Display progress.
         print('>>> {0}/{1}'.format(i+1, len(angles)))
@@ -83,8 +141,9 @@ def angle_choice(structure: Callable, angles: ArrayLike, points: int,
     plot_information(angles, information, xi, save_path, 'angle', False)
     plot_information(angles, information, xi, save_path, 'angle', True)
 
-def plot_information(x: ArrayLike, information: ArrayLike, xi: List[Parameter],
-                     save_path: str, x_label: str, normalise: bool=False) -> None:
+def plot_information(x: ArrayLike, information: ArrayLike,
+                     xi: List[Parameter], save_path: str, x_label: str,
+                     normalise: bool=False) -> None:
     """Plots the FIM for each parameter of a model against given `x` array.
 
     Args:
@@ -104,13 +163,16 @@ def plot_information(x: ArrayLike, information: ArrayLike, xi: List[Parameter],
     for i, param in enumerate(xi):
         if normalise: # Normalise to [0,1] using min-max scaling.
             info = information[:,i]
-            normalised = (info - np.min(info)) / (np.max(info) - np.min(info))
+            a = info - np.min(info)
+            b = np.max(info) - np.min(info)
+            normalised = np.divide(a, b, out=np.zeros_like(a), where=b!=0)
             ax.plot(x, normalised, label=param.name)
         else:
             ax.plot(x, information[:,i], label=param.name)
 
+    ax.legend(loc='upper right') # Create legend.
+
     # Add the correct x-axis label.
-    ax.legend(loc='upper right')
     if x_label == 'contrast':
         ax.set_xlabel('$\mathregular{Contrast\ SLD\ (10^{-6} \AA^{-2})}$',
                       fontsize=11, weight='bold')
@@ -118,12 +180,12 @@ def plot_information(x: ArrayLike, information: ArrayLike, xi: List[Parameter],
         ax.set_xlabel('Angle (°)', fontsize=11, weight='bold')
 
     if normalise:
-        ax.set_ylabel('Normalised Fisher Information',
+        ax.set_ylabel('Normalised Relative Fisher Information',
                       fontsize=11, weight='bold')
         save_plot(fig, save_path, '{}_choice_normalised'.format(x_label))
     else:
         # Save both linear and log scale plots.
-        ax.set_ylabel('Fisher Information', fontsize=11, weight='bold')
+        ax.set_ylabel('Relative Fisher Information', fontsize=11, weight='bold')
         save_plot(fig, save_path, '{}_choice_linear'.format(x_label))
 
         ax.set_yscale('log')
@@ -152,12 +214,15 @@ def confidence_gain(bilayer: Bilayer, initial_contrast: float,
                                                  include_counts=True)
     model_initial, data_initial, counts_initial = simulated_initial
 
+    param_values = np.asarray([param.value for param in xi])
+
     # Calculate the Fisher information matrix and record the initial
     # confidence ellipse sizes for each parameter pair.
     g = fisher_single_contrast(data_initial.x, xi, counts_initial, model_initial)
+    g_relative = g * param_values[np.newaxis, :] * param_values[:, np.newaxis]
     heights_initial = {}
     for i, param in enumerate(xi):
-        heights_initial[param] = np.asarray([ellipse_height(g, i, j)
+        heights_initial[param] = np.asarray([ellipse_height(g_relative, i, j)
                                              for j in range(len(xi))])
 
     # Iterate over each of the second contrasts to measure.
@@ -178,8 +243,12 @@ def confidence_gain(bilayer: Bilayer, initial_contrast: float,
         # Record the difference in size between the initial and new ellipse
         # sizes for each parameter pair.
         g = fisher_multiple_contrasts(qs, xi, counts, models)
+        g_relative = g * param_values[np.newaxis, :] * param_values[:, np.newaxis]
+
         for i, param in enumerate(xi):
-            heights = np.asarray([ellipse_height(g, i, j) for j in range(len(xi))])
+            heights = np.asarray([ellipse_height(g_relative, i, j)
+                                  for j in range(len(xi))])
+
             heights_new[param].append(heights_initial[param] - heights)
 
         # Display progress.
@@ -255,13 +324,13 @@ def plot_confidences(contrasts: ArrayLike, confidence_gains: ArrayLike,
 
         # Set the plot title to the first parameter in each parameter pair.
         ax.set_title(param.name)
+        ax.legend(loc='upper right')
 
         ax.set_xlabel("$\mathregular{Contrast\ SLD\ (10^{-6} \AA^{-2})}$",
                       fontsize=11, weight='bold')
         ax.set_ylabel("Confidence Gain", fontsize=11, weight='bold')
-        ax.set_yscale('log')
-        ax.legend()
-        save_plot(fig, save_path, 'confidence_gain_{}'.format(i))
+
+        save_plot(fig, save_path, 'confidence_gain_{}'.format(i+1))
 
 if __name__ == '__main__':
     from structures import SymmetricBilayer
@@ -270,25 +339,26 @@ if __name__ == '__main__':
     save_path = './results'
 
     bilayer = SymmetricBilayer()
+    initial_contrast = 6.36
+    contrasts = np.arange(-0.56, 6.35, 0.01)
     angle_times = {0.7: (70, 10),
                    2.0: (70, 40)}
 
-    # Investigate how Fisher information changes with initial contrast SLD.
-    contrasts = np.arange(-0.56, 6.35, 0.01)
-    contrast_choice(bilayer, contrasts, angle_times, save_path)
+    # Investigate how the FIM changes with initial measurement contrast SLD.
+    first_contrast_choice(bilayer, contrasts, angle_times, save_path)
 
-    # Investigate how ellipse sizes change with second measured contrast SLD.
-    initial = 6.36
-    confidence_gain(bilayer, initial, contrasts, angle_times, save_path)
+    # Investigate how the FIM changes with second measurement contrast SLD.
+    second_contrast_choice(bilayer, initial_contrast, contrasts,
+                           angle_times, save_path)
 
     from structures import similar_sld_sample_1, similar_sld_sample_2
     from structures import thin_layer_sample_1, thin_layer_sample_2
     from structures import easy_sample, QCS_sample, many_param_sample
 
     structure = easy_sample
-    points = 140
-    time = 40
+    points = 70
+    time = 1
     angles = np.arange(0.3, 2.3, 0.01)
 
-    # Investigate how Fisher information changes with measurement time.
+    # Investigate how the FIM changes with measurement time.
     angle_choice(structure, angles, points, time, save_path)

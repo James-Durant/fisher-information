@@ -1,12 +1,17 @@
 import numpy as np
 import os
 
+from typing import List
+
 from refnx.dataset import ReflectDataset
 from refnx.reflect import SLD, Slab, Structure, ReflectModel
 from refnx.analysis import Parameter, Objective, GlobalObjective, CurveFitter
 
 from plotting import plot_sld_profile, plot_sld_profiles, save_plot
 from plotting import plot_reflectivity_curve, plot_objectives
+
+from simulate import simulate_single_contrast, AngleTimes
+from utils import Sampler
 
 class Bilayer:
     """Parent class for the symmetric and asymmetric bilayer classes."""
@@ -41,6 +46,37 @@ class Bilayer:
         print('----------- Fitted Parameters -----------')
         for param in global_objective.varying_parameters():
             print('{0}: {1}'.format(param.name, param.value))
+
+    def sample(self, contrasts: List[float], angle_times: AngleTimes,
+               save_path: str, filename: str) -> None:
+        """Samples the bilayer using nested sampling on simulated data.
+
+        Args:
+            contrasts (list): list of contrast SLDs to be sampled on.
+            angle_times (dict): number of points and times for each angle.
+            save_path (str): path to directory to save corner plots to.
+            filename (str): name of file to use when saving plots.
+
+        """
+        # Create objectives for each contrast to sample with.
+        objectives = []
+        for contrast in contrasts:
+            # Simulate an experiment using the given contrast.
+            structure = self.using_contrast(contrast)
+            model, data = simulate_single_contrast(structure, angle_times)
+            objectives.append(Objective(model, data))
+
+        # Combine objectives into a single global objective.
+        global_objective = GlobalObjective(objectives)
+        global_objective.varying_parameters = lambda: self.parameters
+
+        # Sample the objective using nested sampling.
+        sampler = Sampler(global_objective)
+        fig = sampler.sample_nested()
+
+        # Save the sampling corner plot.
+        save_path = os.path.join(save_path, str(self))
+        save_plot(fig, save_path, filename+'_nested_sampling')
 
     def plot_sld_profiles(self, save_path: str) -> None:
         """Plots the SLD profile of each measured contrast.
@@ -198,8 +234,7 @@ class SymmetricBilayer(Bilayer):
         si_DMPC_D2O_structure = substrate | sio2 | inner_hg_d2o | tg | tg | outer_hg_d2o | D2O(rough=self.bilayer_rough)
         si_DMPC_H2O_structure = substrate | sio2 | inner_hg_h2o | tg | tg | outer_hg_h2o | H2O(rough=self.bilayer_rough)
 
-        self.structures = [si_D2O_structure,
-                           si_DMPC_D2O_structure, si_DMPC_H2O_structure]
+        self.structures = [si_D2O_structure, si_DMPC_D2O_structure, si_DMPC_H2O_structure]
 
         # Label the structures.
         for i, structure in enumerate(self.structures):
@@ -336,15 +371,20 @@ class AsymmetricBilayer(Bilayer):
 
     def create_objectives(self) -> None:
         """Creates objectives corresponding to each measured contrast."""
+
+        # Define structures for each contrast.
         self.structures = [self.using_contrast(sld, name)
                            for sld, name in list(zip(self.contrast_slds, self.names))]
 
+        # Define models for the structures above.
         self.models = [ReflectModel(structure, scale=self.scale, bkg=bkg, dq=self.dq)
                        for structure, bkg in list(zip(self.structures, self.bkgs))]
 
+        # Load the data for each measured contrast.
         self.datasets = [ReflectDataset(os.path.join(self.data_path, '{}.dat'.format(name)))
                          for name in self.names]
 
+        # Combine models and datasets into objectives corresponding to each contrast.
         self.objectives = [Objective(model, data)
                            for model, data in list(zip(self.models, self.datasets))]
 
@@ -397,8 +437,11 @@ class SingleAsymmetricBilayer(AsymmetricBilayer):
         self.asym_value = Parameter(0.95, 'Asymmetry Value', (0,1), True)
         self.parameters.append(self.asym_value)
 
-        self.inner_tg_sld = SLD(self.asym_value*self.dPC_tg  + (1-self.asym_value)*self.hLPS_tg)
-        self.outer_tg_sld = SLD(self.asym_value*self.hLPS_tg + (1-self.asym_value)*self.dPC_tg)
+        self.inner_tg_sld = SLD(self.asym_value*self.dPC_tg +
+                                (1-self.asym_value)*self.hLPS_tg)
+
+        self.outer_tg_sld = SLD(self.asym_value*self.hLPS_tg +
+                                (1-self.asym_value)*self.dPC_tg)
 
         self.create_objectives()
 
@@ -424,8 +467,11 @@ class DoubleAsymmetricBilayer(AsymmetricBilayer):
         self.parameters.append(self.inner_tg_pc)
         self.parameters.append(self.outer_tg_pc)
 
-        self.inner_tg_sld = SLD(self.inner_tg_pc*self.dPC_tg + (1-self.inner_tg_pc)*self.hLPS_tg)
-        self.outer_tg_sld = SLD(self.outer_tg_pc*self.dPC_tg + (1-self.outer_tg_pc)*self.hLPS_tg)
+        self.inner_tg_sld = SLD(self.inner_tg_pc*self.dPC_tg +
+                                (1-self.inner_tg_pc)*self.hLPS_tg)
+
+        self.outer_tg_sld = SLD(self.outer_tg_pc*self.dPC_tg +
+                                (1-self.outer_tg_pc)*self.hLPS_tg)
 
         self.create_objectives()
 
@@ -433,10 +479,11 @@ class DoubleAsymmetricBilayer(AsymmetricBilayer):
         return 'double_asymmetric_bilayer'
 
 def QCS_sample() -> Structure:
-    """Creates the QCS (quartz, copper, silicon) sample for which data was measured.
+    """Creates the QCS (quartz, copper, silicon) sample for which
+       data was measured.
 
     Returns:
-        refnx.reflect.Structure: refnx representation of the measured structure.
+        refnx.reflect.Structure: representation of the measured structure.
 
     """
     air       = SLD(0, name='Air')
@@ -492,8 +539,9 @@ def many_param_sample() -> Structure:
     substrate = SLD(2.047, name='Substrate')(thick=0, rough=2)
     return air | layer1 | layer2 | layer3 | layer4 | layer5 | substrate
 
-STRUCTURES = [easy_sample, QCS_sample, similar_sld_sample_1, similar_sld_sample_2,
-              thin_layer_sample_1, thin_layer_sample_2, many_param_sample]
+STRUCTURES = [easy_sample, QCS_sample, many_param_sample,
+              similar_sld_sample_1, similar_sld_sample_2,
+              thin_layer_sample_1, thin_layer_sample_2]
 
 BILAYERS = [SymmetricBilayer, SingleAsymmetricBilayer, DoubleAsymmetricBilayer]
 
@@ -503,13 +551,26 @@ if __name__ == '__main__':
     # Plot the SLD profiles and model reflectivity curves for all structures.
     for structure in STRUCTURES:
         fig, _ = plot_sld_profile(structure())
-        save_plot(fig, os.path.join(save_path, structure.__name__), 'sld_profile')
+        save_plot(fig, os.path.join(save_path, structure.__name__),
+                  'sld_profile')
 
         fig, _ = plot_reflectivity_curve(structure())
-        save_plot(fig, os.path.join(save_path, structure.__name__), 'model_reflectivity')
+        save_plot(fig, os.path.join(save_path, structure.__name__),
+                  'model_reflectivity')
 
-    # Plot the SLD profiles and fitted reflectivity curves for the bilayer models.
+    # Define contrasts and measurement times / angles for corner plots.
+    D2O, SMW, H2O = 6.36, 2.07, -0.56
+    angle_times = {0.7: (70, 10),
+                   2.0: (70, 40)}
+
+    # Plot the SLD profiles, fitted reflectivity curves and corner plots
+    # for the bilayer models in this file.
     for bilayer_class in BILAYERS:
         bilayer = bilayer_class()
         bilayer.plot_sld_profiles(save_path)
         bilayer.plot_objectives(save_path)
+
+        # Sample on D2O, D2O+H2O, and D2O+SMW+H2O datasets.
+        bilayer.sample([D2O], angle_times, save_path, 'D2O')
+        bilayer.sample([D2O, H2O], angle_times, save_path, 'D2O_H2O')
+        bilayer.sample([D2O, SMW, H2O], angle_times, save_path, 'D2O_SMW_H2O')

@@ -15,8 +15,8 @@ from plotting import save_plot
 
 def fitting_biases(structure: Callable, angle_times: AngleTimes,
                    save_path: str, n: int=500) -> None:
-    """Investigates fitting biases in differential evolution with and without
-       following up with L-BFGS-B and in nested sampling.
+    """Investigates fitting biases in nested sampling and differential
+       evolution with and without following up with L-BFGS-B.
 
     Args:
         structure (function): structure to investigate biases with.
@@ -53,7 +53,7 @@ def fitting_biases(structure: Callable, angle_times: AngleTimes,
         # Display progress.
         print('>>> {0}/{1}'.format(i+1, n))
 
-    # Calculate the biases over the n fits.
+    # Calculate the biases over the `n` fits.
     evolution_biases = np.mean(evolution_params, axis=0) - true
     lbfgs_biases = np.mean(lbfgs_params, axis=0) - true
     sampling_biases = np.mean(sampled_params, axis=0) - true
@@ -62,8 +62,10 @@ def fitting_biases(structure: Callable, angle_times: AngleTimes,
 
     # Save the biases for each parameter for the three fitting methods.
     save_path = os.path.join(save_path, structure.__name__,)
-    save_biases(evolution_biases, names, 'Differential Evolution', save_path)
-    save_biases(lbfgs_biases, names, 'L-BFGS-B', save_path)
+    save_biases(evolution_biases, names,
+                'Differential Evolution (No Polish)', save_path)
+    save_biases(lbfgs_biases, names,
+                'Differential Evolution + L-BFGS-B', save_path)
     save_biases(sampling_biases, names, 'Sampling', save_path)
 
 def save_biases(biases: ArrayLike, names: List[str], method: str,
@@ -85,7 +87,7 @@ def save_biases(biases: ArrayLike, names: List[str], method: str,
     # Create a new file if not present. Otherwise, append to it.
     file_path = os.path.join(save_path, 'fitting_biases.txt')
     with open(file_path, 'a' if os.path.exists(file_path) else 'w') as file:
-        file.write('------------ {} Biases ------------\n'.format(method))
+        file.write(method+'\n')
         for name, bias in list(zip(names, biases)):
             file.write('{0}: {1}\n'.format(name, bias))
         file.write('\n')
@@ -312,7 +314,7 @@ def bias_derivative(bilayer: Bilayer, initial_contrast: float,
 
     # Plot bias vs. second measurement contrast SLD for each parameter value.
     for i, value in enumerate(param_range):
-        ax.plot(contrasts, biases[i], label=param_name+'='+str(value))
+        ax.plot(new_contrasts, biases[i], label=param_name+'='+str(value))
 
     ax.set_xlabel("$\mathregular{Contrast\ SLD\ (10^{-6} \AA^{-2})}$",
                   fontsize=11, weight='bold')
@@ -336,7 +338,7 @@ if __name__ == '__main__':
                    2.0: (70, 20)}
 
     # Investigate biases in fitting and sampling.
-    fitting_biases(structure, angle_times, save_path, 100)
+    fitting_biases(structure, angle_times, save_path, 1000)
 
     # Investigate how biases change with measurement time.
     multipliers = np.arange(1, 10, 0.2)

@@ -161,13 +161,13 @@ def similarity(measured: RefData, simulated: RefData) -> Tuple[float, float]:
     # The data is simulated at the same Q values as the measured data.
     r_measured = np.asarray([measured[angle][1]
                              for angle in measured]).flatten()
-    
+
     r_simulated = np.asarray([simulated[angle][1]
                               for angle in simulated]).flatten()
-    
+
     r_error_measured = np.asarray([measured[angle][2]
                                    for angle in measured]).flatten()
-    
+
     r_error_simulated = np.asarray([simulated[angle][2]
                                     for angle in simulated]).flatten()
 

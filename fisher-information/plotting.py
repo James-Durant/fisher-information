@@ -107,7 +107,8 @@ def plot_objectives(objectives: List[Objective], label: bool=True
 
     # Plot the rest of the objectives on the same axis.
     for objective in objectives[1:]:
-        q, r, r_error = objective.data.x, objective.data.y, objective.data.y_err
+        q, r = objective.data.x, objective.data.y
+        r_error = objective.data.y_err
 
         # Plot the reflectivity data.
         ax.errorbar(q, r, r_error,
@@ -156,7 +157,8 @@ def plot_reflectivity_curve(structure: Structure, q_min: float=0.005,
     """Plots the model reflectivity curve of a given structure.
 
     Args:
-        structure (refnx.reflect.Structure): structure to plot reflectivity curve of.
+        structure (refnx.reflect.Structure): structure to plot reflectivity
+                                             curve of.
         q_min (float): minimum Q value for the plot.
         q_max (float): maximum Q value for the plot.
         points (int): number of reflectivity points to plot.
@@ -218,7 +220,7 @@ if __name__ == '__main__':
     offset = 1e-2
     ax.plot(data.x, model(data.x)*offset, color="red", zorder=20)
     ax.errorbar(data.x, data.y*offset, data.y_err*offset,
-                label="DMPC bilayer in D2O $\mathregular{(x10^{-2})}$",
+                label="DMPC Bilayer in D2O $\mathregular{(x10^{-2})}$",
                 marker="o", ms=3, lw=0, elinewidth=1, capsize=1.5)
 
     #Plot Si-DMPC-H2O
@@ -226,7 +228,7 @@ if __name__ == '__main__':
     offset = 1e-3
     ax.plot(data.x, model(data.x)*offset, color="red", zorder=20)
     ax.errorbar(data.x, data.y*offset, data.y_err*offset,
-                label="DMPC bilayer in H2O $\mathregular{(x10^{-3})}$",
+                label="DMPC Bilayer in H2O $\mathregular{(x10^{-3})}$",
                 marker="o", ms=3, lw=0, elinewidth=1, capsize=1.5)
 
     ax.set_xlabel("$\mathregular{Q\ (Å^{-1})}$", fontsize=11, weight='bold')
@@ -236,5 +238,6 @@ if __name__ == '__main__':
     ax.set_ylim(1e-9, 2)
     ax.legend(loc='lower left')
 
+    # Save the figure 4 plot.
     save_path = os.path.join('./results', str(bilayer))
     save_plot(fig, save_path, 'fitted_reflectivity_paper')

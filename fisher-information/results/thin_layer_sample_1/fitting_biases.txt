@@ -1,0 +1,12 @@
+Differential Evolution (No Polish)
+Layer 1 - thick: 0.06411513446721528
+Layer 1 - sld: -0.0017464412312659938
+Layer 2 - thick: -0.017359954131918265
+Layer 2 - sld: 0.009046356349383444
+
+Differential Evolution + L-BFGS-B
+Layer 1 - thick: -0.1539070648215386
+Layer 1 - sld: -0.0020107526134363063
+Layer 2 - thick: 0.28138712227343277
+Layer 2 - sld: -0.06934367371065608
+

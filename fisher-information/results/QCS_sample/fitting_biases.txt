@@ -1,0 +1,12 @@
+Differential Evolution (No Polish)
+Layer 1 - Si - thick: 0.21185720610571934
+Layer 1 - Si - sld: 0.00852989894156364
+Layer 2 - Cu - thick: 0.014829004515434008
+Layer 2 - Cu - sld: 0.00043325774105440473
+
+Differential Evolution + L-BFGS-B
+Layer 1 - Si - thick: 0.20106671519442898
+Layer 1 - Si - sld: 0.009202433225189655
+Layer 2 - Cu - thick: 0.014256779702463973
+Layer 2 - Cu - sld: 0.00046517535352474937
+

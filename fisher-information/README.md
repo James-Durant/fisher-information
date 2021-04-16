@@ -7,6 +7,6 @@
 * [similarity.py](/fisher-information/similarity.py) - Quantitatively and qualitatively compares a measured [dataset](/fisher-information/data/QCS_sample) to its simulated counterpart.
 * [simulate.py](/fisher-information/simulate.py) - Simulates experiments using a [directbeam](/fisher-information/data/directbeam) file of incident neutron flux as a function of wavelength.
 * [structures.py](/fisher-information/structures.py) - Defines samples of varying complexity for use in applying the FIM.
-* [time_dependence.py](/fisher-information/time_dependence.py) - Explores how fitting and FIM errors change with increasing measurement time.
+* [time_dependence.py](/fisher-information/time_dependence.py) - Explores how fitting and FIM uncertainties change with increasing measurement time.
 * [utils.py](/fisher-information/utils.py) - Contains miscellaneous code for calculating the FIM, MCMC / nested sampling, random model generation and more.
 * [variances.py](/fisher-information/variances.py) - Compares the inverse FIM with the variance in parameter estimation obtained over many fits.

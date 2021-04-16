@@ -146,7 +146,7 @@ class ModelGenerator:
                             2.0: (70, 20)}
 
     def generate(self, num_samples: int, layers: int
-                 ) -> List[Tuple[ReflectModel, ReflectDataset, np.ndarray]]:
+                 ) -> List[Tuple[ReflectModel, ReflectDataset, ArrayLike]]:
         """Generates `num_samples` models and datasets with given number `layers`.
 
         Args:

@@ -20,7 +20,7 @@ def simulate_single_contrast(structure: Structure, angle_times: AngleTimes,
                              file_name: str=None
                              ) -> Tuple[ReflectModel,
                                         ReflectDataset,
-                                        Optional[np.ndarray]]:
+                                        Optional[ArrayLike]]:
     """Simulates a single contrast experiment measured over a number of angles.
 
     Args:
@@ -92,13 +92,13 @@ def simulate_single_contrast(structure: Structure, angle_times: AngleTimes,
     else:
         return model, dataset
 
-def simulate_multiple_contrasts(structures: List[Structure], 
+def simulate_multiple_contrasts(structures: List[Structure],
                                 angle_times: AngleTimes,
                                 scale: float=1, bkg: float=1e-7, dq: float=2,
                                 include_counts: bool=False, save_path: str=None
                                 ) -> Tuple[List[ReflectModel],
                                            List[ReflectDataset],
-                                           Optional[List[np.ndarray]]]:
+                                           Optional[List[ArrayLike]]]:
     """Simulates a multiple contrast experiment measured using a number
        of different angles.
 
