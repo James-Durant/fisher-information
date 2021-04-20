@@ -44,8 +44,10 @@ def first_contrast_choice(bilayer: Bilayer, contrasts: ArrayLike,
         print('>>> {0}/{1}'.format(i+1, len(contrasts)))
 
     # Plot the FIM as a function of contrast SLD.
-    plot_information(contrasts, information, xi, save_path, 'contrast', False)
-    plot_information(contrasts, information, xi, save_path, 'contrast', True)
+    plot_information(contrasts, information, xi,
+                     save_path, 'first_contrast', False)
+    plot_information(contrasts, information, xi,
+                     save_path, 'first_contrast', True)
 
 def second_contrast_choice(bilayer: Bilayer, initial_contrast: float,
                            contrasts: ArrayLike, angle_times: AngleTimes,
@@ -180,7 +182,7 @@ def plot_information(x: ArrayLike, information: ArrayLike,
         ax.set_xlabel('Angle (°)', fontsize=11, weight='bold')
 
     if normalise:
-        ax.set_ylabel('Normalised Relative Fisher Information',
+        ax.set_ylabel('Normalised Fisher Information',
                       fontsize=11, weight='bold')
         save_plot(fig, save_path, '{}_choice_normalised'.format(x_label))
     else:
