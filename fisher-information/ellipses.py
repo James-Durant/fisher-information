@@ -78,7 +78,7 @@ def plot_ellipses(g: ArrayLike, xi: List[Parameter], fig: plt.Figure) -> None:
             else:
                 axes[i,j].set_visible(False) # Remove all other plots.
 
-    axes[m-1, m-1].set_xlabel(xi[i].name)
+    axes[m-1, m-1].set_xlabel(xi[-1].name)
 
 def confidence_ellipse(g: ArrayLike, i: int, j: int, param1: Parameter,
                        param2: Parameter, axis: plt.Axes, show_xlabel: bool,

@@ -72,7 +72,7 @@ class Bilayer:
 
         # Sample the objective using nested sampling.
         sampler = Sampler(global_objective)
-        fig = sampler.sample_nested()
+        fig = sampler.sample_nested(dynamic=True)
 
         # Save the sampling corner plot.
         save_path = os.path.join(save_path, str(self))
@@ -571,7 +571,8 @@ if __name__ == '__main__':
         bilayer.plot_sld_profiles(save_path)
         bilayer.plot_objectives(save_path)
 
-        # Sample on D2O, D2O+H2O, and D2O+SMW+H2O datasets.
+        # Sample on D2O, D2Ox2, D2O+H2O, and D2O+SMW+H2O datasets.
         bilayer.sample([D2O], angle_times, save_path, 'D2O')
         bilayer.sample([D2O, H2O], angle_times, save_path, 'D2O_H2O')
+        bilayer.sample([D2O, D2O], angle_times, save_path, 'D2O_D2O')
         bilayer.sample([D2O, SMW, H2O], angle_times, save_path, 'D2O_SMW_H2O')

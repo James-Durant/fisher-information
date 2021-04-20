@@ -102,10 +102,24 @@ class Sampler:
 
         # Return the sampling corner plot if requested.
         if show_fig:
-            return dyplot.cornerplot(results, color='blue', quantiles=None,
-                                     show_titles=True, max_n_ticks=3,
-                                     truths=np.zeros(self.ndim),
-                                     truth_color='black')[0]
+            fig, _ = dyplot.cornerplot(results, color='blue', quantiles=None,
+                                       show_titles=True, max_n_ticks=3, 
+                                       truths=np.zeros(self.ndim),
+                                       truth_color='black')
+
+            # Label axes with parameter labels.
+            axes = np.reshape(np.array(fig.get_axes()), (self.ndim, self.ndim))
+            parameters = self.objective.varying_parameters()
+            for i in range(1, self.ndim):
+                for j in range(self.ndim):
+                    if i == self.ndim-1:
+                        axes[i,j].set_xlabel(parameters[j].name)
+                    if j == 0:
+                        axes[i,j].set_ylabel(parameters[i].name)
+        
+            axes[self.ndim-1, self.ndim-1].set_xlabel(parameters[-1].name)   
+            
+            return fig
 
     def logl(self, x: ArrayLike) -> float:
         """Calculates the log-likelihood of the parameters `x` against the model.
