@@ -236,7 +236,7 @@ if __name__ == '__main__':
     ax.set_xscale('log')
     ax.set_yscale('log')
     ax.set_ylim(1e-9, 2)
-    ax.legend(loc='lower left')
+    ax.legend(loc='upper right')
 
     # Save the figure 4 plot.
     save_path = os.path.join('./results', str(bilayer))

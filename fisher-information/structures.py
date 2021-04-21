@@ -185,7 +185,7 @@ class SymmetricBilayer(Bilayer):
 
     def create_objectives(self) -> None:
         """Creates objectives corresponding to each measured contrast."""
-        
+
         # Define the known scattering lengths and scattering length densities
         # of the two measured contrasts: D2O and H2O.
         d2o_sl  = 2e-4

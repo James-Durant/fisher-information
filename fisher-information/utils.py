@@ -103,7 +103,7 @@ class Sampler:
         # Return the sampling corner plot if requested.
         if show_fig:
             fig, _ = dyplot.cornerplot(results, color='blue', quantiles=None,
-                                       show_titles=True, max_n_ticks=3, 
+                                       show_titles=True, max_n_ticks=3,
                                        truths=np.zeros(self.ndim),
                                        truth_color='black')
 
@@ -116,9 +116,9 @@ class Sampler:
                         axes[i,j].set_xlabel(parameters[j].name)
                     if j == 0:
                         axes[i,j].set_ylabel(parameters[i].name)
-        
-            axes[self.ndim-1, self.ndim-1].set_xlabel(parameters[-1].name)   
-            
+
+            axes[self.ndim-1, self.ndim-1].set_xlabel(parameters[-1].name)
+
             return fig
 
     def logl(self, x: ArrayLike) -> float:
