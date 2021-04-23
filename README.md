@@ -3,7 +3,7 @@ A framework for determining the maximum information gain and optimising experime
 
 ## About the Project
 This repository contains the [figures](/figures), [code](/fisher-information), [data](/fisher-information/data) and additional [results](/fisher-information/results) for the following paper:
-> "Durant, J. H., Wilkins, L., Butler, K., and Cooper J. F. K. (2021). Determining the maximum information gain and optimising experimental design in neutron reflectometry using the Fisher information. *arXiv*. <br /> https://arxiv.org/abs/2103.08973"
+> Durant, J. H., Wilkins, L., Butler, K., and Cooper J. F. K. (2021). Determining the maximum information gain and optimising experimental design in neutron reflectometry using the Fisher information. *arXiv*. <br /> https://arxiv.org/abs/2103.08973
 
 Please cite this paper if you intend on including elements of this work in your own publications.
 
