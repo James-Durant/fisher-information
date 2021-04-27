@@ -296,7 +296,7 @@ def first_contrast_choice(bilayer, contrasts: ArrayLike,
        model, for each contrast SLD in a given array of `contrasts`.
 
     Args:
-        bilayer (structures.Bilayer): bilayer to find optimal contrast for.
+        bilayer (Bilayer): bilayer to find optimal contrast for.
         contrasts (numpy.ndarray): contrast SLDs to calculate FIM with.
         angle_times (dict): points and measurement times for each angle.
         save_path (str): path to directory to save FIM plot to.
@@ -331,7 +331,7 @@ def second_contrast_choice(bilayer, initial_contrast: float,
        of `contrasts`.
 
     Args:
-        bilayer (structures.Bilayer): bilayer to find optimal contrast for.
+        bilayer (Bilayer): bilayer to find optimal contrast for.
         initial_contrast (float): initial measured contrast SLD.
         contrasts (numpy.ndarray): second contrast SLDs to calculate FIM with.
         angle_times (dict): points and measurement times for each angle.
