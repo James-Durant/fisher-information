@@ -90,53 +90,6 @@ def simulate_single_contrast(structure: Structure, angle_times: AngleTimes,
     else:
         return model, dataset
 
-def simulate_multiple_contrasts(structures: List[Structure],
-                                angle_times: AngleTimes,
-                                scale: float=1, bkg: float=1e-7, dq: float=2,
-                                include_counts: bool=False,
-                                save_path: str=None
-                                ) -> Tuple[List[ReflectModel],
-                                           List[ReflectDataset],
-                                           Optional[List[ArrayLike]]]:
-    """Simulates a multiple contrast experiment measured using a number
-       of different angles.
-
-    Args:
-        structures (list): structures corresponding to each contrast.
-        angle_times (dict): points and times for each measured angle.
-        scale (float): instrument experimental scale factor.
-        bkg (float): level of the background to add.
-        dq (float): instrument resolution.
-        include_counts (bool): whether to return neutron count or not.
-        save_path (str): path to directory to save reflectivity data to.
-
-    Returns:
-        models (list): models for each contrast.
-        datasets (list): simulated reflectivity data for each contrast.
-        counts (list, optional): neutron counts corresponding to each Q value.
-
-    """
-    # Iterate over each structure (I.e. contrast).
-    models, datasets, counts = [], [], []
-    for i, structure in enumerate(structures, 1):
-        file_name = 'contrast{}.dat'.format(i)
-
-        # Simulate each measurement angle for the contrast.
-        simulated = simulate_single_contrast(structure, angle_times, scale,
-                                             bkg, dq, include_counts,
-                                             save_path, file_name)
-        models.append(simulated[0])
-        datasets.append(simulated[1])
-
-        if include_counts:
-            counts.append(simulated[2])
-
-    # Return the associated neutron counts if requested.
-    if include_counts:
-        return models, datasets, counts
-    else:
-        return models, datasets
-
 def run_experiment(model: ReflectModel, angle: float, points: int, time: float,
                    q_bin_edges: ArrayLike=None
                    ) -> Tuple[List[float], List[float], List[float], List[float]]:

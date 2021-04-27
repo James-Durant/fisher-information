@@ -11,6 +11,7 @@ class Bilayer():
     def __init__(self) -> None:
         self.name = 'asymmetric_bilayer'
         
+        # Define known values.
         self.si_sld    =  2.07
         self.sio2_sld  =  3.41
         self.pc_hg_sld =  1.98
@@ -18,7 +19,8 @@ class Bilayer():
         self.hLPS_tg   = -0.37
         self.core_D2O  =  4.2
         self.core_H2O  =  2.01
-
+        
+        # Define the parameters of the model.
         self.si_rough       = Parameter(5.5,    'Si/SiO2 Roughness',         (3,8))
         self.sio2_thick     = Parameter(13.4,   'SiO2 Thickness',            (10,30))
         self.sio2_rough     = Parameter(3.2,    'SiO2/Bilayer Roughness',    (2,5))
@@ -36,7 +38,6 @@ class Bilayer():
         self.inner_tg_sld = SLD(self.asym_value*self.dPC_tg  + (1-self.asym_value)*self.hLPS_tg)
         self.outer_tg_sld = SLD(self.asym_value*self.hLPS_tg + (1-self.asym_value)*self.dPC_tg)
 
-        # Define the parameters of the model.
         self.parameters = [#self.si_rough,
                            self.sio2_thick,
                            #self.sio2_rough,
@@ -82,18 +83,16 @@ class Bilayer():
 
         return substrate | sio2 | inner_hg | inner_tg | outer_tg | core | solution
 
-# Path to directory to save results to.
-save_path = './results'
+# Number of points and time to simulate for each angle.
+angle_times = {0.7: (30, 10),
+               2.0: (30, 40)} # Angle: (Points, Time)
 
-# Number of points and time for each angle to simulate.
-angle_times = {0.7: (30, 10), 2.0: (30, 40)} # Angle: (Points, Time)
-
-# Range of contrast SLDs to calculate the FIM over.
+# Contrast SLDs to calculate the FIM over.
 contrasts = np.arange(-0.56, 6.35, 0.1)
 
 # Investigate how the FIM changes with initial contrast SLD.
-first_contrast_choice(Bilayer(), contrasts, angle_times, save_path)
+first_contrast_choice(Bilayer(), contrasts, angle_times, './results')
 
 # Investigate how the FIM changes with second contrast SLD.
-initial_contrast = 6.36 # First contrast choice SLD.
-second_contrast_choice(Bilayer(), initial_contrast, contrasts, angle_times, save_path)
+initial_contrast = 6.36 # First contrast SLD choice.
+second_contrast_choice(Bilayer(), initial_contrast, contrasts, angle_times, './results')

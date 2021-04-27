@@ -22,7 +22,7 @@ class Bilayer:
         # Calculate the SLD of the tails
         self.tg_sld = (self.dmpc_tg_sl / self.dmpc_tg_vol) * 1e6
 
-        # Define the free parameters of the model.
+        # Define the parameters of the model.
         self.si_rough      = Parameter(2,     'Si/SiO2 Roughness',      (1,8))
         self.sio2_thick    = Parameter(14.7,  'SiO2 Thickness',         (5,20))
         self.sio2_rough    = Parameter(2,     'SiO2/DMPC Roughness',    (1,8))
@@ -75,16 +75,13 @@ class Bilayer:
 
         return substrate | sio2 | inner_hg | tg | tg | outer_hg | solution
 
-# Path to directory to save results to.
-save_path = './results'
-
-# Number of points and time for each angle to simulate.
+# Number of points and time to simulate for each angle.
 angle_times = {2.3: (30, 4)} # Angle: (Points, Time)
 
 contrast_sld = 6.35 # SLD of contrast being simulated.
 
-# Range of underlayer thicknesses to calculate the FIM over.
+# Underlayer thicknesses to calculate the FIM over.
 thicknesses = np.arange(2, 21, 0.25)
 
 # Investigate how the FIM changes with underlayer thickness.
-thickness_choice(Bilayer(), thicknesses, contrast_sld, angle_times, save_path)
+thickness_choice(Bilayer(), thicknesses, contrast_sld, angle_times, './results')
