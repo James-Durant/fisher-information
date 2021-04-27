@@ -240,12 +240,12 @@ def first_angle_choice(structure: Callable, angles: ArrayLike, points: int,
         print('>>> {0}/{1}'.format(i, len(angles)))
 
     plot_information(angles, information, xi, save_path, 'first_angle')
-    
-def second_angle_choice(structure: Callable, initial_angle_times: AngleTimes, 
+
+def second_angle_choice(structure: Callable, initial_angle_times: AngleTimes,
                         angles: ArrayLike, points: int, time: float,
                         save_path: str) -> None:
     """Investigates how the FIM changes, for each parameter of a given
-       `structure`, with second angle choice assuming an `initial_angle` 
+       `structure`, with second angle choice assuming an `initial_angle`
        was first measured.
 
     Args:
@@ -258,7 +258,7 @@ def second_angle_choice(structure: Callable, initial_angle_times: AngleTimes,
 
     """
     save_path = os.path.join(save_path, structure.__name__)
-    
+
     sample = vary_structure(structure())
 
     simulated_initial = simulate_single_contrast(sample, initial_angle_times,
@@ -352,7 +352,7 @@ def second_contrast_choice(bilayer, initial_contrast: float,
     for i, contrast_sld in enumerate(contrasts):
         # Simulate data for the given bilayer model with current contrast SLD.
         structure = bilayer.using_contrast(contrast_sld)
-        
+
         simulated_new = simulate_single_contrast(structure, angle_times,
                                                  include_counts=True)
         model_new, data_new, counts_new = simulated_new
@@ -371,7 +371,7 @@ def second_contrast_choice(bilayer, initial_contrast: float,
             print('>>> {0}/{1}'.format(i, len(contrasts)))
 
     # Plot the FIM as a function of second contrast SLD.
-    plot_information(contrasts, information, xi, save_path, 'second_contrast')  
+    plot_information(contrasts, information, xi, save_path, 'second_contrast')
 
 def plot_information(x: ArrayLike, information: ArrayLike,
                      xi: List[Parameter], save_path: str, x_label: str) -> None:
@@ -410,7 +410,7 @@ def plot_information(x: ArrayLike, information: ArrayLike,
     ax.set_yscale('log')
     ax.legend(loc='upper right')
     save_plot(fig, save_path, '{}_choice_log'.format(x_label))
-   
+
 def save_plot(fig: plt.Figure, save_path: str, file_name: str) -> None:
     """Saves a figure to a given directory.
 
@@ -425,8 +425,8 @@ def save_plot(fig: plt.Figure, save_path: str, file_name: str) -> None:
         os.makedirs(save_path)
 
     file_path = os.path.join(save_path, file_name+'.png')
-    fig.savefig(file_path, dpi=600)     
-   
+    fig.savefig(file_path, dpi=600)
+
 def vary_structure(structure: Structure, random_init: bool=False,
                    bound_size: float=0.2, vary_sld: bool=True,
                    vary_thick: bool=True, vary_rough: bool=False) -> Structure:

@@ -15,15 +15,15 @@ def sample() -> Structure:
 # Path to directory to save results to.
 save_path = './results'
 
-points = 70 # Number of data points.
-time = 1 # Measurement time to use for simulation.
+points = 70 # Number of data points to simulate.
+time = 1 # Time to use for simulation.
 
-# Range of angles to calculate the FIM over.
+# Range of angles (in degrees) to calculate the FIM over.
 angles = np.arange(0.3, 2.4, 0.05)
 
-# Investigate how the FIM changes with first measurement angle choice.
+# Investigate how the FIM changes with first angle choice.
 first_angle_choice(sample, angles, points, time, save_path)
 
-# Investigate how the FIM changes with second measurement angle choice.
-initial_angle_times = {0.7: (70, 1)} # Angle: (Points, Time) for first measurement.
+# Investigate how the FIM changes with second angle choice.
+initial_angle_times = {0.7: (70, 1)} # Angle: (Points, Time) for first angle.
 second_angle_choice(sample, initial_angle_times, angles, points, time, save_path)

@@ -1,5 +1,5 @@
 # Demonstration
-This directory is intended to provide a simplified interface for the simulation and FIM frameworks. To apply the frameworks to your own experimental design problems, simply modify the example models in the given files:
+This directory is intended to provide a simplified interface to the simulation and FIM frameworks. To apply the frameworks to your own experimental design problems, simply modify the example models in the given files:
 * [angle_choice.py](/demo/angle_choice.py) - Investigates how the FIM changes with first and second angle choices.
 * [contrast_choice.py](/demo/contrast_choice.py) - Investigates how the FIM changes with first and second contrast choices.
 

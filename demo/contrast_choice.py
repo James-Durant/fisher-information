@@ -31,7 +31,10 @@ class Bilayer():
         self.core_solv      = Parameter(0.26,   'Core Hydration',            (0,1))
         self.asym_value     = Parameter(0.95,   'Asymmetry Value',           (0,1))
 
-        # Define the free parameters of the model.
+        self.inner_tg_sld = SLD(self.asym_value*self.dPC_tg  + (1-self.asym_value)*self.hLPS_tg)
+        self.outer_tg_sld = SLD(self.asym_value*self.hLPS_tg + (1-self.asym_value)*self.dPC_tg)
+
+        # Define the parameters of the model.
         self.parameters = [#self.si_rough,
                            self.sio2_thick,
                            #self.sio2_rough,
@@ -66,34 +69,33 @@ class Bilayer():
 
         core_sld = contrast_point*self.core_D2O + (1-contrast_point)*self.core_H2O
 
-        inner_tg_sld = SLD(self.asym_value*self.dPC_tg  + (1-self.asym_value)*self.hLPS_tg)
-        outer_tg_sld = SLD(self.asym_value*self.hLPS_tg + (1-self.asym_value)*self.dPC_tg)
-
         substrate = SLD(self.si_sld)
         solution  = SLD(contrast_sld)(0, self.bilayer_rough)
 
-        sio2     = Slab(self.sio2_thick,     self.sio2_sld,  self.si_rough,      vfsolv=self.sio2_solv)
-        inner_hg = Slab(self.inner_hg_thick, self.pc_hg_sld, self.sio2_rough,    vfsolv=self.inner_hg_solv)
-        inner_tg = Slab(self.inner_tg_thick, inner_tg_sld,   self.bilayer_rough, vfsolv=self.tg_solv)
-        outer_tg = Slab(self.outer_tg_thick, outer_tg_sld,   self.bilayer_rough, vfsolv=self.tg_solv)
-        core     = Slab(self.core_thick,     core_sld,       self.bilayer_rough, vfsolv=self.core_solv)
+        sio2     = Slab(self.sio2_thick,     self.sio2_sld,     self.si_rough,      vfsolv=self.sio2_solv)
+        inner_hg = Slab(self.inner_hg_thick, self.pc_hg_sld,    self.sio2_rough,    vfsolv=self.inner_hg_solv)
+        inner_tg = Slab(self.inner_tg_thick, self.inner_tg_sld, self.bilayer_rough, vfsolv=self.tg_solv)
+        outer_tg = Slab(self.outer_tg_thick, self.outer_tg_sld, self.bilayer_rough, vfsolv=self.tg_solv)
+        core     = Slab(self.core_thick,     core_sld,          self.bilayer_rough, vfsolv=self.core_solv)
 
         return substrate | sio2 | inner_hg | inner_tg | outer_tg | core | solution
 
     def __str__(self) -> str:
         return 'asymmetric_bilayer'
 
+
 # Path to directory to save results to.
 save_path = './results'
-# Number of points and measurement time for each angle to simulate.
+
+# Number of points and time for each angle to simulate.
 angle_times = {0.7: (30, 10), 2.0: (30, 40)} # Angle: (Points, Time)
 
-# Contrast range to calculate the FIM over.
+# Range of contrast SLDs to calculate the FIM over.
 contrasts = np.arange(-0.56, 6.35, 0.1)
 
-# Investigate how the FIM changes with initial measurement contrast SLD.
+# Investigate how the FIM changes with initial contrast SLD.
 first_contrast_choice(Bilayer(), contrasts, angle_times, save_path)
 
-# Investigate how the FIM changes with second measurement contrast SLD.
-initial_contrast = 6.36 # First contrast choice.
+# Investigate how the FIM changes with second contrast SLD.
+initial_contrast = 6.36 # First contrast choice SLD.
 second_contrast_choice(Bilayer(), initial_contrast, contrasts, angle_times, save_path)
