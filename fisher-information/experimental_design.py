@@ -104,11 +104,11 @@ def second_contrast_choice(bilayer: Bilayer, initial_contrast: float,
 def angle_choice(structure: Callable, angles: ArrayLike, points: int,
                  time: float, save_path: str) -> None:
     """Investigates how the FIM changes, for each parameter of a given
-       `structure`, with increasing measurement time.
+       `structure`, with first angle choice.
 
     Args:
         structure (function): structure to calculate the FIM with.
-        angle (numpy.ndarray): measurement times to calculate FIM with.
+        angles (numpy.ndarray): measurement angles to calculate FIM with.
         points (int): number of points to simulate for each angle.
         time (float): measurement time to use when simulating each angle.
         save_path (str): path to directory to save FIM plot to.
@@ -355,5 +355,5 @@ if __name__ == '__main__':
     time = 1
     angles = np.arange(0.3, 2.3, 0.01)
 
-    # Investigate how the FIM changes with measurement time.
+    # Investigate how the FIM changes with measurement angle.
     angle_choice(structure, angles, points, time, save_path)
