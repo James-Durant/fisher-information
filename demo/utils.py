@@ -237,8 +237,10 @@ def first_angle_choice(structure: Callable, angles: ArrayLike, points: int,
         information.append(np.diag(g))
 
         # Display progress.
-        print('>>> {0}/{1}'.format(i, len(angles)))
-
+        if i % 10 == 0:
+            print('>>> {0}/{1}'.format(i, len(angles)))
+        
+    print()
     plot_information(angles, information, xi, save_path, 'first_angle')
 
 def second_angle_choice(structure: Callable, initial_angle_times: AngleTimes,
@@ -286,8 +288,10 @@ def second_angle_choice(structure: Callable, initial_angle_times: AngleTimes,
         information.append(np.diag(g))
 
         # Display progress.
-        print('>>> {0}/{1}'.format(i, len(angles)))
+        if i % 10 == 0:
+            print('>>> {0}/{1}'.format(i, len(angles)))
 
+    print()
     plot_information(angles, information, xi, save_path, 'second_angle')
 
 def first_contrast_choice(bilayer, contrasts: ArrayLike,
@@ -302,7 +306,7 @@ def first_contrast_choice(bilayer, contrasts: ArrayLike,
         save_path (str): path to directory to save FIM plot to.
 
     """
-    save_path = os.path.join(save_path, str(bilayer))
+    save_path = os.path.join(save_path, bilayer.name)
     xi = bilayer.parameters
 
     # Iterate over each SLD in the given array.
@@ -319,7 +323,8 @@ def first_contrast_choice(bilayer, contrasts: ArrayLike,
         # Display progress.
         if i % 10 == 0:
             print('>>> {0}/{1}'.format(i, len(contrasts)))
-
+            
+    print()
     # Plot the FIM as a function of contrast SLD.
     plot_information(contrasts, information, xi, save_path, 'first_contrast')
 
@@ -338,7 +343,7 @@ def second_contrast_choice(bilayer, initial_contrast: float,
         save_path (str): path to directory to save FIM plot to.
 
     """
-    save_path = os.path.join(save_path, str(bilayer))
+    save_path = os.path.join(save_path, bilayer.name)
     xi = bilayer.parameters
 
     # Simulate an experiment using the given initial contrast.
@@ -369,9 +374,51 @@ def second_contrast_choice(bilayer, initial_contrast: float,
         # Display progress.
         if i % 10 == 0:
             print('>>> {0}/{1}'.format(i, len(contrasts)))
-
+            
+    print()
     # Plot the FIM as a function of second contrast SLD.
     plot_information(contrasts, information, xi, save_path, 'second_contrast')
+
+def thickness_choice(bilayer, thicknesses, contrast_sld, angle_times, save_path):
+    """Investigates how the FIM changes, for each parameter of a bilayer
+       model, with underlayer (SiO2) thickness.
+
+    Args:
+        bilayer (Bilayer): bilayer model to find optimal thickness for.
+        thicknesses (numpy.ndarray): thicknesses to calculate FIM over.
+        contrast_sld (float): SLD of contrast.
+        angle_times (dict): points and measurement times for each angle.
+        save_path (str): path to directory to save FIM plot to.
+
+    """
+    save_path = os.path.join(save_path, bilayer.name)
+    xi = []
+    for param in bilayer.parameters:
+        if param.name == 'SiO2 Thickness':
+            sio2_thick = param
+        else:
+            xi.append(param)
+
+    # Iterate over each thickness in the given array.
+    information = []
+    for i, thickness in enumerate(thicknesses):
+        # Simulate data for the given bilayer model with current SiO2 thickness.
+        sio2_thick.value = thickness
+        
+        structure = bilayer.using_contrast(contrast_sld)
+        model, data, counts = simulate_single_contrast(structure, angle_times,
+                                                       include_counts=True)
+        # Calculate the FIM
+        g = fisher_single_contrast(data.x, xi, counts, model)
+        information.append(np.diag(g))
+
+        # Display progress.
+        if i % 10 == 0:
+            print('>>> {0}/{1}'.format(i, len(thicknesses)))
+    
+    print()
+    # Plot the FIM as a function of SiO2 thickness.
+    plot_information(thicknesses, information, xi, save_path, 'thickness')
 
 def plot_information(x: ArrayLike, information: ArrayLike,
                      xi: List[Parameter], save_path: str, x_label: str) -> None:
@@ -382,7 +429,7 @@ def plot_information(x: ArrayLike, information: ArrayLike,
         information (numpy.ndarray): FIM values for each parameter.
         xi (list): model parameters.
         save_path (str): path to directory to save FIM plot to.
-        x_lable (str): either 'contrast' or 'angle'.
+        x_lable (str): either 'contrast', 'angle' or 'thickness'.
         normalise (bool): whether to normalise the FIM to [0,1].
 
     """
@@ -402,6 +449,8 @@ def plot_information(x: ArrayLike, information: ArrayLike,
                       fontsize=11, weight='bold')
     elif x_label == 'angle':
         ax.set_xlabel('Angle (°)', fontsize=11, weight='bold')
+    elif x_label == 'thickness':
+        ax.set_xlabel('$\mathregular{Thickness\ (\AA)}$', fontsize=11, weight='bold')
 
     # Save both linear and log scale plots.
     ax.set_ylabel('Fisher Information (arb.)', fontsize=11, weight='bold')

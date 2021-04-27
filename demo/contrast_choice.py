@@ -9,6 +9,8 @@ class Bilayer():
     """Defines a model describing an asymmetric bilayer."""
 
     def __init__(self) -> None:
+        self.name = 'asymmetric_bilayer'
+        
         self.si_sld    =  2.07
         self.sio2_sld  =  3.41
         self.pc_hg_sld =  1.98
@@ -55,13 +57,13 @@ class Bilayer():
 
     def using_contrast(self, contrast_sld: float) -> Structure:
         """Creates a structure representing the bilayer measured using a
-           water contrast of given `contrast_sld`.
+           contrast of given `contrast_sld`.
 
         Args:
             contrast_sld (float): SLD of contrast to use.
 
         Returns:
-            refnx.reflect.Structure: structure in water contrast of given SLD.
+            refnx.reflect.Structure: structure in contrast of given SLD.
 
         """
         # Calculate core SLD with the given contrast SLD.
@@ -79,10 +81,6 @@ class Bilayer():
         core     = Slab(self.core_thick,     core_sld,          self.bilayer_rough, vfsolv=self.core_solv)
 
         return substrate | sio2 | inner_hg | inner_tg | outer_tg | core | solution
-
-    def __str__(self) -> str:
-        return 'asymmetric_bilayer'
-
 
 # Path to directory to save results to.
 save_path = './results'
