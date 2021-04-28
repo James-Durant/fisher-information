@@ -1,6 +1,6 @@
 ### Figure 1
 Experimentally measured reflectivity (top) and simulated reflectivity (bottom) vs. momentum transfer for each measurement angle of the QCS sample.
-<img src="https://github.com/James-Durant/fisher-information/blob/main/figures/figure_1.png" width="800">
+<img src="https://github.com/James-Durant/fisher-information/blob/main/figures/figure_1.png" width="900">
 
 ### Figure 2 
 The FIM confidence ellipses for k=1,2,3 (red) overlaid on the corner plots of MCMC (black) and nested sampling (blue) for the mostly uncorrelated parameter sample (left) and correlated parameter sample (right). Inset are the SLD profiles (top) and rebinned simulated reflectivity curves (bottom) of the two samples.
