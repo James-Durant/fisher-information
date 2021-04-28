@@ -1,9 +1,11 @@
 import numpy as np
+import sys
+sys.path.append('../fisher-information')
 
 from refnx.reflect import SLD, Slab, Structure
 from refnx.analysis import Parameter
 
-from utils import thickness_choice
+from experimental_design import thickness_choice
 
 class Bilayer:
     """Defines a model describing a symmetric bilayer."""

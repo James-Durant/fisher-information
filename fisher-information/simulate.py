@@ -11,7 +11,7 @@ from refnx.analysis import Objective
 
 from plotting import plot_objective
 
-DIRECTBEAM_PATH = './data/directbeam/directbeam_wavelength.dat'
+DIRECTBEAM_PATH = '../fisher-information/data/directbeam/directbeam_wavelength.dat'
 AngleTimes = Dict[float, Tuple[int, float]]
 
 def simulate_single_contrast(structure: Structure, angle_times: AngleTimes, scale: float=1, bkg: float=1e-7,

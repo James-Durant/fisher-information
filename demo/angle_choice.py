@@ -1,7 +1,9 @@
 import numpy as np
+import sys
+sys.path.append('../fisher-information')
 
 from refnx.reflect import SLD, Structure
-from utils import first_angle_choice, second_angle_choice
+from experimental_design import first_angle_choice, second_angle_choice
 
 def similar_sld_sample() -> Structure:
     """Defines a structure describing a sample with similar layer SLDs."""

@@ -1,9 +1,11 @@
 import numpy as np
+import sys
+sys.path.append('../fisher-information')
 
 from refnx.reflect import SLD, Slab, Structure
 from refnx.analysis import Parameter
 
-from utils import first_contrast_choice, second_contrast_choice
+from experimental_design import first_contrast_choice, second_contrast_choice
 
 class Bilayer():
     """Defines a model describing an asymmetric bilayer."""
