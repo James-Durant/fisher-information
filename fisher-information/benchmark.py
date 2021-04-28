@@ -5,12 +5,12 @@ sys.path.append('./') # MCMC sampling cannot find structures without this?
 from typing import List, Tuple
 from refnx.analysis import Objective
 
-from utils import fisher_single_contrast, Sampler, ModelGenerator
+from utils import Sampler, ModelGenerator
+from utils import fisher_single_contrast as fisher
 
-def benchmark(layers: int, num_samples: int
-              ) -> Tuple[List[float], List[float], List[float]]:
+def benchmark(layers: int, num_samples: int) -> Tuple[List[float], List[float], List[float]]:
     """Randomly generate num_samples samples each of given number of
-       layers and calculate parameter uncertainness using MCMC sampling,
+       layers and calculate parameter uncertainties using MCMC sampling,
        nested sampling and the FIM approach for each sample.
 
     Args:
@@ -25,11 +25,11 @@ def benchmark(layers: int, num_samples: int
     """
     print('-------- {}-Layer Samples --------'.format(layers))
 
-    # Generate the random samples and simulate experiments using them.
+    # Generate random samples and simulate experiments using them.
     generator = ModelGenerator()
     models_data = generator.generate(num_samples, layers)
 
-    # Iterate over each sample and run MCMC and nested sampling, and
+    # Iterate over each sample, run MCMC and nested sampling, and
     # calculate the FIM.
     times_MCMC, times_nested, times_FIM = [], [], []
     for i, (model, data, counts) in enumerate(models_data):
@@ -55,7 +55,7 @@ def benchmark(layers: int, num_samples: int
         print('>>> FIM {0}/{1}'.format(i+1, len(models_data)))
         xi = objective.varying_parameters()
         start = time.time()
-        g = fisher_single_contrast(data.x, xi, counts, model)
+        g = fisher(data.x, xi, counts, model)
         1 / np.sqrt(np.diag(g)) # Calculate parameter uncertainties.
         end = time.time()
         times_FIM.append(end-start)

@@ -12,10 +12,10 @@ from dynesty import NestedSampler, DynamicNestedSampler
 from dynesty import plotting as dyplot
 from dynesty import utils as dyfunc
 
-from simulate import simulate_single_contrast
+from simulate import simulate_single_contrast as simulate
 
 class Sampler:
-    """Samples an objective using MCMC and nested sampling.
+    """Samples an objective using MCMC or nested sampling.
 
     Attributes:
         objective (refnx.analysis.Objective): objective to sample.
@@ -30,23 +30,17 @@ class Sampler:
         self.ndim = len(self.objective.varying_parameters())
         self.sampler_MCMC = CurveFitter(self.objective)
 
-        self.sampler_nested_static = NestedSampler(self.logl,
-                                                   self.objective.prior_transform,
-                                                   self.ndim)
+        self.sampler_nested_static = NestedSampler(self.logl, self.objective.prior_transform, self.ndim)
+        self.sampler_nested_dynamic = DynamicNestedSampler(self.logl, self.objective.prior_transform, self.ndim)
 
-        self.sampler_nested_dynamic = DynamicNestedSampler(self.logl,
-                                                           self.objective.prior_transform,
-                                                           self.ndim)
-
-    def sample_MCMC(self, burn: int=400, steps: int=30, nthin: int=100,
-                    fit_first: bool=True, verbose: bool=True,
-                    show_fig: bool=True) -> Optional[plt.Figure]:
+    def sample_MCMC(self, burn: int=400, steps: int=30, nthin: int=100, fit_first: bool=True,
+                    verbose: bool=True, show_fig: bool=True) -> Optional[plt.Figure]:
         """Samples the objective using MCMC sampling.
 
         Args:
-            burn (int): number of samples to use for the burn-in period.
-            steps (int): number of steps to use for the main sampling stage.
-            nthin (int): amount of thinning to use for the main sampling stage.
+            burn (int): number of samples to use for burn-in period.
+            steps (int): number of steps to use for main sampling stage.
+            nthin (int): amount of thinning to use for main sampling stage.
             fit_first (bool): whether to fit before sampling.
             verbose (bool): whether to display progress when sampling.
             show_fig (bool): whether to create and return a corner plot.
@@ -70,8 +64,7 @@ class Sampler:
         if show_fig:
             return self.objective.corner()
 
-    def sample_nested(self, dynamic: bool=False, verbose: bool=True,
-                      show_fig: bool=True) -> Optional[plt.Figure]:
+    def sample_nested(self, dynamic: bool=False, verbose: bool=True, show_fig: bool=True) -> Optional[plt.Figure]:
         """Samples the objective using static or dynamic nested sampling.
 
         Args:
@@ -83,11 +76,10 @@ class Sampler:
             matplotlib.pyplot.Figure, optional: nested sampling corner plot.
 
         """
-        # Sample using dynamic or nested sampling.
+        # Sample using dynamic or static nested sampling.
         if dynamic:
             # Weighting is entirely on the posterior (0 weight on evidence).
-            self.sampler_nested_dynamic.run_nested(print_progress=verbose,
-                                                   wt_kwargs={'pfrac': 1.0})
+            self.sampler_nested_dynamic.run_nested(print_progress=verbose, wt_kwargs={'pfrac': 1.0})
             results = self.sampler_nested_dynamic.results
         else:
             self.sampler_nested_static.run_nested(print_progress=verbose)
@@ -102,10 +94,8 @@ class Sampler:
 
         # Return the sampling corner plot if requested.
         if show_fig:
-            fig, _ = dyplot.cornerplot(results, color='blue', quantiles=None,
-                                       show_titles=True, max_n_ticks=3,
-                                       truths=np.zeros(self.ndim),
-                                       truth_color='black')
+            fig, _ = dyplot.cornerplot(results, color='blue', quantiles=None, show_titles=True,
+                                       max_n_ticks=3, truths=np.zeros(self.ndim),truth_color='black')
 
             # Label axes with parameter labels.
             axes = np.reshape(np.array(fig.get_axes()), (self.ndim, self.ndim))
@@ -118,7 +108,6 @@ class Sampler:
                         axes[i,j].set_ylabel(parameters[i].name)
 
             axes[self.ndim-1, self.ndim-1].set_xlabel(parameters[-1].name)
-
             return fig
 
     def logl(self, x: ArrayLike) -> float:
@@ -137,21 +126,18 @@ class Sampler:
         return self.objective.logl()
 
 class ModelGenerator:
-    """Contains code relating random model generation.
+    """Contains code for random model generation.
 
     Attributes:
         sld_bounds (tuple): range of values that layer SLDs can take.
         thick_bounds (tuple): range of values that layer thicknesses can take.
         rough_bounds (tuple): range of values that layer roughnesses can take.
-        substrate_sld (float): SLD of the substrate.
-        angle_times (dict): points and times for each measurement angle.
+        substrate_sld (float): SLD of substrate.
+        angle_times (dict): points and times for each simulation angle.
 
     """
-    def __init__(self, sld_bounds: Tuple[float, float]=(-1,10),
-                 thick_bounds: Tuple[float, float]=(20,1000),
-                 rough_bounds: Tuple[float, float]=(2,8),
-                 substrate_sld: float=2.047) -> None:
-
+    def __init__(self, sld_bounds: Tuple[float, float]=(-1,10), thick_bounds: Tuple[float, float]=(20,1000),
+                 rough_bounds: Tuple[float, float]=(2,8), substrate_sld: float=2.047) -> None:
         self.sld_bounds = sld_bounds
         self.thick_bounds = thick_bounds
         self.rough_bounds = rough_bounds
@@ -159,10 +145,8 @@ class ModelGenerator:
         self.angle_times = {0.7: (70, 5),
                             2.0: (70, 20)}
 
-    def generate(self, num_samples: int, layers: int
-                 ) -> List[Tuple[ReflectModel, ReflectDataset, ArrayLike]]:
-        """Generates `num_samples` models and datasets with given
-           number of `layers`.
+    def generate(self, num_samples: int, layers: int) -> List[Tuple[ReflectModel, ReflectDataset, ArrayLike]]:
+        """Generates `num_samples` models and datasets with given number of `layers`.
 
         Args:
             num_samples (int): number of models to generate.
@@ -175,25 +159,22 @@ class ModelGenerator:
         models_data = []
         for layers in range(num_samples):
             # Get a random structure and simulate an experiment using it.
-            structure = vary_structure(self.random_structure(layers),
-                                       vary_rough=True, bound_size=0.25)
+            structure = vary_structure(self.random_structure(layers), vary_rough=True, bound_size=0.25)
+            models_data.append(simulate(structure, self.angle_times, include_counts=True))
 
-            models_data.append(simulate_single_contrast(structure,
-                                                        self.angle_times,
-                                                        include_counts=True))
         return models_data
 
     def random_structure(self, layers: int) -> Structure:
         """Generates a single random structure with desired number of layers.
 
         Args:
-            layers (int): number of layers for generated structures.
+            layers (int): number of layers for generated structure.
 
         Returns:
             refnx.reflect.Structure: randomly generated structure.
 
         """
-        # Air followed by each layer and then finally the substrate.
+        # Air followed by each layer, and then finally the substrate.
         structure = SLD(0, name='Air')
         for i in range(layers):
             structure |= self.make_component(substrate=False)
@@ -205,7 +186,7 @@ class ModelGenerator:
         """Generates a single layer of a structure.
 
         Args:
-            substrate (bool): whether the component is the substrate or not.
+            substrate (bool): whether component is substrate or not.
 
         Returns:
             refnx.reflect.Component: randomly generated layer.
@@ -223,25 +204,24 @@ class ModelGenerator:
         roughness = np.random.choice(np.arange(*self.rough_bounds, 0.25))
         return SLD(sld)(thickness, roughness)
 
-def vary_structure(structure: Structure, random_init: bool=False,
-                   bound_size: float=0.2, vary_sld: bool=True,
-                   vary_thick: bool=True, vary_rough: bool=False) -> Structure:
+def vary_structure(structure: Structure, random_init: bool=False, bound_size: float=0.2,
+                   vary_sld: bool=True, vary_thick: bool=True, vary_rough: bool=False) -> Structure:
     """Vary the parameters of each layer of a given `structure` and optionally,
        initialise these values to random values within their bounds.
 
     Args:
         structure (refnx.reflect.Structure): structure to vary.
         random_init (bool): whether to randomly initialise parameters.
-        bound_size (float): size of the bounds to place on the parameters.
-        vary_sld (bool): whether to vary the structure's layers' SLDs.
+        bound_size (float): size of bounds to place on parameters.
+        vary_sld (bool): whether to vary structure's layers' SLDs.
         vary_thick (bool): whether to vary structure's layers' thicknesses.
         vary_rough (bool): whether to vary structure's layers' roughnesses.
 
     Returns:
-        refnx.reflect.Structure: a reference to the given structure.
+        refnx.reflect.Structure: reference to input structure.
 
     """
-    # Skip over air and the substrate.
+    # Skip over air and substrate.
     for component in structure.components[1:-1]:
         # Vary each layers' SLD, thickness and roughness if requested.
         if vary_sld:
@@ -283,7 +263,7 @@ def fisher_single_contrast(q: ArrayLike, xi: List[Parameter], counts: ArrayLike,
 
     Args:
         q (numpy.ndarray): array of Q values.
-        xi (list): parameters representing each varying parameter.
+        xi (list): varying parameters.
         counts (numpy.ndarray): incident neutron counts for each Q value.
         model (refnx.reflect.ReflectModel): model for calculating gradients.
 
@@ -300,15 +280,13 @@ def fisher_single_contrast(q: ArrayLike, xi: List[Parameter], counts: ArrayLike,
         for j in range(m):
             J[i,j] = gradient(model, xi[j], q[i])
 
-    r = model(q) #Use model reflectivity values
+    r = model(q) # Use model reflectivity values.
     M = np.diag(counts/r, k=0)
     return np.dot(np.dot(J.T, M), J)
 
-def fisher_multiple_contrasts(qs: List[ArrayLike], xi: List[Parameter],
-                              counts: List[ArrayLike],
+def fisher_multiple_contrasts(qs: List[ArrayLike], xi: List[Parameter], counts: List[ArrayLike],
                               models: List[ReflectModel]) -> ArrayLike:
-    """Calculates the Fisher information metric (FIM) matrix for a given list
-       of `models` and set of parameters, `xi`.
+    """Calculates the FIM matrix for a given list of `models` and set of parameters, `xi`.
 
     Args:
         qs (list): Q arrays corresponding to each contrast.
@@ -340,14 +318,13 @@ def fisher_multiple_contrasts(qs: List[ArrayLike], xi: List[Parameter],
     M = np.diag(np.concatenate(counts) / r, k=0)
     return np.dot(np.dot(J.T, M), J)
 
-def gradient(model: ReflectModel, parameter: Parameter, q_point: float,
-             step: float=0.005) -> float:
+def gradient(model: ReflectModel, parameter: Parameter, q_point: float, step: float=0.005) -> float:
     """Calculate two-point gradient of model reflectivity with model parameter.
 
     Args:
         model (refnx.reflect.ReflectModel): model to calculate gradient.
         parameter (refnx.analysis.Parameter): parameter to vary.
-        q_point (float): Q value of the R point to calculate the gradient of.
+        q_point (float): Q value of the r point to calculate the gradient of.
         step (float): step size to take when calculating the gradient.
 
     Returns:
@@ -384,16 +361,15 @@ def get_ground_truths(structure: Structure) -> ArrayLike:
     return np.asarray(true)
 
 def usefulness(objective: Objective) -> float:
-    """Calculate a usefulness metric for a given objective. This metric is
+    """Calculate a usefulness metric for a given `objective`. This metric is
        intended to provide a measure of how closely the FIM results will
        match traditional sampling methods.
 
     Args:
-        objective (refnx.analysis.Objective): objective to calculate
-                                              usefulness of.
+        objective (refnx.analysis.Objective): objective to calculate usefulness of.
 
     Returns:
-        float: usefulness metric for the objective.
+        float: usefulness metric for the given `objective`.
 
     """
     covar = objective.covar() # Calculate the fitting covariance matrix.
@@ -415,10 +391,10 @@ def select_model(dataset: ReflectDataset, counts: ArrayLike,
     Args:
         dataset (refnx.dataset.ReflectDataset): dataset to obtain a model for.
         counts (numpy.ndarray): neutron counts for each point in the dataset.
-        layers (tuple): range of layers to search when selecting a model.
+        layers (tuple): layer interval to search when selecting a model.
 
     Returns:
-        refnx.reflect.ReflectModel: selected model for the data.
+        refnx.reflect.ReflectModel: selected model for the given data.
 
     """
     generator = ModelGenerator()
@@ -454,8 +430,7 @@ def select_model(dataset: ReflectDataset, counts: ArrayLike,
         # Calculate the Kashyap information criterion (KIC)
         logp = objective.logp()
         g = fisher_single_contrast(dataset.x, xi, counts, model)
-        KICs.append(-2*logl - 2*logp + k*np.log(n/(2*np.pi)) +
-                    np.log(np.linalg.det(g/n)))
+        KICs.append(-2*logl - 2*logp + k*np.log(n/(2*np.pi)) + np.log(np.linalg.det(g/n)))
 
     # Display the best model using each information criterion.
     print('\nLog-likelihood: {}-layer'.format(np.argmax(logls)+1))
@@ -463,11 +438,9 @@ def select_model(dataset: ReflectDataset, counts: ArrayLike,
     print('BIC: {}-layer'.format(np.argmin(BICs)+1))
     print('KIC: {}-layer'.format(np.argmin(KICs)+1))
 
-    return objectives[np.argmin(AICs)] # Use the AIC by default.
+    return objectives[np.argmin(AICs)] # Return best model given by AIC.
 
 if __name__ == '__main__':
-    from simulate import simulate_single_contrast
-
     from structures import thin_layer_sample_1, thin_layer_sample_2
     from structures import similar_sld_sample_1, similar_sld_sample_2
     from structures import easy_sample, QCS_sample, many_param_sample
@@ -478,15 +451,14 @@ if __name__ == '__main__':
                    2.0: (70, 20)}
 
     # Select a model for the simulated data of the chosen structure.
-    _, dataset, counts = simulate_single_contrast(structure(), angle_times,
-                                                  include_counts=True)
+    _, dataset, counts = simulate(structure(), angle_times, include_counts=True)
     model = select_model(dataset, counts, layers=(1,4))
     print()
 
     # Calculate the usefulness of all structures in the structures file.
     print('----------- Usefulness Metrics -----------')
     for structure in STRUCTURES:
-        model, data = simulate_single_contrast(structure(), angle_times)
+        model, data = simulate(structure(), angle_times)
         objective = Objective(model, data)
         vary_structure(objective.model.structure, random_init=True)
 

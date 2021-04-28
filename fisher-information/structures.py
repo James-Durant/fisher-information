@@ -9,9 +9,10 @@ from refnx.analysis import Parameter, Objective, GlobalObjective, CurveFitter
 
 from plotting import plot_sld_profile, plot_sld_profiles, save_plot
 from plotting import plot_reflectivity_curve, plot_objectives
-
-from simulate import simulate_single_contrast, AngleTimes
 from utils import Sampler
+
+from simulate import AngleTimes
+from simulate import simulate_single_contrast as simulate
 
 class Bilayer:
     """Parent class for the symmetric and asymmetric bilayer classes."""
@@ -47,12 +48,11 @@ class Bilayer:
         for param in global_objective.varying_parameters():
             print('{0}: {1}'.format(param.name, param.value))
 
-    def sample(self, contrasts: List[float], angle_times: AngleTimes,
-               save_path: str, filename: str) -> None:
+    def sample(self, contrasts: List[float], angle_times: AngleTimes, save_path: str, filename: str) -> None:
         """Samples the bilayer using nested sampling on simulated data.
 
         Args:
-            contrasts (list): list of contrast SLDs to be sampled on.
+            contrasts (list): contrast SLDs to be sampled on.
             angle_times (dict): number of points and times for each angle.
             save_path (str): path to directory to save corner plots to.
             filename (str): name of file to use when saving plots.
@@ -62,8 +62,7 @@ class Bilayer:
         objectives = []
         for contrast in contrasts:
             # Simulate an experiment using the given contrast.
-            structure = self.using_contrast(contrast)
-            model, data = simulate_single_contrast(structure, angle_times)
+            model, data = simulate(self.using_contrast(contrast), angle_times)
             objectives.append(Objective(model, data))
 
         # Combine objectives into a single global objective.
