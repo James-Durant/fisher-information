@@ -5,14 +5,12 @@ sys.path.append('../fisher-information')
 from refnx.reflect import SLD, Slab, Structure
 from refnx.analysis import Parameter
 
-from experimental_design import thickness_choice
+from experimental_design import underlayer_choice
 
 class Bilayer:
     """Defines a model describing a symmetric bilayer."""
 
     def __init__(self) -> None:
-        self.name = 'symmetric_bilayer'
-        
         self.si_sld      = 2.073
         self.sio2_sld    = 3.41
         self.dmpc_hg_vol = 320.9
@@ -77,6 +75,9 @@ class Bilayer:
 
         return substrate | sio2 | inner_hg | tg | tg | outer_hg | solution
 
+    def __str__(self) -> str:
+        return 'symmetric_bilayer'
+
 # Number of points and time to simulate for each angle.
 angle_times = {2.3: (30, 4)} # Angle: (Points, Time)
 
@@ -86,4 +87,4 @@ contrast_sld = 6.35 # SLD of contrast being simulated.
 thicknesses = np.arange(2, 21, 0.25)
 
 # Investigate how the FIM changes with underlayer thickness.
-thickness_choice(Bilayer(), thicknesses, contrast_sld, angle_times, './results')
+underlayer_choice(Bilayer(), thicknesses, contrast_sld, angle_times, './results')

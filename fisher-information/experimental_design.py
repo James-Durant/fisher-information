@@ -174,6 +174,48 @@ def second_angle_choice(structure: Callable, initial_angle_times: AngleTimes,
     plot_information(angles, information, xi, save_path, 'second_angle', False)
     plot_information(angles, information, xi, save_path, 'second_angle', True)
 
+def underlayer_choice(bilayer: Bilayer, thicknesses: ArrayLike, contrast_sld: float,
+                      angle_times: AngleTimes, save_path: str) -> None:
+    """Investigates how the FIM changes, for each parameter of a `bilayer` model,
+       with SiO2 underlayer thickness.
+
+    Args:
+        bilayer (Bilayer): bilayer model to find optimal underlayer thickness for.
+        thicknesses (numpy.ndarray): thicknesses to calculate FIM over.
+        contrast_sld (float): SLD of the contrast to simulate.
+        angle_times (dict): points and simulation times for each angle.
+        save_path (str): path to directory to save FIM plot to.
+
+    """
+    # Get the underlayer thickness parameter.
+    xi = []
+    for param in bilayer.parameters:
+        if param.name == 'SiO2 Thickness':
+            sio2_thick = param
+        else:
+            xi.append(param)
+
+    # Iterate over each thickness in the given array.
+    information = []
+    for i, thickness in enumerate(thicknesses):
+        # Simulate data for the given bilayer model with current SiO2 thickness.
+        sio2_thick.value = thickness
+
+        structure = bilayer.using_contrast(contrast_sld)
+        model, data, counts = simulate(structure, angle_times, include_counts=True)
+
+        # Calculate the FIM
+        g = fisher_single_contrast(data.x, xi, counts, model)
+        information.append(np.diag(g))
+
+        # Display progress.
+        print('>>> {0}/{1}'.format(i+1, len(thicknesses)))
+
+    # Plot the FIM as a function of contrast SLD.
+    save_path = os.path.join(save_path, str(bilayer))
+    plot_information(thicknesses, information, xi, save_path, 'thickness', False)
+    plot_information(thicknesses, information, xi, save_path, 'thickness', True)
+
 def plot_information(x: ArrayLike, information: ArrayLike, xi: List[Parameter],
                      save_path: str, x_label: str, normalise: bool=False) -> None:
     """Plots the FIM for each parameter of a model against given `x` array.
@@ -209,6 +251,8 @@ def plot_information(x: ArrayLike, information: ArrayLike, xi: List[Parameter],
         ax.set_xlabel('$\mathregular{Contrast\ SLD\ (10^{-6} \AA^{-2})}$', fontsize=11, weight='bold')
     elif x_label == 'angle':
         ax.set_xlabel('Angle (°)', fontsize=11, weight='bold')
+    elif x_label == 'thickness':
+        ax.set_xlabel('$\mathregular{Underlayer\ Thickness\ (\AA)}$', fontsize=11, weight='bold')
 
     y_label = 'Fisher Information (arb.)'
 
@@ -354,14 +398,17 @@ if __name__ == '__main__':
     bilayer = SymmetricBilayer()
     initial_contrast = 6.36
     contrasts = np.arange(-0.56, 6.35, 0.01)
-    angle_times = {0.7: (30, 10),
-                   2.0: (30, 40)}
+    angle_times = {0.7: (70, 10), 2.0: (70, 40)}
 
     # Investigate how the FIM changes with initial measurement contrast SLD.
     first_contrast_choice(bilayer, contrasts, angle_times, save_path)
 
     # Investigate how the FIM changes with second measurement contrast SLD.
     second_contrast_choice(bilayer, initial_contrast, contrasts, angle_times, save_path)
+
+    # Investigate how the FIM changes with underlayer thickness.
+    thicknesses = np.arange(2, 21, 0.01)
+    underlayer_choice(bilayer, thicknesses, initial_contrast, angle_times, save_path)
 
     from structures import similar_sld_sample_1, similar_sld_sample_2
     from structures import thin_layer_sample_1, thin_layer_sample_2

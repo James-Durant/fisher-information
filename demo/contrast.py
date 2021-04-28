@@ -11,8 +11,6 @@ class Bilayer():
     """Defines a model describing an asymmetric bilayer."""
 
     def __init__(self) -> None:
-        self.name = 'asymmetric_bilayer'
-        
         # Define known values.
         self.si_sld    =  2.07
         self.sio2_sld  =  3.41
@@ -84,7 +82,10 @@ class Bilayer():
         core     = Slab(self.core_thick,     core_sld,          self.bilayer_rough, vfsolv=self.core_solv)
 
         return substrate | sio2 | inner_hg | inner_tg | outer_tg | core | solution
-
+    
+    def __str__(self) -> str:
+        return 'asymmetric_bilayer'
+    
 # Number of points and time to simulate for each angle.
 angle_times = {0.7: (30, 10),
                2.0: (30, 40)} # Angle: (Points, Time)
