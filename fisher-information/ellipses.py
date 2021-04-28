@@ -9,54 +9,57 @@ from numpy.typing import ArrayLike
 from refnx.analysis import Parameter, Objective
 
 from plotting import plot_objective, save_plot
-from simulate import simulate_single_contrast, AngleTimes
-from utils import vary_structure, fisher_single_contrast, Sampler
 
-def compare_ellipses(structure: Callable, angle_times: AngleTimes,
-                     save_path: str) -> None:
-    """Calculates parameter uncertainties for a given structure using MCMC
+from utils import vary_structure, Sampler
+from utils import fisher_single_contrast as fisher
+
+from simulate import AngleTimes
+from simulate import simulate_single_contrast as simulate
+
+def compare_ellipses(structure: Callable, angle_times: AngleTimes, save_path: str) -> None:
+    """Calculates parameter uncertainties for a given `structure` using MCMC
        and nested sampling, calculates the FIM and plots the FIM confidence
-       ellipses against the sampling corner plots.
+       ellipses on the sampling corner plots.
 
     Args:
-        structure (function): structure to simulate experiment on.
-        angle_times (dict): times and points for each measurement angle.
-        save_path (str): path to directory for saving data and figures.
+        structure (function): structure to simulate with.
+        angle_times (dict): points and simulation times for each angle.
+        save_path (str): path to directory to save data and figures.
 
     """
     save_path = os.path.join(save_path, structure.__name__)
 
-    # Simulate experiment using the given angles, number of points and times.
+    # Simulate an experiment using the given angles, number of points and times.
     structure = vary_structure(structure())
-    model, data, counts = simulate_single_contrast(structure, angle_times,
-                                                   include_counts=True,
-                                                   save_path=save_path)
+    model, data, counts = simulate(structure, angle_times, include_counts=True, save_path=save_path)
+
+    # Get the parameters of the structure.
     objective = Objective(model, data)
     xi = objective.varying_parameters()
 
     sampler = Sampler(objective)
 
-    # Perform MCMC sampling and get the resulting corner plot.
+    # Run MCMC sampling and get the resulting corner plot.
     fig1 = sampler.sample_MCMC(verbose=True)
     fig2, _ = plot_objective(objective)
 
     # Calculate the FIM matrix and plot confidence ellipses on corner plots.
-    g = fisher_single_contrast(data.x, xi, counts, model)
+    g = fisher(data.x, xi, counts, model)
     plot_ellipses(g, xi, fig1)
     save_plot(fig1, save_path, 'confidence_ellipses_MCMC')
     save_plot(fig2, save_path, 'fit_MCMC')
 
-    # Perform nested sampling and overlay confidence ellipses on corner plot.
+    # Run nested sampling and overlay confidence ellipses on corner plot.
     fig3 = sampler.sample_nested(verbose=True, dynamic=True)
     fig4, _ = plot_objective(objective)
 
-    g = fisher_single_contrast(data.x, xi, counts, model)
+    g = fisher(data.x, xi, counts, model)
     plot_ellipses(g, xi, fig3)
     save_plot(fig3, save_path, 'confidence_ellipses_nested')
     save_plot(fig4, save_path, 'fit_nested')
 
 def plot_ellipses(g: ArrayLike, xi: List[Parameter], fig: plt.Figure) -> None:
-    """Plots the FIM confidence ellipses against the corner plot from either
+    """Overlays the FIM confidence ellipses on the corner plot from either
        MCMC or nested sampling.
 
     Args:
@@ -80,15 +83,14 @@ def plot_ellipses(g: ArrayLike, xi: List[Parameter], fig: plt.Figure) -> None:
 
     axes[m-1, m-1].set_xlabel(xi[-1].name)
 
-def confidence_ellipse(g: ArrayLike, i: int, j: int, param1: Parameter,
-                       param2: Parameter, axis: plt.Axes, show_xlabel: bool,
-                       show_ylabel: bool) -> None:
+def confidence_ellipse(g: ArrayLike, i: int, j: int, param1: Parameter, param2: Parameter,
+                       axis: plt.Axes, show_xlabel: bool, show_ylabel: bool) -> None:
     """Plots the confidence ellipse between `param1` and `param2`.
 
     Args:
         g (numpy.ndarray): Fisher information metric matrix.
-        i (int): index of `param1` in the FIM.
-        j (int): index of `param2` in the FIM.
+        i (int): index of `param1` in FIM matrix.
+        j (int): index of `param2` in FIM matrix.
         param1 (refnx.analysis.Parameter): 1st parameter corresponding to `i`.
         param2 (refnx.analysis.Parameter): 2nd parameter corresponding to `j`.
         axis (matplotlib.pyplot.Axes): subplot of corner plot to plot on.

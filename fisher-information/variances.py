@@ -4,17 +4,20 @@ import os
 from typing import Callable
 from refnx.analysis import Objective, CurveFitter
 
-from simulate import simulate_single_contrast, AngleTimes
-from utils import vary_structure, fisher_single_contrast
+from simulate import AngleTimes
+from simulate import simulate_single_contrast as simulate
+
+from utils import vary_structure
+from utils import fisher_single_contrast as fisher
 
 def compare_fit_variance(structure: Callable, angle_times: AngleTimes,
                          save_path: str, n: int=500) -> None:
-    """Compares the inverse FIM with variance in parameter estimation using
-       traditional a fitting algorithm for `n` fits.
+    """Compares the inverse FIM with the variance in parameter estimation
+       using established fitting algorithms for `n` fits.
 
     Args:
-        structure (function): structure to simulate the experiment on.
-        angle_times (dict): points and measurement times for each angle.
+        structure (function): structure to simulate experiment on.
+        angle_times (dict): points and simulation times for each angle.
         save_path (str): path to directory to save FIM and fit variances.
         n (int): number of fits to run.
 
@@ -23,11 +26,8 @@ def compare_fit_variance(structure: Callable, angle_times: AngleTimes,
 
     # Fit `n` times
     for i in range(n):
-        # Simulate the experiment using the given angles, number of points
-        # and measurement times.
-        model, data, counts = simulate_single_contrast(structure(),
-                                                       angle_times,
-                                                       include_counts=True)
+        # Simulate the experiment using the given angles, number of points and times.
+        model, data, counts = simulate(structure(), angle_times, include_counts=True)
 
         # Vary the layers' SLDs and thicknesses and set them to random values.
         vary_structure(model.structure, random_init=True)
@@ -41,14 +41,14 @@ def compare_fit_variance(structure: Callable, angle_times: AngleTimes,
         param_estimates.append([param.value for param in xi])
 
         # Calculate the FIM matrix and FIM parameter variances.
-        g = fisher_single_contrast(data.x, xi, counts, model)
+        g = fisher(data.x, xi, counts, model)
         inv_FIM.append(1 / np.diag(g))
 
         # Display progress every 10 fits.
         if i > 0 and i % 10 == 0:
             print('>>> {0}/{1}'.format(i, n))
 
-    # Calculate the variances in parameter estimates from the n fits.
+    # Calculate the variances in parameter estimates from the `n` fits.
     param_vars = np.var(np.array(param_estimates), axis=0)
 
     # Calculate the mean inverse FIM for each parameter.
@@ -59,7 +59,7 @@ def compare_fit_variance(structure: Callable, angle_times: AngleTimes,
     if not os.path.exists(file_path):
         os.makedirs(file_path)
 
-    # Save the results to a .txt file.
+    # Save the results to .txt file.
     with open(os.path.join(file_path, 'variances.txt'), 'w') as file:
         file.write('Variance in Parameter Estimation:\n')
         file.write(str(param_vars)+'\n'*2)

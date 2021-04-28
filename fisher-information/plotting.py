@@ -9,15 +9,14 @@ from refnx.dataset import ReflectDataset
 from refnx.reflect import Structure, ReflectModel
 from refnx.analysis import Objective
 
-def plot_sld_profile(structure: Structure, distances: ArrayLike=None,
-                     colour: str='black', label: bool=False
-                     ) -> Tuple[plt.Figure, plt.Axes]:
-    """Plots the SLD profile of a given structure.
+def plot_sld_profile(structure: Structure, distances: ArrayLike=None, colour: str='black',
+                     label: bool=False) -> Tuple[plt.Figure, plt.Axes]:
+    """Plots the SLD profile of a given `structure`.
 
     Args:
         structure (refnx.reflect.Structure): structure to plot SLD profile of.
-        distances (numpy.ndarray): range of values to use on the x-axis.
-        colour (str): colour to use for the SLD profile.
+        distances (numpy.ndarray): values to use on the SLD profile x-axis.
+        colour (str): colour to use for SLD profile.
         label (bool): whether to use structure's name in plot's legend.
 
     Returns:
@@ -29,23 +28,19 @@ def plot_sld_profile(structure: Structure, distances: ArrayLike=None,
     ax = fig.add_subplot(111)
 
     # Plot the SLD profile with or without a label.
-    ax.plot(*structure.sld_profile(distances), color=colour,
-            label=structure.name if label else None)
-
-    ax.set_xlabel('$\mathregular{Distance\ (\AA)}$',
-                  fontsize=11, weight='bold')
-    ax.set_ylabel('$\mathregular{SLD\ (10^{-6} \AA^{-2})}$',
-                  fontsize=11, weight='bold')
+    ax.plot(*structure.sld_profile(distances), color=colour, label=structure.name if label else None)
+    ax.set_xlabel('$\mathregular{Distance\ (\AA)}$', fontsize=11, weight='bold')
+    ax.set_ylabel('$\mathregular{SLD\ (10^{-6} \AA^{-2})}$', fontsize=11, weight='bold')
     return fig, ax
 
 def plot_sld_profiles(structures: List[Structure], distances: ArrayLike=None,
                       label: bool=True) -> Tuple[plt.Figure, plt.Axes]:
-    """Plots the SLD profiles of a given list structures.
+    """Plots the SLD profiles of a given list of `structures`.
 
     Args:
         structures (list): structures to plot SLD profiles of.
-        distances (numpy.ndarray): range of values to use on the x-axis.
-        label (bool): whether to use the structures' name in the plot's legend.
+        distances (numpy.ndarray): values to use on SLD profile x-axes.
+        label (bool): whether to use structures' name in plot's legend.
 
     Returns:
         fig (matplotlib.pyplot.Figure): figure containing plotted SLD profiles.
@@ -57,8 +52,7 @@ def plot_sld_profiles(structures: List[Structure], distances: ArrayLike=None,
 
     # Plot the rest of the structures on the same axis.
     for structure in structures[1:]:
-        ax.plot(*structure.sld_profile(distances),
-                label=structure.name if label else None)
+        ax.plot(*structure.sld_profile(distances), label=structure.name if label else None)
 
     if label: # If labelling, create the legend.
         ax.legend(loc='upper right')
@@ -67,12 +61,12 @@ def plot_sld_profiles(structures: List[Structure], distances: ArrayLike=None,
 
 def plot_objective(objective: Objective, colour: str='black',
                    label: bool=False) -> Tuple[plt.Figure, plt.Axes]:
-    """Plots the fit of a given objective against the objective's data.
+    """Plots the fit of a given `objective` against the objective's data.
 
     Args:
         objective (refnx.analysis.Objective): objective to plot.
         colour (str): colour to use for objective's data points.
-        label (bool): whether to use structure's name in the plot's legend.
+        label (bool): whether to use structure's name in plot's legend.
 
     Returns:
         fig (matplotlib.pyplot.Figure): figure containing plotted objective.
@@ -80,8 +74,7 @@ def plot_objective(objective: Objective, colour: str='black',
 
     """
     # Plot the reflectivity data.
-    fig, ax = plot_refdata(objective.data, colour,
-                           objective.model.structure.name if label else None)
+    fig, ax = plot_refdata(objective.data, colour, objective.model.structure.name if label else None)
 
     # Plot the fit.
     q = objective.data.x
@@ -89,12 +82,11 @@ def plot_objective(objective: Objective, colour: str='black',
 
     return fig, ax
 
-def plot_objectives(objectives: List[Objective], label: bool=True
-                    ) -> Tuple[plt.Figure, plt.Axes]:
-    """Plots fits of a given list of objectives against the objectives' data.
+def plot_objectives(objectives: List[Objective], label: bool=True) -> Tuple[plt.Figure, plt.Axes]:
+    """Plots fits of a given `objectives` against the objectives' data.
 
     Args:
-        objectives (list): list of objectives to plot.
+        objectives (list): objectives to plot.
         label (bool): whether to include a legend in the plot.
 
     Returns:
@@ -111,8 +103,7 @@ def plot_objectives(objectives: List[Objective], label: bool=True
         r_error = objective.data.y_err
 
         # Plot the reflectivity data.
-        ax.errorbar(q, r, r_error,
-                    marker='o', ms=3, lw=0, elinewidth=1, capsize=1.5,
+        ax.errorbar(q, r, r_error, marker='o', ms=3, lw=0, elinewidth=1, capsize=1.5,
                     label=objective.model.structure.name if label else None)
 
         # Plot the fit.
@@ -123,13 +114,12 @@ def plot_objectives(objectives: List[Objective], label: bool=True
 
     return fig, ax
 
-def plot_refdata(data: ReflectDataset, colour: str='black',
-                 label: bool=None) -> Tuple[plt.Figure, plt.Axes]:
-    """Plots a given reflectivity dataset.
+def plot_refdata(data: ReflectDataset, colour: str='black', label: bool=None) -> Tuple[plt.Figure, plt.Axes]:
+    """Plots given reflectivity `data`.
 
     Args:
         data (refnx.dataset.ReflectDataset): dataset to plot.
-        colour (str): colour to use when plotting the data points.
+        colour (str): colour to use when plotting data points.
         label (str): label of dataset for inclusion in plot's legend.
 
     Returns:
@@ -151,19 +141,17 @@ def plot_refdata(data: ReflectDataset, colour: str='black',
     ax.set_ylim(1e-7, 2)
     return fig, ax
 
-def plot_reflectivity_curve(structure: Structure, q_min: float=0.005,
-                            q_max: float=0.3, points: int=500, dq: float=2,
-                            bkg: float=1e-7) -> Tuple[plt.Figure, plt.Axes]:
+def plot_reflectivity_curve(structure: Structure, q_min: float=0.005, q_max: float=0.3,
+                            points: int=500, dq: float=2, bkg: float=1e-7) -> Tuple[plt.Figure, plt.Axes]:
     """Plots the model reflectivity curve of a given structure.
 
     Args:
-        structure (refnx.reflect.Structure): structure to plot reflectivity
-                                             curve of.
-        q_min (float): minimum Q value for the plot.
-        q_max (float): maximum Q value for the plot.
+        structure (refnx.reflect.Structure): structure to plot reflectivity curve of.
+        q_min (float): minimum Q value for plot.
+        q_max (float): maximum Q value for plot.
         points (int): number of reflectivity points to plot.
-        dq (float): instrument resolution parameter.
-        bkg (float): instrument background parameter.
+        dq (float): instrument resolution.
+        bkg (float): experimental background.
 
     Returns:
         fig (matplotlib.pyplot.Figure): figure containing reflectivity curve.
@@ -211,25 +199,22 @@ if __name__ == '__main__':
     #Plot Si-D2O
     model, data = bilayer.models[0], bilayer.datasets[0]
     ax.plot(data.x, model(data.x), color="red", zorder=20)
-    ax.errorbar(data.x, data.y, data.y_err,
-                color=None, label="Si/D2O Interface", marker="o", ms=3, lw=0,
-                elinewidth=1, capsize=1.5)
+    ax.errorbar(data.x, data.y, data.y_err, color=None, label="Si/D2O Interface",
+                marker="o", ms=3, lw=0, elinewidth=1, capsize=1.5)
 
     #Plot Si-DMPC-D2O
     model, data = bilayer.models[1], bilayer.datasets[1]
     offset = 1e-2
     ax.plot(data.x, model(data.x)*offset, color="red", zorder=20)
-    ax.errorbar(data.x, data.y*offset, data.y_err*offset,
-                label="DMPC Bilayer in D2O $\mathregular{(x10^{-2})}$",
-                marker="o", ms=3, lw=0, elinewidth=1, capsize=1.5)
+    ax.errorbar(data.x, data.y*offset, data.y_err*offset, marker="o", ms=3, lw=0, elinewidth=1,
+                capsize=1.5, label="DMPC Bilayer in D2O $\mathregular{(x10^{-2})}$",)
 
     #Plot Si-DMPC-H2O
     model, data = bilayer.models[2], bilayer.datasets[2]
     offset = 1e-3
     ax.plot(data.x, model(data.x)*offset, color="red", zorder=20)
-    ax.errorbar(data.x, data.y*offset, data.y_err*offset,
-                label="DMPC Bilayer in H2O $\mathregular{(x10^{-3})}$",
-                marker="o", ms=3, lw=0, elinewidth=1, capsize=1.5)
+    ax.errorbar(data.x, data.y*offset, data.y_err*offset, marker="o", ms=3, lw=0, elinewidth=1,
+                capsize=1.5, label="DMPC Bilayer in H2O $\mathregular{(x10^{-3})}$")
 
     ax.set_xlabel("$\mathregular{Q\ (Å^{-1})}$", fontsize=11, weight='bold')
     ax.set_ylabel('Reflectivity (arb.)', fontsize=11, weight='bold')

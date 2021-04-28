@@ -11,22 +11,18 @@ from refnx.analysis import Objective
 
 from plotting import plot_objective
 
-DIRECTBEAM_PATH = './data/directbeam/directbeam_wavelength.dat'
+DIRECTBEAM_PATH = '../fisher-information/data/directbeam/directbeam_wavelength.dat'
 AngleTimes = Dict[float, Tuple[int, float]]
 
-def simulate_single_contrast(structure: Structure, angle_times: AngleTimes,
-                             scale: float=1, bkg: float=1e-7, dq: float=2,
-                             include_counts: bool=False, save_path: str=None,
-                             file_name: str=None
-                             ) -> Tuple[ReflectModel,
-                                        ReflectDataset,
-                                        Optional[ArrayLike]]:
+def simulate_single_contrast(structure: Structure, angle_times: AngleTimes, scale: float=1, bkg: float=1e-7,
+                             dq: float=2, include_counts: bool=False, save_path: str=None,
+                             file_name: str=None ) -> Tuple[ReflectModel, ReflectDataset, Optional[ArrayLike]]:
     """Simulates a single contrast experiment measured over a number of angles.
 
     Args:
         structure (refnx.reflect.Structure): structure to simulate on.
-        angle_times (dict): points and times for each measured angle.
-        scale (float): instrument experimental scale factor.
+        angle_times (dict): points and simulation times for each angle.
+        scale (float): experimental scale factor.
         bkg (float): level of the background to add.
         dq (float): instrument resolution.
         include_counts (bool): whether to return neutron counts or not.
@@ -92,21 +88,16 @@ def simulate_single_contrast(structure: Structure, angle_times: AngleTimes,
     else:
         return model, dataset
 
-def simulate_multiple_contrasts(structures: List[Structure],
-                                angle_times: AngleTimes,
-                                scale: float=1, bkg: float=1e-7, dq: float=2,
-                                include_counts: bool=False,
-                                save_path: str=None
-                                ) -> Tuple[List[ReflectModel],
-                                           List[ReflectDataset],
-                                           Optional[List[ArrayLike]]]:
+def simulate_multiple_contrasts(structures: List[Structure], angle_times: AngleTimes, scale: float=1,
+                                bkg: float=1e-7, dq: float=2, include_counts: bool=False, save_path: str=None
+                                ) -> Tuple[List[ReflectModel], List[ReflectDataset], Optional[List[ArrayLike]]]:
     """Simulates a multiple contrast experiment measured using a number
        of different angles.
 
     Args:
         structures (list): structures corresponding to each contrast.
-        angle_times (dict): points and times for each measured angle.
-        scale (float): instrument experimental scale factor.
+        angle_times (dict): points and simulation times for each angle.
+        scale (float): experimental scale factor.
         bkg (float): level of the background to add.
         dq (float): instrument resolution.
         include_counts (bool): whether to return neutron count or not.
@@ -118,15 +109,14 @@ def simulate_multiple_contrasts(structures: List[Structure],
         counts (list, optional): neutron counts corresponding to each Q value.
 
     """
-    # Iterate over each structure (I.e. contrast).
+    # Iterate over each structure.
     models, datasets, counts = [], [], []
     for i, structure in enumerate(structures, 1):
         file_name = 'contrast{}.dat'.format(i)
 
         # Simulate each measurement angle for the contrast.
-        simulated = simulate_single_contrast(structure, angle_times, scale,
-                                             bkg, dq, include_counts,
-                                             save_path, file_name)
+        simulated = simulate_single_contrast(structure, angle_times, scale, bkg, dq,
+                                             include_counts, save_path, file_name)
         models.append(simulated[0])
         datasets.append(simulated[1])
 
@@ -140,8 +130,7 @@ def simulate_multiple_contrasts(structures: List[Structure],
         return models, datasets
 
 def run_experiment(model: ReflectModel, angle: float, points: int, time: float,
-                   q_bin_edges: ArrayLike=None
-                   ) -> Tuple[List[float], List[float], List[float], List[float]]:
+                   q_bin_edges: ArrayLike=None) -> Tuple[List[float], List[float], List[float], List[float]]:
     """Simulates an experiment for a given model with added noise.
 
     Args:
@@ -171,8 +160,7 @@ def run_experiment(model: ReflectModel, angle: float, points: int, time: float,
     # If Q bins are not provided
     if q_bin_edges is None:
         # Bin Q values in equally log-spaced bins using flux as weighting.
-        q_bin_edges = np.logspace(np.log10(np.min(q)),
-                                  np.log10(np.max(q)), points+1)
+        q_bin_edges = np.logspace(np.log10(np.min(q)), np.log10(np.max(q)), points+1)
 
     flux_binned, _ = np.histogram(q, q_bin_edges, weights=direct_flux)
 
@@ -183,7 +171,7 @@ def run_experiment(model: ReflectModel, angle: float, points: int, time: float,
     r, r_errors, counts = [], [], []
     for i in range(points): # Iterate over the desired number of points (bins).
         flux_point = flux_binned[i]
-        r_point    = reflectance[i]
+        r_point = reflectance[i]
         count_incident = flux_point * time
 
         # Get the measured reflected count for the bin.
@@ -212,7 +200,7 @@ def difference_plots(structure: Structure, angle_times: AngleTimes) -> None:
 
     Args:
         structure (refnx.reflect.Structure): structure to simulate on.
-        angle_times (dict): points and times for each measured angle.
+        angle_times (dict): points and simulation times for each angle.
 
     """
     # Simulate an experiment using the given structure.

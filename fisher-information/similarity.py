@@ -14,26 +14,23 @@ from refnx.analysis import Objective
 
 from structures import QCS_sample
 from simulate import run_experiment
-
 from plotting import save_plot, plot_objective
 from utils import vary_structure, Sampler
 
 RefData = Dict[float, Tuple[ArrayLike, ArrayLike, ArrayLike]]
 
-def sample_measured_data(data_path: str, bkg: float, dq: float,
-                         save_path: str) -> None:
+def sample_measured_data(data_path: str, bkg: float, dq: float, save_path: str) -> None:
     """Samples data in the 'QCS_all.dat' file using MCMC and nested sampling.
 
     Args:
         data_path (str): path to directory containing 'QCS_all.dat' file.
-        bkg (float): model background.
-        dq (float): model instrument resolution.
+        bkg (float): experimental background.
+        dq (float): instrument resolution.
         save_path (str): path to directory to save sampling corner plots to.
 
     """
     # Create the QCS sample and vary the SLDs, thicknesses and roughnesses.
-    model = ReflectModel(vary_structure(QCS_sample(), vary_rough=True),
-                         scale=1, bkg=bkg, dq=dq)
+    model = ReflectModel(vary_structure(QCS_sample(), vary_rough=True), scale=1, bkg=bkg, dq=dq)
 
     # Load and scale the data so that the maximum reflectivity is 1.
     data = ReflectDataset(data_path)
@@ -46,8 +43,7 @@ def sample_measured_data(data_path: str, bkg: float, dq: float,
     fig2 = sampler.sample_nested(verbose=True, dynamic=True)
     save_plot(fig2, save_path, 'measured_sample_nested.png')
 
-def plot_measured_all(data_path: str, bkg: float, dq: float,
-                      save_path: str) -> None:
+def plot_measured_all(data_path: str, bkg: float, dq: float, save_path: str) -> None:
     """Plots the binned measured data (combined data for all angles).
 
     Args:
@@ -67,19 +63,18 @@ def plot_measured_all(data_path: str, bkg: float, dq: float,
     fig, _ = plot_objective(Objective(model, data))
     save_plot(fig, save_path, 'measured_fit')
 
-def simulate_measured_data(data_path: str, files: List[str], scale: float,
-                           bkg: float, dq: float, angles: List[float],
-                           time: float) -> Tuple[RefData, RefData]:
+def simulate_measured_data(data_path: str, files: List[str], scale: float, bkg: float, dq: float,
+                           angles: List[float], time: float) -> Tuple[RefData, RefData]:
     """Loads each measured angle's data and simulates experiments for each.
 
     Args:
         data_path (str): path to directory containing the measured data.
-        files (list): list of file names for each angle's data.
-        scale (float): instrument experimental scale factor.
-        bkg (float): instrument background parameter.
+        files (list): file names for each angle's data.
+        scale (float): experimental scale factor.
+        bkg (float): experimental background.
         dq (float): instrument resolution.
         angles (list): angles used in measuring the data.
-        time (float): measurement time for the measured data.
+        time (float): measurement time for measured data.
 
     Returns:
         measured (dict): measured reflectivity data for each angle.
@@ -90,11 +85,11 @@ def simulate_measured_data(data_path: str, files: List[str], scale: float,
     measured, simulated = {}, {}
     for angle, file_name in list(zip(angles, files)):
         # Load the measured reflectivity data.
-        data_measured = np.loadtxt(os.path.join(data_path, file_name),
-                                   delimiter='    ')
+        data_measured = np.loadtxt(os.path.join(data_path, file_name), delimiter='    ')
         q_measured = data_measured[:,0]
         r_measured = data_measured[:,1]
         r_error_measured = data_measured[:,2]
+
         measured[angle] = (q_measured, r_measured, r_error_measured)
 
         # For simulation, we need the edges of the Q bins but the measured
@@ -111,16 +106,16 @@ def simulate_measured_data(data_path: str, files: List[str], scale: float,
         q_simulated = data_simulated[0]
         r_simulated = data_simulated[1]
         r_error_simulated = data_simulated[2]
+
         simulated[angle] = (q_simulated, r_simulated, r_error_simulated)
 
     return measured, simulated
 
-def plot_angle_data(angle_data: RefData, data_type: str,
-                    save_path: str) -> None:
+def plot_angle_data(angle_data: RefData, data_type: str, save_path: str) -> None:
     """Creates a plot overlaying each dataset of each measured/simulated angle.
 
     Args:
-        angle_data (dict): dictionary of reflectivity data for each angle.
+        angle_data (dict): reflectivity data for each angle.
         data_type (str): either 'Measured' or 'Simulated'.
         save_path (str): path to directory to save plot to.
 
@@ -132,8 +127,7 @@ def plot_angle_data(angle_data: RefData, data_type: str,
     for angle in angle_data:
         q, r, r_error = angle_data[angle]
         # Q values vs. reflectivity with associated reflectivity error bars.
-        ax.errorbar(q, r, r_error,
-                    marker='o', ms=3, lw=0, elinewidth=1, capsize=1.5,
+        ax.errorbar(q, r, r_error, marker='o', ms=3, lw=0, elinewidth=1, capsize=1.5,
                     label='{0} {1}°'.format(data_type, str(angle)))
 
     ax.set_xlabel('$\mathregular{Q\ (Å^{-1})}$', fontsize=11, weight='bold')
@@ -147,7 +141,7 @@ def plot_angle_data(angle_data: RefData, data_type: str,
 
 def similarity(measured: RefData, simulated: RefData) -> Tuple[float, float]:
     """Determines whether there is significant difference between given
-       measured and simulated reflectivity datasets.
+       `measured` and `simulated` reflectivity datasets.
 
     Args:
         measured (dict): measured reflectivity data for each angle.
@@ -160,27 +154,17 @@ def similarity(measured: RefData, simulated: RefData) -> Tuple[float, float]:
     """
     # Get the measured and simulated reflectivity and errors for all angles.
     # The data is simulated at the same Q values as the measured data.
-    r_measured = np.asarray([measured[angle][1]
-                             for angle in measured]).flatten()
+    r_measured = np.asarray([measured[angle][1] for angle in measured]).flatten()
+    r_simulated = np.asarray([simulated[angle][1] for angle in simulated]).flatten()
+    r_error_measured = np.asarray([measured[angle][2] for angle in measured]).flatten()
+    r_error_simulated = np.asarray([simulated[angle][2] for angle in simulated]).flatten()
 
-    r_simulated = np.asarray([simulated[angle][1]
-                              for angle in simulated]).flatten()
-
-    r_error_measured = np.asarray([measured[angle][2]
-                                   for angle in measured]).flatten()
-
-    r_error_simulated = np.asarray([simulated[angle][2]
-                                    for angle in simulated]).flatten()
-
-    # Calculate the measured and reflected counts, taking the count as 0
-    # if the reflectivity error is 0.
+    # Calculate the measured and reflected counts, taking the count as 0 if the reflectivity error is 0.
     counts_measured = np.divide(r_measured, r_error_measured,
-                                out=np.zeros_like(r_measured),
-                                where=r_error_measured!=0)
+                                out=np.zeros_like(r_measured), where=r_error_measured!=0)
 
     counts_simulated = np.divide(r_simulated, r_error_simulated,
-                                 out=np.zeros_like(r_simulated),
-                                 where=r_error_simulated!=0)
+                                 out=np.zeros_like(r_simulated), where=r_error_simulated!=0)
 
     # Apply an Anscombe transformation to make the values approximately normal.
     # Then weight each value by 1 / standard deviation
@@ -213,9 +197,7 @@ if __name__ == '__main__':
                      'QCS_06_1uA.dat', 'QCS_07_1uA.dat', 'QCS_20_1uA.dat']
 
     # Plot the measured individual angle data and their simulated counterparts.
-    measured, simulated = simulate_measured_data(data_path, measured_data,
-                                                 scale, bkg, dq, angles,
-                                                 time=1)
+    measured, simulated = simulate_measured_data(data_path, measured_data, scale, bkg, dq, angles, 1)
     plot_angle_data(measured, 'Measured', save_path)
     plot_angle_data(simulated, 'Simulated', save_path)
 
