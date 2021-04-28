@@ -19,7 +19,7 @@ class Bilayer():
         self.hLPS_tg   = -0.37
         self.core_D2O  =  4.2
         self.core_H2O  =  2.01
-        
+
         # Define the parameters of the model.
         self.si_rough       = Parameter(5.5,    'Si/SiO2 Roughness',         (3,8))
         self.sio2_thick     = Parameter(13.4,   'SiO2 Thickness',            (10,30))
@@ -82,10 +82,10 @@ class Bilayer():
         core     = Slab(self.core_thick,     core_sld,          self.bilayer_rough, vfsolv=self.core_solv)
 
         return substrate | sio2 | inner_hg | inner_tg | outer_tg | core | solution
-    
+
     def __str__(self) -> str:
         return 'asymmetric_bilayer'
-    
+
 # Number of points and time to simulate for each angle.
 angle_times = {0.7: (30, 10),
                2.0: (30, 40)} # Angle: (Points, Time)
