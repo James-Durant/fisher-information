@@ -1,5 +1,5 @@
 ### Figure 1
-Experimentally measured reflectivity (top) and simulated reflectivity (bottom) vs. momentum transfer for each measurement angle of the QCS sample.
+Experimental reflectivity (top) and simulated reflectivity (bottom) vs. momentum transfer for each measurement angle of the QCS sample.
 <img src="https://github.com/James-Durant/fisher-information/blob/main/figures/figure_1.png" width="900">
 
 ### Figure 2 
