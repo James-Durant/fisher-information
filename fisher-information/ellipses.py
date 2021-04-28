@@ -89,8 +89,8 @@ def confidence_ellipse(g: ArrayLike, i: int, j: int, param1: Parameter, param2: 
 
     Args:
         g (numpy.ndarray): Fisher information metric matrix.
-        i (int): index of `param1` in the FIM.
-        j (int): index of `param2` in the FIM.
+        i (int): index of `param1` in FIM matrix.
+        j (int): index of `param2` in FIM matrix.
         param1 (refnx.analysis.Parameter): 1st parameter corresponding to `i`.
         param2 (refnx.analysis.Parameter): 2nd parameter corresponding to `j`.
         axis (matplotlib.pyplot.Axes): subplot of corner plot to plot on.
