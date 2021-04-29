@@ -68,7 +68,7 @@ class Bilayer():
 
         """
         # Calculate core SLD with the given contrast SLD.
-        contrast_point = (contrast_sld + 0.56) / (6.35 + 0.56)
+        contrast_point = (contrast_sld + 0.56) / (6.35 + 0.56) # Essentially rescaling the H2O to D2O scale to 0 --> 1
 
         core_sld = contrast_point*self.core_D2O + (1-contrast_point)*self.core_H2O
 
