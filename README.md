@@ -25,9 +25,8 @@ If you are interested in applying the framework to experimental design problems 
 4. Run the following to install the required packages from the [requirements.txt](/requirements.txt) file: <br />
    ```pip install -r requirements.txt```
 
-You should now be able to run the code. Please ensure you are running a version of Python >= 3.8.0
-
-(If you are running an old version of Anaconda, you may need to reinstall with a newer version for this).
+You should now be able to run the code. Please ensure you are running a version of Python >= 3.8.0 <br />
+If you are running an old version of Anaconda, you may need to reinstall with a newer version for this.
 
 ## Contact
 Jos Cooper - jos.cooper@stfc.ac.uk\
