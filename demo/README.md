@@ -4,4 +4,4 @@ This demonstration is intended to provide a simplified interface to the simulati
 * [contrast.py](/demo/contrast.py) - Investigates how the FIM changes with first and second contrast choices for an asymmetric bilayer model.
 * [underlayer.py](/demo/underlayer.py) - Investigates how the FIM changes with SiO2 underlayer thickness of a symmetric bilayer model.
 
-To run an example, you can call the file from the command line and the output will be saved to [results](/demo/results).
+To run an example, you can call the file from the command line (e.g. "python angle.py") and the output will be saved to [results](/demo/results).
