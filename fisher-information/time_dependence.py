@@ -22,14 +22,14 @@ from utils import fisher_single_contrast as fisher
 
 def simulated_projections(structure: Callable, angle_times: AngleTimes,
                           multipliers: ArrayLike, save_path: str) -> None:
-    """Compares predicted and actual parameter uncertainties vs. increasing
-       measurement time for simulated data of a given structure (using the
-       uncertainty inversely proportional to time squared relationship).
+    """Compares predicted and actual parameter uncertainties vs. measurement
+       time for simulated data of a given structure (using the uncertainty
+       inversely proportional to time squared relationship).
 
     Args:
         structure (function): structure to simulate experiment with.
-        angle_times (dict): initial points and simulation times for each angle.
-        multipliers (numpy.ndarray): array of time multipliers.
+        angle_times (dict): points and simulation times for each angle.
+        multipliers (numpy.ndarray): time multipliers.
         save_path (str): path to directory to save figures to.
 
     """
@@ -41,8 +41,7 @@ def simulated_projections(structure: Callable, angle_times: AngleTimes,
                            for angle in angle_times}
 
         # Simulate the experiment and fit.
-        model, data = simulate(vary_structure(structure()), new_angle_times)
-        objective = Objective(model, data)
+        objective = Objective(*simulate(vary_structure(structure()), new_angle_times))
         CurveFitter(objective).fit('differential_evolution', verbose=False)
 
         # Record the parameter uncertainties with this time multiplier.
@@ -104,11 +103,9 @@ def measured_projections(data_path: str, save_path: str, scale: float=1,
         objective = Objective(model, refdata)
         CurveFitter(objective).fit('differential_evolution', verbose=False)
 
+        # Record the parameter uncertainties.
         xi = objective.varying_parameters()
         uncertainties.append([param.stderr for param in xi])
-
-    # Plot the uncertainty projections and actual uncertainties vs. time.
-    uncertainties = np.asarray(uncertainties)
 
     # Plot the uncertainty projections and actual uncertainties vs. time.
     save_path = os.path.join(save_path, 'QCS_sample')
@@ -120,8 +117,8 @@ def plot_projections(multipliers: ArrayLike, uncertainties: ArrayLike,
        uncertainties vs. measurement time.
 
     Args:
-        multipliers (numpy.ndarray): array of time multipliers.
-        uncertainties (numpy.ndarray): array of uncertainties from fitting.
+        multipliers (numpy.ndarray): time multipliers.
+        uncertainties (numpy.ndarray): uncertainties from fitting.
         xi (list): parameters that were varied when fitting.
         source (str): either 'simulated' or 'measured'.
         save_path (str): path to directory to save figures to.
@@ -130,6 +127,7 @@ def plot_projections(multipliers: ArrayLike, uncertainties: ArrayLike,
     fig = plt.figure(figsize=[9,7], dpi=600)
     ax = fig.add_subplot(111)
 
+    # Get the default matplotlib colours.
     colours = plt.rcParams['axes.prop_cycle'].by_key()['color']
 
     # Iterate over each parameter.
@@ -141,8 +139,8 @@ def plot_projections(multipliers: ArrayLike, uncertainties: ArrayLike,
         # Plot projected uncertainty vs. time for the parameter.
         # The projection is taken using the initial uncertainties.
         times = np.arange(multipliers [0], multipliers [-1], 0.01)
-        ax.plot(times, uncertainties[0][i]/np.sqrt(times), label=param.name+' Projected',
-                color=colours[i], lw=0.8, zorder=1)
+        ax.plot(times, uncertainties[0][i]/np.sqrt(times),
+                label=param.name+' Projected', color=colours[i], lw=0.8, zorder=1)
 
     ax.set_ylabel('Parameter Uncertainty', weight='bold')
     ax.legend(loc='upper right')
@@ -156,29 +154,28 @@ def plot_projections(multipliers: ArrayLike, uncertainties: ArrayLike,
 
 def compare_uncertainties(structure: Callable, angle_times: AngleTimes,
                           multipliers: ArrayLike, save_path: str) -> None:
-    """Compares fitting uncertainties and FIM uncertainties with increasing time.
+    """Compares fitting uncertainties and FIM uncertainties with time.
 
     Args:
         structure (function): structure to simulate experiment on.
         initial_angle_times (dict): initial points and times for each angle.
-        multipliers (numpy.ndarray): array of time multipliers.
+        multipliers (numpy.ndarray): time multipliers.
         save_path (str): path to directory to save figures to.
 
     """
-    # Iterate over the given times.
+    # Iterate over the given time `multipliers`.
     fit_uncertainties, FIM_uncertainties, errors = [], [], []
     for i, multiplier in enumerate(multipliers, 1):
         # Calculate fit and FIM uncertainties for 10 simulations using same measurement time.
         fit_uncertainties_time, FIM_uncertainties_time, fit_values = [], [], []
-
         for _ in range(10):
-            # Number of points and measurement times for each angle.
+            # Multiply the initial times by current multiplier for each angle.
             new_angle_times = {angle: (angle_times[angle][0], angle_times[angle][1]*multiplier)
                                for angle in angle_times}
 
             # Simulate the experiment.
-            model, data, counts = simulate(vary_structure(structure()),
-                                           new_angle_times, include_counts=True)
+            sample = vary_structure(structure())
+            model, data, counts = simulate(sample, new_angle_times, include_counts=True)
 
             # Fit the data using differential evolution.
             objective = Objective(model, data)
@@ -213,7 +210,7 @@ def compare_uncertainties(structure: Callable, angle_times: AngleTimes,
 
     # Plot the mean fit and FIM uncertainties vs. increasing time.
     plot_uncertainties(multipliers, np.array(fit_uncertainties),
-                       np.array(FIM_uncertainties), names, save_path)
+                       np.asarray(FIM_uncertainties), names, save_path)
 
     # Plot the mean absolute error vs. increasing time.
     plot_fitting_error(multipliers, np.asarray(errors), names, save_path)
@@ -249,11 +246,11 @@ def plot_uncertainties(multipliers: ArrayLike, fit_uncertainties: ArrayLike,
 
     # Iterate over each parameter.
     for i in range(len(names)):
-        # log of the fitting and FIM uncertainties and reshape for regression.
+        # Take the log of the fitting and FIM uncertainties and reshape for regression.
         log_fit = np.log(fit_uncertainties[:,i]).reshape(-1,1)
         log_FIM = np.log(FIM_uncertainties[:,i]).reshape(-1,1)
 
-        # Create linear regressors to calculate the gradient of lines.
+        # Create linear regressors to calculate the gradient of the lines.
         fit_reg = LinearRegression().fit(log_time, log_fit)
         FIM_reg = LinearRegression().fit(log_time, log_FIM)
 
@@ -312,11 +309,10 @@ if __name__ == '__main__':
     multipliers = 10**np.arange(0, 3, 0.01, dtype=float)
     compare_uncertainties(structure, angle_times, multipliers, save_path)
 
-    # Investigates how the uncertainty inversely proportional to time squared
-    # relationship holds in practice.
+    # Investigates how the time dependence relationship holds in practice.
     multipliers = 10**np.arange(0, 2, 0.05, dtype=float)
     simulated_projections(structure, angle_times, multipliers, save_path)
 
-    # Plot the relationship for measured data of the QCS sample.
+    # Plots the relationship for measured data of the QCS sample.
     data_path = './data'
     measured_projections(data_path, save_path)

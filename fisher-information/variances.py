@@ -22,9 +22,8 @@ def compare_fit_variance(structure: Callable, angle_times: AngleTimes,
         n (int): number of fits to run.
 
     """
-    param_estimates, inv_FIM = [], []
-
     # Fit `n` times
+    param_estimates, inv_FIM = [], []
     for i in range(n):
         # Simulate the experiment using the given angles, number of points and times.
         model, data, counts = simulate(structure(), angle_times, include_counts=True)
@@ -50,7 +49,6 @@ def compare_fit_variance(structure: Callable, angle_times: AngleTimes,
 
     # Calculate the variances in parameter estimates from the `n` fits.
     param_vars = np.var(np.array(param_estimates), axis=0)
-
     # Calculate the mean inverse FIM for each parameter.
     mean_inv_FIM = np.mean(np.array(inv_FIM), axis=0)
 

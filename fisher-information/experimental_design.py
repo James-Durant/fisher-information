@@ -22,7 +22,7 @@ def first_contrast_choice(bilayer: Bilayer, contrasts: ArrayLike,
        model, for each contrast SLD in a given array of `contrasts`.
 
     Args:
-        bilayer (structures.Bilayer): bilayer to find optimal contrast for.
+        bilayer (structures.Bilayer): bilayer to calculate FIM with.
         contrasts (numpy.ndarray): contrast SLDs to calculate FIM with.
         angle_times (dict): points and simulation times for each angle.
         save_path (str): path to directory to save FIM plot to.
@@ -73,16 +73,14 @@ def second_contrast_choice(bilayer: Bilayer, initial_contrast: float, contrasts:
     for i, contrast_sld in enumerate(contrasts):
         # Simulate data for the bilayer model with current contrast SLD.
         structure = bilayer.using_contrast(contrast_sld)
-
-        simulated_new = simulate(structure, angle_times, include_counts=True)
-        model_new, data_new, counts_new = simulated_new
+        model_new, data_new, counts_new = simulate(structure, angle_times, include_counts=True)
 
         # Combine the data from the initial and second contrasts.
         qs = [data_init.x, data_new.x]
         counts = [counts_init, counts_new]
         models = [model_init, model_new]
 
-        # Calculate the FIM matrix for the two contrast dataset.
+        # Calculate the FIM matrix for the two contrasts.
         g = fisher_multiple_contrasts(qs, xi, counts, models)
         information.append(np.diag(g))
 
@@ -113,8 +111,8 @@ def first_angle_choice(structure: Callable, angles: ArrayLike, points: int,
         angle_times = {angle: (points, time)}
 
         # Simulate data for the given structure with current angle.
-        sample = vary_structure(structure())
-        model, data, counts = simulate(sample, angle_times, include_counts=True)
+        structure = vary_structure(structure())
+        model, data, counts = simulate(structure, angle_times, include_counts=True)
 
         # Get the parameters of the structure.
         objective = Objective(model, data)
@@ -127,6 +125,7 @@ def first_angle_choice(structure: Callable, angles: ArrayLike, points: int,
         # Display progress.
         print('>>> {0}/{1}'.format(i+1, len(angles)))
 
+    # Plot the FIM as a function of first angle choice.
     save_path = os.path.join(save_path, structure.__name__)
     plot_information(angles, information, xi, save_path, 'first_angle', False)
     plot_information(angles, information, xi, save_path, 'first_angle', True)
@@ -145,6 +144,7 @@ def second_angle_choice(structure: Callable, initial_angle_times: AngleTimes,
         save_path (str): path to directory to save FIM plot to.
 
     """
+    # Simulate the initial angle.
     sample = vary_structure(structure())
     model_init, data_init, counts_init = simulate(sample, initial_angle_times, include_counts=True)
 
@@ -163,26 +163,27 @@ def second_angle_choice(structure: Callable, initial_angle_times: AngleTimes,
         counts = [counts_init, counts_new]
         models = [model_init, model_new]
 
-        # Calculate the FIM matrix for the two contrast dataset.
+        # Calculate the FIM matrix for the two contrasts.
         g = fisher_multiple_contrasts(qs, xi, counts, models)
         information.append(np.diag(g))
 
         # Display progress.
         print('>>> {0}/{1}'.format(i+1, len(angles)))
 
+    # Plot the FIM as a function of second angle choice.
     save_path = os.path.join(save_path, structure.__name__)
     plot_information(angles, information, xi, save_path, 'second_angle', False)
     plot_information(angles, information, xi, save_path, 'second_angle', True)
 
 def underlayer_choice(bilayer: Bilayer, thicknesses: ArrayLike, contrast_sld: float,
                       angle_times: AngleTimes, save_path: str) -> None:
-    """Investigates how the FIM changes, for each parameter of a `bilayer` model,
-       with SiO2 underlayer thickness.
+    """Investigates how the FIM changes, for each parameter of a `bilayer`
+       model, with SiO2 underlayer thickness.
 
     Args:
-        bilayer (Bilayer): bilayer model to find optimal underlayer thickness for.
+        bilayer (Bilayer): bilayer to calculate FIM with.
         thicknesses (numpy.ndarray): thicknesses to calculate FIM over.
-        contrast_sld (float): SLD of the contrast to simulate.
+        contrast_sld (float): SLD of contrast to simulate.
         angle_times (dict): points and simulation times for each angle.
         save_path (str): path to directory to save FIM plot to.
 
@@ -200,18 +201,17 @@ def underlayer_choice(bilayer: Bilayer, thicknesses: ArrayLike, contrast_sld: fl
     for i, thickness in enumerate(thicknesses):
         # Simulate data for the given bilayer model with current SiO2 thickness.
         sio2_thick.value = thickness
-
         structure = bilayer.using_contrast(contrast_sld)
         model, data, counts = simulate(structure, angle_times, include_counts=True)
 
-        # Calculate the FIM
+        # Calculate the FIM.
         g = fisher_single_contrast(data.x, xi, counts, model)
         information.append(np.diag(g))
 
         # Display progress.
         print('>>> {0}/{1}'.format(i+1, len(thicknesses)))
 
-    # Plot the FIM as a function of contrast SLD.
+    # Plot the FIM as a function of underlayer thickness.
     save_path = os.path.join(save_path, str(bilayer))
     plot_information(thicknesses, information, xi, save_path, 'thickness', False)
     plot_information(thicknesses, information, xi, save_path, 'thickness', True)
@@ -221,18 +221,18 @@ def plot_information(x: ArrayLike, information: ArrayLike, xi: List[Parameter],
     """Plots the FIM for each parameter of a model against given `x` array.
 
     Args:
-        x (numpy.ndarray): values to plot FIM values against.
-        information (numpy.ndarray): FIM values for each parameter.
+        x (numpy.ndarray): values to plot FIM against.
+        information (numpy.ndarray): FIM for each parameter.
         xi (list): model parameters.
         save_path (str): path to directory to save FIM plot to.
-        x_lable (str): either 'contrast' or 'angle'.
-        normalise (bool): whether to normalise FIM values to [0,1].
+        x_lable (str): either 'contrast', 'angle' or 'thickness'.
+        normalise (bool): whether to normalise FIM to [0,1].
 
     """
     fig = plt.figure(figsize=[9,7], dpi=600)
     ax = fig.add_subplot(111)
 
-    # Plot the FIM values for each parameter.
+    # Plot the FIM for each parameter.
     information = np.asarray(information)
     for i, param in enumerate(xi):
         if normalise: # Normalise to [0,1] using min-max scaling.
@@ -249,8 +249,10 @@ def plot_information(x: ArrayLike, information: ArrayLike, xi: List[Parameter],
     # Add the correct x-axis label.
     if x_label == 'first_contrast' or x_label == 'second_contrast':
         ax.set_xlabel('$\mathregular{Contrast\ SLD\ (10^{-6} \AA^{-2})}$', fontsize=11, weight='bold')
+
     elif x_label == 'angle':
         ax.set_xlabel('Angle (°)', fontsize=11, weight='bold')
+
     elif x_label == 'thickness':
         ax.set_xlabel('$\mathregular{Underlayer\ Thickness\ (\AA)}$', fontsize=11, weight='bold')
 
@@ -271,10 +273,10 @@ def plot_information(x: ArrayLike, information: ArrayLike, xi: List[Parameter],
 def confidence_gain(bilayer: Bilayer, initial_contrast: float, new_contrasts: ArrayLike,
                     angle_times: AngleTimes, save_path: str) -> None:
     """Investigates how the FIM confidences ellipses change in size with
-       second contrast SLD.
+       second contrast SLD for a `bilayer`.
 
     Args:
-        bilayer (structures.Bilayer): bilayer to calculate the ellipses of.
+        bilayer (structures.Bilayer): bilayer to calculate the ellipses with.
         initial_contrast (float): initial contrast SLD.
         new_contrasts (numpy.ndarray): second contrast SLDs.
         angle_times (dict): points and simulation times for each angle.
@@ -293,7 +295,7 @@ def confidence_gain(bilayer: Bilayer, initial_contrast: float, new_contrasts: Ar
     for i, param in enumerate(xi):
         heights_initial[param] = np.asarray([ellipse_height(g, i, j) for j in range(len(xi))])
 
-    # Iterate over each of the second contrast SLDs to simulate.
+    # Iterate over each of the second contrast SLDs.
     heights_new = {param: [] for param in xi}
     for x, new_contrast in enumerate(new_contrasts):
         # Simulate an experiment using the second contrast SLD.
@@ -363,8 +365,8 @@ def plot_confidences(contrasts: ArrayLike, confidence_gains: ArrayLike, save_pat
        contrast SLD for each parameter pair.
 
     Args:
-        contrasts (numpy.ndarray): second measurement contrasts.
-        confidence_gains (numpy.ndarray): reductions in ellipse size.
+        contrasts (numpy.ndarray): second contrast SLDs.
+        confidence_gains (numpy.ndarray): reduction in ellipse sizes.
         save_path (string): path to directory to save plots to.
 
     """
@@ -400,13 +402,13 @@ if __name__ == '__main__':
     contrasts = np.arange(-0.56, 6.35, 0.01)
     angle_times = {0.7: (70, 10), 2.0: (70, 40)}
 
-    # Investigate how the FIM changes with initial measurement contrast SLD.
+    # Investigate how the FIM changes with initial contrast SLD.
     first_contrast_choice(bilayer, contrasts, angle_times, save_path)
 
-    # Investigate how the FIM changes with second measurement contrast SLD.
+    # Investigate how the FIM changes with second contrast SLD.
     second_contrast_choice(bilayer, initial_contrast, contrasts, angle_times, save_path)
 
-    # Investigate how the FIM changes with underlayer thickness.
+    # Investigate how the FIM changes with SiO2 underlayer thickness.
     thicknesses = np.arange(2, 21, 0.01)
     underlayer_choice(bilayer, thicknesses, initial_contrast, angle_times, save_path)
 
@@ -419,9 +421,9 @@ if __name__ == '__main__':
     time = 1
     angles = np.arange(0.3, 2.3, 0.01)
 
-    # Investigate how the FIM changes with first measurement angle.
+    # Investigate how the FIM changes with first angle choice.
     first_angle_choice(structure, angles, points, time, save_path)
 
     # Investigate how the FIM changes with second angle choice.
-    angle_times = {0.7: (70, 1)}
+    angle_times = {0.7: (70, 1)} # First angle choice.
     second_angle_choice(structure, angle_times, angles, points, time, save_path)

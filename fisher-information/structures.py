@@ -18,10 +18,10 @@ class Bilayer:
     """Parent class for the symmetric and asymmetric bilayer classes."""
 
     def fit(self, fit_bkg: bool=False) -> None:
-        """Fits the bilayer using the data measured for the bilayer's model.
+        """Fits the bilayer model using measured data.
 
         Args:
-            fit_bkg (bool): whether to fit the models' backgrounds.
+            fit_bkg (bool): whether to fit the model's backgrounds.
 
         """
         # Create a global objective containing objectives for each contrast.
@@ -32,8 +32,7 @@ class Bilayer:
                 model.bkg.setp(vary=True, bounds=(1e-7, 1e-5))
 
             # Add the background parameters to the already varying parameters.
-            func = lambda: (self.parameters +
-                            [model.bkg for model in self.models])
+            func = lambda: (self.parameters + [model.bkg for model in self.models])
         else:
             func = lambda: self.parameters # Varying parameters of the bilayer.
 
@@ -48,8 +47,9 @@ class Bilayer:
         for param in global_objective.varying_parameters():
             print('{0}: {1}'.format(param.name, param.value))
 
-    def sample(self, contrasts: List[float], angle_times: AngleTimes, save_path: str, filename: str) -> None:
-        """Samples the bilayer using nested sampling on simulated data.
+    def sample(self, contrasts: List[float], angle_times: AngleTimes,
+               save_path: str, filename: str) -> None:
+        """Samples the bilayer model using nested sampling on simulated data.
 
         Args:
             contrasts (list): contrast SLDs to be sampled on.
@@ -108,19 +108,19 @@ class SymmetricBilayer(Bilayer):
     Attributes:
         data_path (str): path to directory containing measured data.
         scales (list): experimental scale factor for each measured contrast.
-        bkgs (list): instrument backgrounds for each measured contrast.
+        bkgs (list): experimental backgrounds for each measured contrast.
         dq (float): instrument resolution used when measuring.
         names (list): labels for each measured contrast.
-        distances (numpy.ndarray): range of SLD profile x-axis.
-        si_sld (float): SLD of silicon (substrate).
+        distances (numpy.ndarray): SLD profile x-axis values.
+        si_sld (float): SLD of silicon substrate.
         sio2_sld (float): SLD of silicon oxide.
-        dmpc_hg_vol (float): headgroup volume of the DMPC bilayer.
-        dmpc_tg_vol (float): tailgroup volume of the DMPC bilayer.
-        dmpc_hg_sl (float): headgroup scattering length of the DMPC bilayer.
-        dmpc_tg_sl (float): tailgroup scattering length of the DMPC bilayer.
+        dmpc_hg_vol (float): headgroup volume of DMPC bilayer.
+        dmpc_tg_vol (float): tailgroup volume of DMPC bilayer.
+        dmpc_hg_sl (float): headgroup scattering length of DMPC bilayer.
+        dmpc_tg_sl (float): tailgroup scattering length of DMPC bilayer.
         water_vol (float): water volume of measured system.
-        tg_sld (float): SLD of the tailgroup of the DMPC bilayer.
-        si_rough (refnx.analysis.Parameter): silicon (substrate) roughness.
+        tg_sld (float): tailgroup SLD of DMPC bilayer.
+        si_rough (refnx.analysis.Parameter): silicon substrate roughness.
         sio2_thick (refnx.analysis.Parameter): silicon oxide thickness.
         sio2_rough (refnx.analysis.Parameter): silicon oxide roughness.
         sio2_solv (refnx.analysis.Parameter): silicon oxide hydration.
@@ -151,10 +151,10 @@ class SymmetricBilayer(Bilayer):
         self.dmpc_tg_sl  = -3.08e-4
         self.water_vol   = 30.4
 
-        # Calculate the SLD of the tails
+        # Calculate the SLD of the tails.
         self.tg_sld = (self.dmpc_tg_sl / self.dmpc_tg_vol) * 1e6
 
-        # Define the free parameters of the model.
+        # Define the parameters of the model.
         self.si_rough      = Parameter(2,     'Si/SiO2 Roughness',      (1,8))
         self.sio2_thick    = Parameter(14.7,  'SiO2 Thickness',         (5,20))
         self.sio2_rough    = Parameter(2,     'SiO2/DMPC Roughness',    (1,8))
@@ -210,8 +210,7 @@ class SymmetricBilayer(Bilayer):
         sld_hg_d2o = (dmpc_hg_sl_d2o / vol_hg) * 1e6 # SLD = sum b / v
         sld_hg_h2o = (dmpc_hg_sl_h2o / vol_hg) * 1e6
 
-        # Calculate the thickness from the headgroup volume over the
-        # lipid area per molecule.
+        # Calculate the thickness from the headgroup volume over the lipid area per molecule.
         hg_thick = vol_hg / self.dmpc_apm # Thickness = v / APM
 
         # Calculate the thickness of the tailgroup
@@ -227,7 +226,7 @@ class SymmetricBilayer(Bilayer):
         outer_hg_h2o = Slab(hg_thick, sld_hg_h2o,  self.bilayer_rough, vfsolv=self.bilayer_solv)
         tg           = Slab(tg_thick, self.tg_sld, self.bilayer_rough, vfsolv=self.bilayer_solv)
 
-        # Structure corresponding to measuring without the bilayer present.
+        # Structure corresponding to measuring the Si/D2O interface.
         si_D2O_structure = substrate | sio2 | D2O(rough=self.sio2_rough)
 
         # Two structures corresponding to each measured contrast.
@@ -249,18 +248,17 @@ class SymmetricBilayer(Bilayer):
                          for name in self.names]
 
         # Combine models and datasets into objectives that can be fitted.
-        self.objectives = [Objective(model, data)
-                           for model, data in list(zip(self.models, self.datasets))]
+        self.objectives = [Objective(model, data) for model, data in list(zip(self.models, self.datasets))]
 
     def using_contrast(self, contrast_sld: float) -> Structure:
         """Creates a structure representing the bilayer measured using a
-           water contrast of given `contrast_sld`.
+           contrast of given `contrast_sld`.
 
         Args:
-            contrast_sld (float): SLD of contrast to measure.
+            contrast_sld (float): SLD of contrast to simulate.
 
         Returns:
-            refnx.reflect.Structure: structure in water contrast of given SLD.
+            refnx.reflect.Structure: structure in contrast of given SLD.
 
         """
         # Calculate the SLD of the headgroup with the given contrast SLD.
@@ -290,19 +288,19 @@ class AsymmetricBilayer(Bilayer):
     Attributes:
         data_path (str): path to directory containing measured data.
         contrast_slds (list): SLDs of measured contrasts.
-        scale (float): instrument experimental scale factor.
-        bkgs (list): instrument backgrounds for each measured contrast.
+        scale (float): experimental scale factor.
+        bkgs (list): experimental backgrounds for each measured contrast.
         dq (float): instrument resolution.
         names (list): labels for each measured contrast.
-        distances (numpy.ndarray): range to use for SLD profile x-axis.
-        si_sld (float): SLD of silicon (substrate).
+        distances (numpy.ndarray): SLD profile x-axis values.
+        si_sld (float): SLD of silicon substrate.
         sio2_sld (float): SLD of silicon oxide.
         pc_hg_sld (float):
         dPC_tg (float):
         hLPS_tg (float):
         core_D2O (float):
         core_H2O (float):
-        si_rough (refnx.analysis.Parameter): silicon (substrate) roughness.
+        si_rough (refnx.analysis.Parameter): silicon substrate roughness.
         sio2_thick (refnx.analysis.Parameter): silicon oxide thickness.
         sio2_rough (refnx.analysis.Parameter): silicon oxide roughness.
         sio2_solv (refnx.analysis.Parameter): silicon oxide hydration.
@@ -314,7 +312,7 @@ class AsymmetricBilayer(Bilayer):
         tg_solv (refnx.analysis.Parameter): tailgroup hydration.
         core_thick (refnx.analysis.Parameter): core thickness.
         core_solv (refnx.analysis.Parameter): core hydration.
-        parameters (list): all free parameters of the model.
+        parameters (list): free parameters of the model.
         structures (list): structure for each measured contrast.
         models (list): model for each measured contrast.
         datasets (list): dataset for each measured contrast.
@@ -351,7 +349,7 @@ class AsymmetricBilayer(Bilayer):
         self.core_thick     = Parameter(28.7,   'Core Thickness',            (0,50))
         self.core_solv      = Parameter(0.26,   'Core Hydration',            (0,1))
 
-        # Define the free parameters of the model.
+        # Define the parameters of the model.
         self.parameters = [self.si_rough,
                            self.sio2_thick,
                            self.sio2_rough,
@@ -385,16 +383,15 @@ class AsymmetricBilayer(Bilayer):
                          for name in self.names]
 
         # Combine models and datasets into objectives corresponding to each contrast.
-        self.objectives = [Objective(model, data)
-                           for model, data in list(zip(self.models, self.datasets))]
+        self.objectives = [Objective(model, data) for model, data in list(zip(self.models, self.datasets))]
 
     def using_contrast(self, contrast_sld: float, name: str='') -> Structure:
         """Creates a structure representing the bilayer measured using a
-           water contrast of given `contrast_sld`.
+           contrast of given `contrast_sld`.
 
         Args:
-            contrast_sld (float): SLD of contrast to measure.
-            name (str): label for the structure.
+            contrast_sld (float): SLD of contrast to simulate.
+            name (str): label for structure.
 
         Returns:
             refnx.reflect.Structure: structure in water contrast of given SLD.
@@ -408,6 +405,7 @@ class AsymmetricBilayer(Bilayer):
         substrate = SLD(self.si_sld)
         solution  = SLD(contrast_sld)(0, self.bilayer_rough)
 
+        # Make sure this method is not being called from this class (should be from child class).
         if not hasattr(self, 'inner_tg_sld') or not hasattr(self, 'outer_tg_sld'):
             raise RuntimeError('inner/outer tailgroup SLD not defined')
 
@@ -434,16 +432,14 @@ class SingleAsymmetricBilayer(AsymmetricBilayer):
     def __init__(self) -> None:
         super().__init__()
 
+        # Define the single asymmetry parameter.
         self.asym_value = Parameter(0.95, 'Asymmetry Value', (0,1), True)
         self.parameters.append(self.asym_value)
 
-        self.inner_tg_sld = SLD(self.asym_value*self.dPC_tg +
-                                (1-self.asym_value)*self.hLPS_tg)
+        self.inner_tg_sld = SLD(self.asym_value*self.dPC_tg  + (1-self.asym_value)*self.hLPS_tg)
+        self.outer_tg_sld = SLD(self.asym_value*self.hLPS_tg + (1-self.asym_value)*self.dPC_tg)
 
-        self.outer_tg_sld = SLD(self.asym_value*self.hLPS_tg +
-                                (1-self.asym_value)*self.dPC_tg)
-
-        self.create_objectives()
+        self.create_objectives() # Load the measured data.
 
     def __str__(self) -> str:
         return 'single_asymmetric_bilayer'
@@ -462,80 +458,77 @@ class DoubleAsymmetricBilayer(AsymmetricBilayer):
     def __init__(self) -> None:
         super().__init__()
 
+        # Define the two asymmetry parameters.
         self.inner_tg_pc = Parameter(0.95, 'Inner Tailgroup PC', (0,1), True)
         self.outer_tg_pc = Parameter(0.063, 'Outer Tailgroup PC', (0,1), True)
         self.parameters.append(self.inner_tg_pc)
         self.parameters.append(self.outer_tg_pc)
 
-        self.inner_tg_sld = SLD(self.inner_tg_pc*self.dPC_tg +
-                                (1-self.inner_tg_pc)*self.hLPS_tg)
+        self.inner_tg_sld = SLD(self.inner_tg_pc*self.dPC_tg + (1-self.inner_tg_pc)*self.hLPS_tg)
+        self.outer_tg_sld = SLD(self.outer_tg_pc*self.dPC_tg + (1-self.outer_tg_pc)*self.hLPS_tg)
 
-        self.outer_tg_sld = SLD(self.outer_tg_pc*self.dPC_tg +
-                                (1-self.outer_tg_pc)*self.hLPS_tg)
-
-        self.create_objectives()
+        self.create_objectives() # Load the measured data.
 
     def __str__(self) -> str:
         return 'double_asymmetric_bilayer'
 
 def QCS_sample() -> Structure:
-    """Creates the QCS (quartz, copper, silicon) sample for which
-       data was measured.
+    """Creates the QCS (quartz, copper, silicon) sample.
 
     Returns:
-        refnx.reflect.Structure: representation of the measured structure.
+        refnx.reflect.Structure: refnx representation of the measured sample.
 
     """
-    air       = SLD(0, name='Air')
-    layer1    = SLD(1.795, name='Layer 1 - Si')(thick=790.7, rough=24.5)
-    layer2    = SLD(6.385, name='Layer 2 - Cu')(thick=297.9, rough=3.5)
+    air = SLD(0, name='Air')
+    layer1 = SLD(1.795, name='Layer 1 - Si')(thick=790.7, rough=24.5)
+    layer2 = SLD(6.385, name='Layer 2 - Cu')(thick=297.9, rough=3.5)
     substrate = SLD(3.354, name='Substrate - Quartz')(thick=0, rough=12.9)
     return air | layer1 | layer2 | substrate
 
 def easy_sample() -> Structure:
-    air       = SLD(0, name='Air')
-    layer1    = SLD(4, name='Layer 1')(thick=100, rough=2)
-    layer2    = SLD(8, name='Layer 2')(thick=150, rough=2)
+    air = SLD(0, name='Air')
+    layer1 = SLD(4, name='Layer 1')(thick=100, rough=2)
+    layer2 = SLD(8, name='Layer 2')(thick=150, rough=2)
     substrate = SLD(2.047, name='Substrate')(thick=0, rough=2)
     return air | layer1 | layer2 | substrate
 
 def thin_layer_sample_1() -> Structure:
-    air       = SLD(0, name='Air')
-    layer1    = SLD(4, name='Layer 1')(thick=200, rough=2)
-    layer2    = SLD(6, name='Layer 2')(thick=6, rough=2)
+    air = SLD(0, name='Air')
+    layer1 = SLD(4, name='Layer 1')(thick=200, rough=2)
+    layer2 = SLD(6, name='Layer 2')(thick=6, rough=2)
     substrate = SLD(2.047, name='Substrate')(thick=0, rough=2)
     return air | layer1 | layer2 | substrate
 
 def thin_layer_sample_2() -> Structure:
-    air       = SLD(0, name='Air')
-    layer1    = SLD(4, name='Layer 1')(thick=200, rough=2)
-    layer2    = SLD(5, name='Layer 2')(thick=30, rough=6)
-    layer3    = SLD(6, name='Layer 3')(thick=6, rough=2)
+    air = SLD(0, name='Air')
+    layer1 = SLD(4, name='Layer 1')(thick=200, rough=2)
+    layer2 = SLD(5, name='Layer 2')(thick=30, rough=6)
+    layer3 = SLD(6, name='Layer 3')(thick=6, rough=2)
     substrate = SLD(2.047, name='Substrate')(thick=0, rough=2)
     return air | layer1 | layer2 | layer3 | substrate
 
 def similar_sld_sample_1() -> Structure:
-    air       = SLD(0,   name='Air')
-    layer1    = SLD(0.9, name='Layer 1')(thick=80, rough=2)
-    layer2    = SLD(1.0, name='Layer 2')(thick=50, rough=6)
+    air = SLD(0, name='Air')
+    layer1 = SLD(0.9, name='Layer 1')(thick=80, rough=2)
+    layer2 = SLD(1.0, name='Layer 2')(thick=50, rough=6)
     substrate = SLD(2.047, name='Substrate')(thick=0, rough=2)
     return air | layer1 | layer2 | substrate
 
 def similar_sld_sample_2() -> Structure:
-    air       = SLD(0,   name='Air')
-    layer1    = SLD(3.0, name='Layer 1')(thick=50, rough=2)
-    layer2    = SLD(5.5, name='Layer 2')(thick=30, rough=6)
-    layer3    = SLD(6.0, name='Layer 3')(thick=35, rough=2)
+    air = SLD(0, name='Air')
+    layer1 = SLD(3.0, name='Layer 1')(thick=50, rough=2)
+    layer2 = SLD(5.5, name='Layer 2')(thick=30, rough=6)
+    layer3 = SLD(6.0, name='Layer 3')(thick=35, rough=2)
     substrate = SLD(2.047, name='Substrate')(thick=0, rough=2)
     return air | layer1 | layer2 | layer3 | substrate
 
 def many_param_sample() -> Structure:
-    air       = SLD(0,   name='Air')
-    layer1    = SLD(2.0, name='Layer 1')(thick=50, rough=6)
-    layer2    = SLD(1.7, name='Layer 2')(thick=15, rough=2)
-    layer3    = SLD(0.8, name='Layer 3')(thick=60, rough=2)
-    layer4    = SLD(3.2, name='Layer 4')(thick=40, rough=2)
-    layer5    = SLD(4.0, name='Layer 5')(thick=18, rough=2)
+    air = SLD(0, name='Air')
+    layer1 = SLD(2.0, name='Layer 1')(thick=50, rough=6)
+    layer2 = SLD(1.7, name='Layer 2')(thick=15, rough=2)
+    layer3 = SLD(0.8, name='Layer 3')(thick=60, rough=2)
+    layer4 = SLD(3.2, name='Layer 4')(thick=40, rough=2)
+    layer5 = SLD(4.0, name='Layer 5')(thick=18, rough=2)
     substrate = SLD(2.047, name='Substrate')(thick=0, rough=2)
     return air | layer1 | layer2 | layer3 | layer4 | layer5 | substrate
 
@@ -551,12 +544,10 @@ if __name__ == '__main__':
     # Plot the SLD profiles and model reflectivity curves for all structures.
     for structure in STRUCTURES:
         fig, _ = plot_sld_profile(structure())
-        save_plot(fig, os.path.join(save_path, structure.__name__),
-                  'sld_profile')
+        save_plot(fig, os.path.join(save_path, structure.__name__), 'sld_profile')
 
         fig, _ = plot_reflectivity_curve(structure())
-        save_plot(fig, os.path.join(save_path, structure.__name__),
-                  'model_reflectivity')
+        save_plot(fig, os.path.join(save_path, structure.__name__), 'model_reflectivity')
 
     # Define contrasts and measurement times / angles for corner plots.
     D2O, SMW, H2O = 6.36, 2.07, -0.56

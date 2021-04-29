@@ -48,8 +48,8 @@ def plot_measured_all(data_path: str, bkg: float, dq: float, save_path: str) -> 
 
     Args:
         data_path (str): path to directory containing 'QCS_all.dat' file.
-        bkg (float): model background.
-        dq (float): model instrument resolution.
+        bkg (float): experimental background.
+        dq (float): instrument resolution.
         save_path (str): path to directory to save plot to.
 
     """
@@ -68,12 +68,12 @@ def simulate_measured_data(data_path: str, files: List[str], scale: float, bkg: 
     """Loads each measured angle's data and simulates experiments for each.
 
     Args:
-        data_path (str): path to directory containing the measured data.
+        data_path (str): path to directory containing measured data.
         files (list): file names for each angle's data.
         scale (float): experimental scale factor.
         bkg (float): experimental background.
         dq (float): instrument resolution.
-        angles (list): angles used in measuring the data.
+        angles (list): angles used to measure the data.
         time (float): measurement time for measured data.
 
     Returns:
@@ -86,6 +86,7 @@ def simulate_measured_data(data_path: str, files: List[str], scale: float, bkg: 
     for angle, file_name in list(zip(angles, files)):
         # Load the measured reflectivity data.
         data_measured = np.loadtxt(os.path.join(data_path, file_name), delimiter='    ')
+
         q_measured = data_measured[:,0]
         r_measured = data_measured[:,1]
         r_error_measured = data_measured[:,2]
@@ -103,6 +104,7 @@ def simulate_measured_data(data_path: str, files: List[str], scale: float, bkg: 
         # Define the model with correct scale and simulate.
         model = ReflectModel(QCS_sample(), scale=scale, bkg=bkg, dq=dq)
         data_simulated = run_experiment(model, angle, points, time, q_bins)
+
         q_simulated = data_simulated[0]
         r_simulated = data_simulated[1]
         r_error_simulated = data_simulated[2]

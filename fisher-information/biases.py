@@ -15,7 +15,7 @@ from simulate import AngleTimes
 from simulate import simulate_single_contrast as simulate
 
 def fitting_biases(structure: Callable, angle_times: AngleTimes, save_path: str, n: int=500) -> None:
-    """Investigates fitting biases in nested sampling and differential
+    """Investigates fitting biases in nested sampling, and differential
        evolution with and without following with L-BFGS-B.
 
     Args:
@@ -30,7 +30,7 @@ def fitting_biases(structure: Callable, angle_times: AngleTimes, save_path: str,
 
     evolution_params, lbfgs_params, sampled_params = [], [], []
     for i in range(n): # Fit `n` times.
-        # Simulate an experiment using the given structure.
+        # Simulate an experiment using the given `structure`.
         objective = Objective(*simulate(structure(), angle_times))
 
         # Vary the model parameters and randomly initialise.
@@ -39,7 +39,7 @@ def fitting_biases(structure: Callable, angle_times: AngleTimes, save_path: str,
         # Get the parameters of the structure.
         xi = objective.varying_parameters()
 
-        # Fit using differential evolution only first, record estimated values.
+        # Fit using differential evolution only and record estimated values.
         fitter = CurveFitter(objective)
         fitter.fit('differential_evolution', verbose=False, polish=False)
         evolution_params.append([param.value for param in xi])
@@ -73,8 +73,8 @@ def save_biases(biases: ArrayLike, names: List[str], method: str, save_path: str
     """Saves biases to .txt file.
 
     Args:
-        biases (numpy.ndarray): array of biases to save.
-        names (list): list of parameter names.
+        biases (numpy.ndarray): biases to save.
+        names (list): parameter names.
         method (str): fitting method used to calculate biases.
         save_path (str): path to directory to save bias results to.
 
@@ -97,9 +97,9 @@ def time_biases(structure: Callable, angle_times: AngleTimes, multipliers: Array
     """Investigates how fitting biases change with measurement time.
 
     Args:
-        structure (function): structure to investigate the biases with.
+        structure (function): structure to investigate biases with.
         angle_times (dict): points and simulation times for each angle.
-        multipliers (numpy.ndarray): array of time multipliers.
+        multipliers (numpy.ndarray): time multipliers.
         save_path (str): path to directory to save bias plot to.
         n (int): number of fits to calculate bias with.
 
@@ -110,9 +110,8 @@ def time_biases(structure: Callable, angle_times: AngleTimes, multipliers: Array
     # Iterate over each time multiplier.
     biases = []
     for i, multiplier in enumerate(multipliers):
-        fitted_params = []
-
         # Fit `n` times using the current time multiplier.
+        fitted_params = []
         for _ in range(n):
             # Multiply the initial times by current multiplier for each angle.
             new_angle_times = {angle: (angle_times[angle][0], angle_times[angle][1]*multiplier)
@@ -142,32 +141,30 @@ def time_biases(structure: Callable, angle_times: AngleTimes, multipliers: Array
 def contrast_biases(bilayer: Bilayer, initial_contrast: float, new_contrasts: ArrayLike,
                     angle_times: AngleTimes, save_path: str, n: int=10) -> None:
     """Investigates how fitting biases change with second contrast choice
-       for a bilayer model.
+       for a `bilayer` model.
 
     Args:
         bilayer (structures.Bilayer): bilayer to calculate biases with.
-        initial_contrast (float): initial measurement contrast SLD.
+        initial_contrast (float): initial contrast SLD.
         new_contrasts (numpy.ndarray): second contrast SLDs.
         angle_times (dict): points and simulation times for each angle.
         save_path (str): path to directory to save bias plot to.
         n (int): number of fits to calculate bias with.
 
     """
+    # Get ground truth parameter values.
     xi = bilayer.parameters
+    true = np.asarray([param.value for param in xi])
 
     # Simulate an experiment using the initial contrast SLD.
     structure = bilayer.using_contrast(initial_contrast)
     objective_initial = Objective(*simulate(structure, angle_times))
 
-    # Get ground truth parameter values.
-    true = np.asarray([param.value for param in xi])
-
     # Iterate over each second contrast SLD.
     biases = []
     for x, new_contrast in enumerate(new_contrasts, 1):
-        fitted = []
-
         # Calculate the bias over `n` fits.
+        fitted = []
         for _ in range(n):
             # Set the bilayer parameters back to their ground truth values.
             for i, param in enumerate(xi):
@@ -200,7 +197,7 @@ def contrast_biases(bilayer: Bilayer, initial_contrast: float, new_contrasts: Ar
 
 def plot_biases(x: ArrayLike, biases: ArrayLike, xi: List[Parameter],
                 x_label: str, save_path: str, file_name: str) -> None:
-    """Plots biases against either measurement time or contrast choice.
+    """Plots `biases` against either measurement time or contrast choice (`x`).
 
     Args:
         x (numpy.ndarray): either measurement times or contrast SLDs.
@@ -224,8 +221,9 @@ def plot_biases(x: ArrayLike, biases: ArrayLike, xi: List[Parameter],
 
     save_plot(fig, save_path, file_name)
 
-def bias_derivative(bilayer: Bilayer, initial_contrast: float, new_contrasts: ArrayLike, param_name: str,
-                    param_range: ArrayLike, angle_times: AngleTimes, save_path: str, n: int=50):
+def bias_derivative(bilayer: Bilayer, initial_contrast: float,
+                    new_contrasts: ArrayLike, param_name: str, param_range: ArrayLike,
+                    angle_times: AngleTimes, save_path: str, n: int=50):
     """Investigates how fitting biases change with second contrast choice in
        a chosen parameter for a bilayer model. This is repeated with the
        chosen parameter set to each value in `param_range`.
@@ -260,8 +258,7 @@ def bias_derivative(bilayer: Bilayer, initial_contrast: float, new_contrasts: Ar
 
         # Simulate an experiment using the initial contrast with this value.
         structure = bilayer.using_contrast(initial_contrast)
-        model, data = simulate(structure, angle_times)
-        objective_initial = Objective(model, data)
+        objective_initial = Objective(*simulate(structure, angle_times))
 
         # Iterate over each second contrast SLD.
         value_biases = []
@@ -272,15 +269,13 @@ def bias_derivative(bilayer: Bilayer, initial_contrast: float, new_contrasts: Ar
             for _ in range(n):
                 # Simulate experiment using the second contrast SLD.
                 structure = bilayer.using_contrast(new_contrast)
-                model, data = simulate(structure, angle_times)
-                objective_new = Objective(model, data)
+                objective_new = Objective(*simulate(structure, angle_times))
 
                 # Set the parameter to a range value within its bounds.
                 parameter.value = np.random.uniform(parameter.bounds.lb, parameter.bounds.ub)
 
-                # Fit the initial and new contrast data.
-                objectives = [objective_initial, objective_new]
-                global_objective = GlobalObjective(objectives)
+                # Fit the initial and second contrast data.
+                global_objective = GlobalObjective([objective_initial, objective_new])
                 global_objective.varying_parameters = lambda: [parameter]
 
                 fitter = CurveFitter(global_objective)

@@ -15,7 +15,7 @@ def plot_sld_profile(structure: Structure, distances: ArrayLike=None, colour: st
 
     Args:
         structure (refnx.reflect.Structure): structure to plot SLD profile of.
-        distances (numpy.ndarray): values to use on the SLD profile x-axis.
+        distances (numpy.ndarray): values to use on SLD profile x-axis.
         colour (str): colour to use for SLD profile.
         label (bool): whether to use structure's name in plot's legend.
 
@@ -29,6 +29,7 @@ def plot_sld_profile(structure: Structure, distances: ArrayLike=None, colour: st
 
     # Plot the SLD profile with or without a label.
     ax.plot(*structure.sld_profile(distances), color=colour, label=structure.name if label else None)
+
     ax.set_xlabel('$\mathregular{Distance\ (\AA)}$', fontsize=11, weight='bold')
     ax.set_ylabel('$\mathregular{SLD\ (10^{-6} \AA^{-2})}$', fontsize=11, weight='bold')
     return fig, ax
@@ -50,7 +51,7 @@ def plot_sld_profiles(structures: List[Structure], distances: ArrayLike=None,
     # Get the figure and axis by plotting the first structure by itself.
     fig, ax = plot_sld_profile(structures[0], distances, None, label)
 
-    # Plot the rest of the structures on the same axis.
+    # Plot the remaining structures on the same axis.
     for structure in structures[1:]:
         ax.plot(*structure.sld_profile(distances), label=structure.name if label else None)
 
@@ -75,7 +76,6 @@ def plot_objective(objective: Objective, colour: str='black',
     """
     # Plot the reflectivity data.
     fig, ax = plot_refdata(objective.data, colour, objective.model.structure.name if label else None)
-
     # Plot the fit.
     q = objective.data.x
     ax.plot(q, objective.model(q), color='red', zorder=20)
@@ -83,7 +83,7 @@ def plot_objective(objective: Objective, colour: str='black',
     return fig, ax
 
 def plot_objectives(objectives: List[Objective], label: bool=True) -> Tuple[plt.Figure, plt.Axes]:
-    """Plots fits of a given `objectives` against the objectives' data.
+    """Plots fits of `objectives` against the objectives' data.
 
     Args:
         objectives (list): objectives to plot.
@@ -97,7 +97,7 @@ def plot_objectives(objectives: List[Objective], label: bool=True) -> Tuple[plt.
     # Get the figure and axis by plotting the first objective by itself.
     fig, ax = plot_objective(objectives[0], None, label)
 
-    # Plot the rest of the objectives on the same axis.
+    # Plot the remaining `objectives` on the same axis.
     for objective in objectives[1:]:
         q, r = objective.data.x, objective.data.y
         r_error = objective.data.y_err
@@ -105,7 +105,6 @@ def plot_objectives(objectives: List[Objective], label: bool=True) -> Tuple[plt.
         # Plot the reflectivity data.
         ax.errorbar(q, r, r_error, marker='o', ms=3, lw=0, elinewidth=1, capsize=1.5,
                     label=objective.model.structure.name if label else None)
-
         # Plot the fit.
         ax.plot(q, objective.model(q), color='red', zorder=20)
 
@@ -120,7 +119,7 @@ def plot_refdata(data: ReflectDataset, colour: str='black', label: bool=None) ->
     Args:
         data (refnx.dataset.ReflectDataset): dataset to plot.
         colour (str): colour to use when plotting data points.
-        label (str): label of dataset for inclusion in plot's legend.
+        label (str): label of data for inclusion in plot's legend.
 
     Returns:
         fig (matplotlib.pyplot.Figure): figure containing reflectivity data.
@@ -137,19 +136,18 @@ def plot_refdata(data: ReflectDataset, colour: str='black', label: bool=None) ->
     ax.set_xlabel('$\mathregular{Q\ (Å^{-1})}$', fontsize=11, weight='bold')
     ax.set_ylabel('Reflectivity (arb.)', fontsize=11, weight='bold')
     ax.set_yscale('log')
-    #ax.set_xlim(0, 0.3)
     ax.set_ylim(1e-7, 2)
     return fig, ax
 
 def plot_reflectivity_curve(structure: Structure, q_min: float=0.005, q_max: float=0.3,
                             points: int=500, dq: float=2, bkg: float=1e-7) -> Tuple[plt.Figure, plt.Axes]:
-    """Plots the model reflectivity curve of a given structure.
+    """Plots the model reflectivity curve of a given `structure`.
 
     Args:
         structure (refnx.reflect.Structure): structure to plot reflectivity curve of.
         q_min (float): minimum Q value for plot.
         q_max (float): maximum Q value for plot.
-        points (int): number of reflectivity points to plot.
+        points (int): number of reflectivity points to use.
         dq (float): instrument resolution.
         bkg (float): experimental background.
 
@@ -158,8 +156,8 @@ def plot_reflectivity_curve(structure: Structure, q_min: float=0.005, q_max: flo
         ax (matplotlib.pyplot.Axes): axis containing reflectivity curve.
 
     """
-    model = ReflectModel(structure, scale=1, bkg=bkg, dq=dq) # Define a model.
-    q = np.logspace(np.log10(q_min), np.log10(q_max), points)
+    model = ReflectModel(structure, scale=1, bkg=bkg, dq=dq) # Define the model.
+    q = np.logspace(np.log10(q_min), np.log10(q_max), points) # Equally log-spaced bins.
     r = model(q) # Calculate the model reflectivity.
 
     # Plot the model reflectivity against Q.
@@ -189,6 +187,7 @@ def save_plot(fig: plt.Figure, save_path: str, file_name: str) -> None:
 
 if __name__ == '__main__':
     from structures import SymmetricBilayer
+    # The following code creates the figure 4 plot reflectivity curve plot.
 
     # Plot each (fitted) objective on the same plot and save it.
     bilayer = SymmetricBilayer()

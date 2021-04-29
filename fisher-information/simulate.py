@@ -14,9 +14,11 @@ from plotting import plot_objective
 DIRECTBEAM_PATH = '../fisher-information/data/directbeam/directbeam_wavelength.dat'
 AngleTimes = Dict[float, Tuple[int, float]]
 
-def simulate_single_contrast(structure: Structure, angle_times: AngleTimes, scale: float=1, bkg: float=1e-7,
-                             dq: float=2, include_counts: bool=False, save_path: str=None,
-                             file_name: str=None ) -> Tuple[ReflectModel, ReflectDataset, Optional[ArrayLike]]:
+def simulate_single_contrast(structure: Structure, angle_times: AngleTimes, scale: float=1,
+                             bkg: float=1e-7, dq: float=2, include_counts: bool=False,
+                             save_path: str=None, file_name: str=None) -> Tuple[ReflectModel,
+                                                                                ReflectDataset,
+                                                                                Optional[ArrayLike]]:
     """Simulates a single contrast experiment measured over a number of angles.
 
     Args:
@@ -47,7 +49,7 @@ def simulate_single_contrast(structure: Structure, angle_times: AngleTimes, scal
         simulated = run_experiment(model, angle, points, time)
         q_angle, r_angle, r_error_angle, counts_angle = simulated
 
-        # Save combined dataset to .dat file if requested to save data.
+        # Save combined dataset to .dat file if requested.
         str_angle = str(angle).replace('.', '')
         if save_path:
             if file_name:
@@ -79,20 +81,22 @@ def simulate_single_contrast(structure: Structure, angle_times: AngleTimes, scal
     data = data[(data != 0).all(1)] # Remove points of zero reflectivity.
     data = data[data[:,0].argsort()] # Sort by Q.
 
-    # Create a refnx dataset for Q, R and dR values.
+    # Create refnx dataset for Q, R and dR values.
     dataset = ReflectDataset([data[:,0], data[:,1], data[:,2]])
 
-    # Return the associated neutron counts if requested.
+    # Return neutron counts if requested.
     if include_counts:
         return model, dataset, data[:,3]
     else:
         return model, dataset
 
-def simulate_multiple_contrasts(structures: List[Structure], angle_times: AngleTimes, scale: float=1,
-                                bkg: float=1e-7, dq: float=2, include_counts: bool=False, save_path: str=None
-                                ) -> Tuple[List[ReflectModel], List[ReflectDataset], Optional[List[ArrayLike]]]:
-    """Simulates a multiple contrast experiment measured using a number
-       of different angles.
+def simulate_multiple_contrasts(structures: List[Structure], angle_times: AngleTimes,
+                                scale: float=1, bkg: float=1e-7, dq: float=2,
+                                include_counts: bool=False, save_path: str=None
+                                ) -> Tuple[List[ReflectModel],
+                                           List[ReflectDataset],
+                                           Optional[List[ArrayLike]]]:
+    """Simulates a multiple contrast experiment measured over a number of angles.
 
     Args:
         structures (list): structures corresponding to each contrast.
@@ -112,33 +116,31 @@ def simulate_multiple_contrasts(structures: List[Structure], angle_times: AngleT
     # Iterate over each structure.
     models, datasets, counts = [], [], []
     for i, structure in enumerate(structures, 1):
-        file_name = 'contrast{}.dat'.format(i)
-
         # Simulate each measurement angle for the contrast.
-        simulated = simulate_single_contrast(structure, angle_times, scale, bkg, dq,
-                                             include_counts, save_path, file_name)
+        simulated = simulate_single_contrast(structure, angle_times,
+                                             scale, bkg, dq, include_counts,
+                                             save_path, 'contrast{}.dat'.format(i))
         models.append(simulated[0])
         datasets.append(simulated[1])
+        counts.append(simulated[2])
 
-        if include_counts:
-            counts.append(simulated[2])
-
-    # Return the associated neutron counts if requested.
+    # Return neutron counts if requested.
     if include_counts:
         return models, datasets, counts
     else:
         return models, datasets
 
-def run_experiment(model: ReflectModel, angle: float, points: int, time: float,
-                   q_bin_edges: ArrayLike=None) -> Tuple[List[float], List[float], List[float], List[float]]:
+def run_experiment(model: ReflectModel, angle: float, points: int,
+                   time: float, q_bin_edges: ArrayLike=None
+                   ) -> Tuple[List[float], List[float], List[float], List[float]]:
     """Simulates an experiment for a given model with added noise.
 
     Args:
         model (refnx.reflect.ReflectModel): model to simulate experiment on.
-        angle (float): measurement angle for simulation.
+        angle (float): angle for simulation.
         points (int): number of points to use when binning.
-        time (float): time to count during experiment.
-        q_bin_edges (np.ndarray): edges of the Q bins to use for simulation.
+        time (float): time to count during simulation.
+        q_bin_edges (np.ndarray): edges of Q bins to use for simulation.
 
     Returns:
         q_binned (list): Q values in equally log-spaced bins.
@@ -154,7 +156,7 @@ def run_experiment(model: ReflectModel, angle: float, points: int, time: float,
     # Adjust flux by measurement angle.
     direct_flux = direct_beam[:,1] * pow(angle/0.3, 2)
 
-    theta = angle*np.pi / 180 # Convert angle from degrees into radians.
+    theta = angle*np.pi / 180 # Convert angle from degrees to radians.
     q = 4*np.pi*np.sin(theta) / wavelengths # Calculate Q values.
 
     # If Q bins are not provided
@@ -168,8 +170,9 @@ def run_experiment(model: ReflectModel, angle: float, points: int, time: float,
     q_binned = [(q_bin_edges[i] + q_bin_edges[i+1]) / 2 for i in range(points)]
     reflectance = model(q_binned)
 
+    # Iterate over the desired number of points (bins).
     r, r_errors, counts = [], [], []
-    for i in range(points): # Iterate over the desired number of points (bins).
+    for i in range(points):
         flux_point = flux_binned[i]
         r_point = reflectance[i]
         count_incident = flux_point * time
@@ -178,19 +181,17 @@ def run_experiment(model: ReflectModel, angle: float, points: int, time: float,
         # r_point accounts for background.
         count_reflected = np.random.poisson(r_point*flux_point*time)
 
+        # Convert from count space to reflectivity space.
         # Point has zero reflectivity if there is no flux.
-        if count_reflected > 0:
-            # Convert from count space to reflectivity space.
-            r_noisy = count_reflected / count_incident
-            r_error = np.sqrt(count_reflected) / count_incident
+        r_noisy = np.divide(count_reflected, count_incident,
+                            out=np.zeros_like(count_incident), where=count_incident!=0)
 
-            r.append(r_noisy)
-            r_errors.append(r_error)
-            counts.append(count_incident) # Incident neutrons in the bin.
-        else:
-            r.append(0)
-            r_errors.append(0)
-            counts.append(0)
+        r_error = np.divide(np.sqrt(count_reflected), count_incident,
+                            out=np.zeros_like(count_incident), where=count_incident!=0)
+
+        r.append(r_noisy)
+        r_errors.append(r_error)
+        counts.append(count_incident) # Incident neutrons in the bin.
 
     return q_binned, r, r_errors, counts
 
@@ -206,6 +207,7 @@ def difference_plots(structure: Structure, angle_times: AngleTimes) -> None:
     # Simulate an experiment using the given structure.
     objective = Objective(*simulate_single_contrast(structure(), angle_times))
 
+    # Plot reflectivity curve.
     fig1, ax1 = plot_objective(objective)
 
     # Get the simulated and model reflecitivty.
@@ -222,8 +224,7 @@ def difference_plots(structure: Structure, angle_times: AngleTimes) -> None:
     # Plot the difference against Q.
     fig2 = plt.figure(figsize=[9,7], dpi=600)
     ax2 = fig2.add_subplot(111)
-    ax2.errorbar(objective.data.x, diff, diff_error,
-                 color="black", elinewidth=1, capsize=1.5)
+    ax2.errorbar(objective.data.x, diff, diff_error, color="black", elinewidth=1, capsize=1.5)
 
     ax2.set_xlabel("$\mathregular{Q\ (Å^{-1})}$", fontsize=11, weight='bold')
     ax2.set_ylabel('Fractional Difference (arb.)', fontsize=11, weight='bold')

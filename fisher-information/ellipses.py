@@ -29,9 +29,9 @@ def compare_ellipses(structure: Callable, angle_times: AngleTimes, save_path: st
     """
     save_path = os.path.join(save_path, structure.__name__)
 
-    # Simulate an experiment using the given angles, number of points and times.
-    structure = vary_structure(structure())
-    model, data, counts = simulate(structure, angle_times, include_counts=True, save_path=save_path)
+    # Simulate an experiment using the given angles, numbers of points and times.
+    model, data, counts = simulate(vary_structure(structure()), angle_times,
+                                   include_counts=True, save_path=save_path)
 
     # Get the parameters of the structure.
     objective = Objective(model, data)
@@ -74,8 +74,7 @@ def plot_ellipses(g: ArrayLike, xi: List[Parameter], fig: plt.Figure) -> None:
     for i in range(m):
         for j in range(m):
             if i > j: # Plot the confidence ellipse on plots below diagonal.
-                confidence_ellipse(g, j, i, xi[j], xi[i],
-                                   axes[i,j], i==m-1, j==0)
+                confidence_ellipse(g, j, i, xi[j], xi[i], axes[i,j], i==m-1, j==0)
             elif i == j:
                 continue # Leave diagonal plots as they are.
             else:
@@ -132,4 +131,5 @@ if __name__ == '__main__':
     angle_times = {0.7: (70, 5), # Angle: (Points, Time)
                    2.0: (70, 20)}
 
+    # Overlay FIM confidence ellipises on MCMC and nested sampling corner plots.
     compare_ellipses(structure, angle_times, save_path)

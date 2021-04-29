@@ -19,7 +19,7 @@ class Sampler:
 
     Attributes:
         objective (refnx.analysis.Objective): objective to sample.
-        ndim (int): number of free parameters of the objective.
+        ndim (int): number of parameters of the objective.
         sampler_MCMC (refnx.analysis.CurveFitter): sampler for MCMC sampling.
         sampler_nested_static (dynesty.NestedSampler): static nested sampler.
         sampler_nested_dynamic (dynesty.DynamicNestedSampler): dynamic nested sampler.
@@ -29,7 +29,6 @@ class Sampler:
         self.objective = objective
         self.ndim = len(self.objective.varying_parameters())
         self.sampler_MCMC = CurveFitter(self.objective)
-
         self.sampler_nested_static = NestedSampler(self.logl, self.objective.prior_transform, self.ndim)
         self.sampler_nested_dynamic = DynamicNestedSampler(self.logl, self.objective.prior_transform, self.ndim)
 
@@ -114,7 +113,7 @@ class Sampler:
         """Calculates the log-likelihood of the parameters `x` against the model.
 
         Args:
-            x (numpy.ndarray): array of parameter values.
+            x (numpy.ndarray): parameter values.
 
         Returns:
             float: log-likelihood of the parameters x.
@@ -126,14 +125,14 @@ class Sampler:
         return self.objective.logl()
 
 class ModelGenerator:
-    """Contains code for random model generation.
+    """Generates random models.
 
     Attributes:
-        sld_bounds (tuple): range of values that layer SLDs can take.
-        thick_bounds (tuple): range of values that layer thicknesses can take.
-        rough_bounds (tuple): range of values that layer roughnesses can take.
+        sld_bounds (tuple): range that layer SLDs can take.
+        thick_bounds (tuple): range that layer thicknesses can take.
+        rough_bounds (tuple): range that layer roughnesses can take.
         substrate_sld (float): SLD of substrate.
-        angle_times (dict): points and times for each simulation angle.
+        angle_times (dict): points and simulation times for angle.
 
     """
     def __init__(self, sld_bounds: Tuple[float, float]=(-1,10), thick_bounds: Tuple[float, float]=(20,1000),
@@ -165,7 +164,7 @@ class ModelGenerator:
         return models_data
 
     def random_structure(self, layers: int) -> Structure:
-        """Generates a single random structure with desired number of layers.
+        """Generates a single random structure with desired number of `layers`.
 
         Args:
             layers (int): number of layers for generated structure.
@@ -174,7 +173,7 @@ class ModelGenerator:
             refnx.reflect.Structure: randomly generated structure.
 
         """
-        # Air followed by each layer, and then finally the substrate.
+        # Air, followed by each layer, and then the substrate.
         structure = SLD(0, name='Air')
         for i in range(layers):
             structure |= self.make_component(substrate=False)
@@ -193,7 +192,7 @@ class ModelGenerator:
 
         """
         if substrate:
-            thickness = 0 # Substrate has 0 thickness in refnx.
+            thickness = 0 # Substrate has 0 thickness.
             sld = self.substrate_sld
         else:
             # Select a random thickness and SLD.
@@ -259,16 +258,16 @@ def vary_structure(structure: Structure, random_init: bool=False, bound_size: fl
 
 def fisher_single_contrast(q: ArrayLike, xi: List[Parameter], counts: ArrayLike,
                            model: ReflectModel) -> ArrayLike:
-    """Calculates the FIM matrix for a given `model`.
+    """Calculates the FIM matrix for a single `model`.
 
     Args:
-        q (numpy.ndarray): array of Q values.
+        q (numpy.ndarray): momentum transfer, Q, values.
         xi (list): varying parameters.
         counts (numpy.ndarray): incident neutron counts for each Q value.
         model (refnx.reflect.ReflectModel): model for calculating gradients.
 
     Returns:
-        numpy.ndarray: FIM matrix for the model and data.
+        numpy.ndarray: FIM matrix for the given model and data.
 
     """
     n = len(q)
@@ -286,16 +285,16 @@ def fisher_single_contrast(q: ArrayLike, xi: List[Parameter], counts: ArrayLike,
 
 def fisher_multiple_contrasts(qs: List[ArrayLike], xi: List[Parameter], counts: List[ArrayLike],
                               models: List[ReflectModel]) -> ArrayLike:
-    """Calculates the FIM matrix for a given list of `models` and set of parameters, `xi`.
+    """Calculates the FIM matrix for multiple `models` containing parameters, `xi`.
 
     Args:
-        qs (list): Q arrays corresponding to each contrast.
+        qs (list): momentum transfer, Q, values corresponding to each model.
         xi (list): varying parameters.
         counts (list): incident neutron counts corresponding to each Q value.
         models (list): models to calculate gradients with.
 
     Returns:
-        numpy.ndarray: FIM matrix for the given models and parameters.
+        numpy.ndarray: FIM matrix for the given models and data.
 
     """
     n = sum(len(q) for q in qs) # Number of data points.
@@ -343,7 +342,7 @@ def gradient(model: ReflectModel, parameter: Parameter, q_point: float, step: fl
     return (y2-y1) / (x2-x1) # Return the gradient
 
 def get_ground_truths(structure: Structure) -> ArrayLike:
-    """Gets the stucture's true values of the layers' thicknesses and SLDs.
+    """Gets the `stucture`'s true values for the layers' thicknesses and SLDs.
 
     Args:
         structure (refnx.reflect.Structure): structure to get true values from.
@@ -363,7 +362,7 @@ def get_ground_truths(structure: Structure) -> ArrayLike:
 def usefulness(objective: Objective) -> float:
     """Calculate a usefulness metric for a given `objective`. This metric is
        intended to provide a measure of how closely the FIM results will
-       match traditional sampling methods.
+       match established fitting methods.
 
     Args:
         objective (refnx.analysis.Objective): objective to calculate usefulness of.
@@ -386,7 +385,7 @@ def usefulness(objective: Objective) -> float:
 
 def select_model(dataset: ReflectDataset, counts: ArrayLike,
                  layers: Tuple[int, int]=(1,5)) -> ReflectModel:
-    """Selects the best model for a given dataset.
+    """Selects the best model for a given `dataset`.
 
     Args:
         dataset (refnx.dataset.ReflectDataset): dataset to obtain a model for.

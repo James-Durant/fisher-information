@@ -9,8 +9,8 @@ from utils import Sampler, ModelGenerator
 from utils import fisher_single_contrast as fisher
 
 def benchmark(layers: int, num_samples: int) -> Tuple[List[float], List[float], List[float]]:
-    """Randomly generate num_samples samples each of given number of
-       layers and calculate parameter uncertainties using MCMC sampling,
+    """Randomly generate `num_samples` samples, each of given number of
+       `layers`, and calculate parameter uncertainties using MCMC sampling,
        nested sampling and the FIM approach for each sample.
 
     Args:
@@ -29,8 +29,7 @@ def benchmark(layers: int, num_samples: int) -> Tuple[List[float], List[float], 
     generator = ModelGenerator()
     models_data = generator.generate(num_samples, layers)
 
-    # Iterate over each sample, run MCMC and nested sampling, and
-    # calculate the FIM.
+    # Iterate over each sample, run MCMC and nested sampling, and calculate the FIM.
     times_MCMC, times_nested, times_FIM = [], [], []
     for i, (model, data, counts) in enumerate(models_data):
         # Create an objective for the random model and simulated data.
