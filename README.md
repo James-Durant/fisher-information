@@ -4,7 +4,7 @@ This repository contains the [code](/fisher-information), [data](/fisher-informa
 
 In neutron reflectometry experiments, the FIM can be analytically calculated and used to provide sub-second predictions of parameter uncertainties. These uncertainties can influence real-time decisions about measurement angle, measurement time, contrast choice and other experimental conditions based on parameters of interest. The FIM provides a lower bound on parameter estimation uncertainties and these are shown to decrease with the square root of measurement time, providing useful information for the planning and scheduling of experimental work. As the FIM is computationally inexpensive to calculate, it can be computed repeatedly during the course of an experiment, saving costly beam time by signalling that sufficient data has been obtained; or saving experimental datasets by signalling that an experiment needs to continue.
 
-If you are interested in applying the framework to experimental design problems of your own, please see [demo](/demo).
+If you are interested in applying the framework to experimental design problems of your own, see [demo](/demo).
 
 ### Citation
 Please cite the following article if you intend on including elements of this work in your own publications:
