@@ -257,7 +257,7 @@ def vary_structure(structure: Structure, random_init: bool=False, bound_size: fl
     return structure
 
 def fisher_single_contrast(q: ArrayLike, xi: List[Parameter], counts: ArrayLike,
-                           model: ReflectModel) -> ArrayLike:
+                           model: ReflectModel, step: float=0.005) -> ArrayLike:
     """Calculates the FIM matrix for a single `model`.
 
     Args:
@@ -265,6 +265,7 @@ def fisher_single_contrast(q: ArrayLike, xi: List[Parameter], counts: ArrayLike,
         xi (list): varying parameters.
         counts (numpy.ndarray): incident neutron counts for each Q value.
         model (refnx.reflect.ReflectModel): model for calculating gradients.
+        step (float): step size to take when calculating gradient.
 
     Returns:
         numpy.ndarray: FIM matrix for the given model and data.
@@ -273,25 +274,39 @@ def fisher_single_contrast(q: ArrayLike, xi: List[Parameter], counts: ArrayLike,
     n = len(q)
     m = len(xi)
     J = np.zeros((n,m))
+
     # Calculate the gradient of the model reflectivity with every model
     # parameter for every model data point.
-    for i in range(n):
-        for j in range(m):
-            J[i,j] = gradient(model, xi[j], q[i])
+    for i in range(m):
+        parameter = xi[i]
+        old = parameter.value
 
-    r = model(q) # Use model reflectivity values.
-    M = np.diag(counts/r, k=0)
+        # Calculate the model reflectivity the first data point.
+        x1 = parameter.value = old*(1-step)
+        y1 = model(q)
+
+        # Calculate the model reflectivity the second data point.
+        x2 = parameter.value = old*(1+step)
+        y2 = model(q)
+
+        parameter.value = old # Reset the parameter.
+
+        J[:,i] = (y2-y1) / (x2-x1) # Calculate the gradient.
+
+    # Calculate the FIM matrix using the equations from the paper.
+    M = np.diag(counts / model(q), k=0)
     return np.dot(np.dot(J.T, M), J)
 
 def fisher_multiple_contrasts(qs: List[ArrayLike], xi: List[Parameter], counts: List[ArrayLike],
-                              models: List[ReflectModel]) -> ArrayLike:
+                              models: List[ReflectModel], step: float=0.005) -> ArrayLike:
     """Calculates the FIM matrix for multiple `models` containing parameters, `xi`.
 
     Args:
-        qs (list): momentum transfer, Q, values corresponding to each model.
-        xi (list): varying parameters.
+        qs (list): momentum transfer, Q, values for each model.
+        xi (list): varying model parameters.
         counts (list): incident neutron counts corresponding to each Q value.
         models (list): models to calculate gradients with.
+        step (float): step size to take when calculating gradient.
 
     Returns:
         numpy.ndarray: FIM matrix for the given models and data.
@@ -303,43 +318,28 @@ def fisher_multiple_contrasts(qs: List[ArrayLike], xi: List[Parameter], counts: 
 
     # Calculate the gradient of the model reflectivity with every model
     # parameter for every model data point.
-    r_all = []
-    start = 0
-    for q, model in list(zip(qs, models)):
-        for i in range(len(q)):
-            for j in range(m):
-                J[start+i,j] = gradient(model, xi[j], q[i])
+    for i in range(m):
+        parameter = xi[i]
+        old = parameter.value
 
-        start += len(q)
-        r_all.append(model(q)) # Use model reflectivity values.
+        # Calculate the reflectance for each model for the first data point.
+        x1 = parameter.value = old*(1-step)
+        y1 = np.concatenate([model(q) for q, model in list(zip(qs, models))])
 
-    r = np.concatenate(r_all)
+        # Calculate the reflectance for each model for the second data point.
+        x2 = parameter.value = old*(1+step)
+        y2 = np.concatenate([model(q) for q, model in list(zip(qs, models))])
+
+        parameter.value = old # Reset the parameter.
+
+        J[:,i] = (y2-y1) / (x2-x1) # Calculate the gradient.
+
+    # Calculate the reflectance for each model for the measured/simulated Q values.
+    r = np.concatenate([model(q) for q, model in list(zip(qs, models))])
+
+    # Calculate the FIM matrix using the equations from the paper.
     M = np.diag(np.concatenate(counts) / r, k=0)
     return np.dot(np.dot(J.T, M), J)
-
-def gradient(model: ReflectModel, parameter: Parameter, q_point: float, step: float=0.005) -> float:
-    """Calculate two-point gradient of model reflectivity with model parameter.
-
-    Args:
-        model (refnx.reflect.ReflectModel): model to calculate gradient.
-        parameter (refnx.analysis.Parameter): parameter to vary.
-        q_point (float): Q value of the r point to calculate the gradient of.
-        step (float): step size to take when calculating the gradient.
-
-    Returns:
-        float: two-point gradient.
-
-    """
-    old, step = parameter.value, parameter.value*step # 0.5% step by default.
-
-    x1 = parameter.value = old - step # First point
-    y1 = model(q_point) # Get new r value with altered model.
-
-    x2 = parameter.value = old + step # Second point
-    y2 = model(q_point)
-
-    parameter.value = old # Reset parameter
-    return (y2-y1) / (x2-x1) # Return the gradient
 
 def get_ground_truths(structure: Structure) -> ArrayLike:
     """Gets the `stucture`'s true values for the layers' thicknesses and SLDs.

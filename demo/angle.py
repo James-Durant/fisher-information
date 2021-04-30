@@ -18,7 +18,7 @@ points = 70 # Number of data points to simulate.
 time = 1 # Time to use for simulation.
 
 # Angles (in degrees) to calculate the FIM over.
-angles = np.arange(0.3, 2.4, 0.05)
+angles = np.arange(0.25, 2.5, 0.01)
 
 # Investigate how the FIM changes with first angle choice.
 first_angle_choice(similar_sld_sample, angles, points, time, './results')

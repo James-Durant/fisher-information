@@ -79,12 +79,12 @@ class Bilayer:
         return 'symmetric_bilayer'
 
 # Number of points and time to simulate for each angle.
-angle_times = {2.3: (30, 4)} # Angle: (Points, Time)
+angle_times = {2.3: (70, 4)} # Angle: (Points, Time)
 
 contrast_sld = 6.35 # SLD of contrast being simulated.
 
 # Underlayer thicknesses to calculate the FIM over.
-thicknesses = np.arange(2, 21, 0.25)
+thicknesses = np.arange(2, 21, 0.1)
 
 # Investigate how the FIM changes with underlayer thickness.
 underlayer_choice(Bilayer(), thicknesses, contrast_sld, angle_times, './results')

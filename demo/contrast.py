@@ -87,11 +87,11 @@ class Bilayer():
         return 'asymmetric_bilayer'
 
 # Number of points and time to simulate for each angle.
-angle_times = {0.7: (30, 10),
-               2.0: (30, 40)} # Angle: (Points, Time)
+angle_times = {0.7: (70, 10),
+               2.0: (70, 40)} # Angle: (Points, Time)
 
 # Contrast SLDs to calculate the FIM over.
-contrasts = np.arange(-0.56, 6.35, 0.1)
+contrasts = np.arange(-0.56, 6.35, 0.05)
 
 # Investigate how the FIM changes with initial contrast SLD.
 first_contrast_choice(Bilayer(), contrasts, angle_times, './results')
