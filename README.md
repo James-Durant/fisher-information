@@ -10,7 +10,7 @@ Please cite this article if you intend on including elements of this work in you
 If you are interested in applying the framework to experimental design problems of your own, see [demo](/demo).
 
 ## Installation
-1. To replicate the development environment with the [`Anaconda`](https://www.anaconda.com/products/individual) distribution, first create an empty conda environment by running: ```conda create --name FIM python=3.8.3```
+1. To replicate the development environment with the [`Anaconda`](https://www.anaconda.com/products/individual) distribution, first create an empty conda environment by running: <br /> ```conda create --name FIM python=3.8.3```
 
 2. To activate the environment, run: ```conda activate FIM```
 
