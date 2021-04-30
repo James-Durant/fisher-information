@@ -29,8 +29,8 @@ You should now be able to run the code. Please ensure you are running a version 
 If you are running an old version of Anaconda, you may need to reinstall with a newer version for this.
 
 ## Contact
-Jos Cooper - jos.cooper@stfc.ac.uk\
-James Durant - james.durant@warwick.ac.uk\
+Jos Cooper - jos.cooper@stfc.ac.uk \
+James Durant - james.durant@warwick.ac.uk \
 Lucas Wilkins - lucas@lucaswilkins.com
 
 ## Acknowledgements
