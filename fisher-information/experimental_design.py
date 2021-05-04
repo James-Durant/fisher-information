@@ -416,7 +416,7 @@ if __name__ == '__main__':
     second_contrast_choice(bilayer, initial_contrast, contrasts, angle_times, save_path)
 
     # Investigate how the FIM changes with SiO2 underlayer thickness.
-    thicknesses = np.arange(2, 21, 0.05)
+    thicknesses = np.arange(2, 200, 0.5)
     underlayer_choice(bilayer, thicknesses, initial_contrast, angle_times, save_path)
 
     from structures import similar_sld_sample_1, similar_sld_sample_2
