@@ -45,14 +45,5 @@ Lucas Wilkins - lucas@lucaswilkins.com
 ## Acknowledgements
 This work has been partially supported by the STFC Facilities Programme Fund through the ISIS Neutron and Muon Source, and Scientific Computing Department of Rutherford Appleton Laboratory, Science and Technology Facilities Council, and by the Wave 1 of The UKRI Strategic Priorities Fund under the EPSRC Grant EP/T001569/1, particularly the "AI for Science" theme within that grant and The Alan Turing Institute. We would also like to thank Luke Clifton for his assistance and expertise in fitting the DMPC data.
 
-## Contributing
-Contributions are gladly accepted and would be very much appreciated.
-
-  1. Fork the project
-  2. Create your feature branch (```git checkout -b feature/AmazingFeature```)
-  3. Commit your changes (```git commit -m 'Add some AmazingFeature'```)
-  4. Push to the branch (```git push origin feature/AmazingFeature```)
-  5. Open a pull request
-
 ## License
 Distributed under the GPL-3.0 License. See [license](/LICENSE) for more information.
