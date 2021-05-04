@@ -36,7 +36,7 @@ def plot_sld_profile(structure: Structure, distances: ArrayLike=None, colour: st
 
 def plot_sld_profiles(structures: List[Structure], distances: ArrayLike=None,
                       label: bool=True) -> Tuple[plt.Figure, plt.Axes]:
-    """Plots the SLD profiles of a given list of `structures`.
+    """Plots the SLD profiles of `structures`.
 
     Args:
         structures (list): structures to plot SLD profiles of.
@@ -76,6 +76,7 @@ def plot_objective(objective: Objective, colour: str='black',
     """
     # Plot the reflectivity data.
     fig, ax = plot_refdata(objective.data, colour, objective.model.structure.name if label else None)
+
     # Plot the fit.
     q = objective.data.x
     ax.plot(q, objective.model(q), color='red', zorder=20)
@@ -87,7 +88,7 @@ def plot_objectives(objectives: List[Objective], label: bool=True) -> Tuple[plt.
 
     Args:
         objectives (list): objectives to plot.
-        label (bool): whether to include a legend in the plot.
+        label (bool): whether to include a legend in plot.
 
     Returns:
         fig (matplotlib.pyplot.Figure): figure containing plotted objectives.
@@ -187,7 +188,7 @@ def save_plot(fig: plt.Figure, save_path: str, file_name: str) -> None:
 
 if __name__ == '__main__':
     from structures import SymmetricBilayer
-    # The following code creates the figure 4 plot reflectivity curve plot.
+    # The following code creates the figure 4 reflectivity curve subplot.
 
     # Plot each (fitted) objective on the same plot and save it.
     bilayer = SymmetricBilayer()
@@ -222,6 +223,6 @@ if __name__ == '__main__':
     ax.set_ylim(1e-9, 2)
     ax.legend(loc='upper right')
 
-    # Save the figure 4 plot.
+    # Save the plot.
     save_path = os.path.join('./results', str(bilayer))
     save_plot(fig, save_path, 'fitted_reflectivity_paper')

@@ -44,7 +44,7 @@ def compare_fit_variance(structure: Callable, angle_times: AngleTimes,
         inv_FIM.append(1 / np.diag(g))
 
         # Display progress every 10 fits.
-        if i > 0 and i % 10 == 0:
+        if i % 10 == 0:
             print('>>> {0}/{1}'.format(i, n))
 
     # Calculate the variances in parameter estimates from the `n` fits.
@@ -52,7 +52,7 @@ def compare_fit_variance(structure: Callable, angle_times: AngleTimes,
     # Calculate the mean inverse FIM for each parameter.
     mean_inv_FIM = np.mean(np.array(inv_FIM), axis=0)
 
-    # Create the directory to save to if not present.
+    # Create directory to save to if not present.
     file_path = os.path.join(save_path, structure.__name__)
     if not os.path.exists(file_path):
         os.makedirs(file_path)

@@ -19,7 +19,7 @@ class Sampler:
 
     Attributes:
         objective (refnx.analysis.Objective): objective to sample.
-        ndim (int): number of parameters of the objective.
+        ndim (int): number of parameters in objective.
         sampler_MCMC (refnx.analysis.CurveFitter): sampler for MCMC sampling.
         sampler_nested_static (dynesty.NestedSampler): static nested sampler.
         sampler_nested_dynamic (dynesty.DynamicNestedSampler): dynamic nested sampler.
@@ -45,7 +45,7 @@ class Sampler:
             show_fig (bool): whether to create and return a corner plot.
 
         Returns:
-            matplotlib.pyplot.Figure, optional: MCMC sampling corner plot.
+            (matplotlib.pyplot.Figure, optional): MCMC sampling corner plot.
 
         """
         # Initially fit with differential evolution if requested.
@@ -67,15 +67,15 @@ class Sampler:
         """Samples the objective using static or dynamic nested sampling.
 
         Args:
-            dynamic (bool): whether to use dynamic or static nested sampling.
+            dynamic (bool): whether to use static or dynamic nested sampling.
             verbose (bool): whether to display progress when sampling.
             show_fig (bool): whether to create and return a corner plot.
 
         Returns:
-            matplotlib.pyplot.Figure, optional: nested sampling corner plot.
+            (matplotlib.pyplot.Figure, optional): nested sampling corner plot.
 
         """
-        # Sample using dynamic or static nested sampling.
+        # Sample using static or dynamic nested sampling.
         if dynamic:
             # Weighting is entirely on the posterior (0 weight on evidence).
             self.sampler_nested_dynamic.run_nested(print_progress=verbose, wt_kwargs={'pfrac': 1.0})
@@ -96,7 +96,7 @@ class Sampler:
             fig, _ = dyplot.cornerplot(results, color='blue', quantiles=None, show_titles=True,
                                        max_n_ticks=3, truths=np.zeros(self.ndim),truth_color='black')
 
-            # Label axes with parameter labels.
+            # Label axes with parameter names.
             axes = np.reshape(np.array(fig.get_axes()), (self.ndim, self.ndim))
             parameters = self.objective.varying_parameters()
             for i in range(1, self.ndim):
@@ -116,7 +116,7 @@ class Sampler:
             x (numpy.ndarray): parameter values.
 
         Returns:
-            float: log-likelihood of the parameters x.
+            (float): log-likelihood of given parameter values.
 
         """
         # Update the model with given parameter values.
@@ -156,7 +156,7 @@ class ModelGenerator:
 
         """
         models_data = []
-        for layers in range(num_samples):
+        for _ in range(num_samples):
             # Get a random structure and simulate an experiment using it.
             structure = vary_structure(self.random_structure(layers), vary_rough=True, bound_size=0.25)
             models_data.append(simulate(structure, self.angle_times, include_counts=True))
@@ -170,10 +170,10 @@ class ModelGenerator:
             layers (int): number of layers for generated structure.
 
         Returns:
-            refnx.reflect.Structure: randomly generated structure.
+            (refnx.reflect.Structure): randomly generated structure.
 
         """
-        # Air, followed by each layer, and then the substrate.
+        # Air, followed by each layer, and then substrate.
         structure = SLD(0, name='Air')
         for i in range(layers):
             structure |= self.make_component(substrate=False)
@@ -188,7 +188,7 @@ class ModelGenerator:
             substrate (bool): whether component is substrate or not.
 
         Returns:
-            refnx.reflect.Component: randomly generated layer.
+            (refnx.reflect.Component): randomly generated layer.
 
         """
         if substrate:
@@ -204,7 +204,8 @@ class ModelGenerator:
         return SLD(sld)(thickness, roughness)
 
 def vary_structure(structure: Structure, random_init: bool=False, bound_size: float=0.2,
-                   vary_sld: bool=True, vary_thick: bool=True, vary_rough: bool=False) -> Structure:
+                   vary_sld: bool=True, vary_thick: bool=True,
+                   vary_rough: bool=False, vary_substrate: bool=False) -> Structure:
     """Vary the parameters of each layer of a given `structure` and optionally,
        initialise these values to random values within their bounds.
 
@@ -215,12 +216,13 @@ def vary_structure(structure: Structure, random_init: bool=False, bound_size: fl
         vary_sld (bool): whether to vary structure's layers' SLDs.
         vary_thick (bool): whether to vary structure's layers' thicknesses.
         vary_rough (bool): whether to vary structure's layers' roughnesses.
+        vary_substrate (bool): whether to vary substrate roughness.
 
     Returns:
-        refnx.reflect.Structure: reference to input structure.
+        (refnx.reflect.Structure): reference to input `structure`.
 
     """
-    # Skip over air and substrate.
+    # Skip over air/water and substrate.
     for component in structure.components[1:-1]:
         # Vary each layers' SLD, thickness and roughness if requested.
         if vary_sld:
@@ -246,7 +248,7 @@ def vary_structure(structure: Structure, random_init: bool=False, bound_size: fl
                 component.rough.value = np.random.uniform(*rough_bounds)
 
     # Vary the substrate's roughness.
-    if vary_rough:
+    if vary_substrate:
         component = structure.components[-1]
         rough_bounds = (component.rough.value*(1-bound_size),
                         component.rough.value*(1+bound_size))
@@ -261,18 +263,18 @@ def fisher_single_contrast(q: ArrayLike, xi: List[Parameter], counts: ArrayLike,
     """Calculates the FIM matrix for a single `model`.
 
     Args:
-        q (numpy.ndarray): momentum transfer, Q, values.
+        q (numpy.ndarray): momentum transfer values.
         xi (list): varying parameters.
         counts (numpy.ndarray): incident neutron counts for each Q value.
         model (refnx.reflect.ReflectModel): model for calculating gradients.
         step (float): step size to take when calculating gradient.
 
     Returns:
-        numpy.ndarray: FIM matrix for the given model and data.
+        (numpy.ndarray): FIM matrix for the given model and data.
 
     """
-    n = len(q)
-    m = len(xi)
+    n = len(q) # Number of data points.
+    m = len(xi) # Number of parameters.
     J = np.zeros((n,m))
 
     # Calculate the gradient of the model reflectivity with every model
@@ -281,11 +283,11 @@ def fisher_single_contrast(q: ArrayLike, xi: List[Parameter], counts: ArrayLike,
         parameter = xi[i]
         old = parameter.value
 
-        # Calculate the model reflectivity the first data point.
+        # Calculate the model reflectance for the first side of the gradient.
         x1 = parameter.value = old*(1-step)
         y1 = model(q)
 
-        # Calculate the model reflectivity the second data point.
+        # Calculate the model reflectance for the second side of the gradient.
         x2 = parameter.value = old*(1+step)
         y2 = model(q)
 
@@ -302,14 +304,14 @@ def fisher_multiple_contrasts(qs: List[ArrayLike], xi: List[Parameter], counts: 
     """Calculates the FIM matrix for multiple `models` containing parameters, `xi`.
 
     Args:
-        qs (list): momentum transfer, Q, values for each model.
+        qs (list): momentum transfer values for each model.
         xi (list): varying model parameters.
         counts (list): incident neutron counts corresponding to each Q value.
         models (list): models to calculate gradients with.
         step (float): step size to take when calculating gradient.
 
     Returns:
-        numpy.ndarray: FIM matrix for the given models and data.
+        (numpy.ndarray): FIM matrix for the given models and data.
 
     """
     n = sum(len(q) for q in qs) # Number of data points.
@@ -322,11 +324,11 @@ def fisher_multiple_contrasts(qs: List[ArrayLike], xi: List[Parameter], counts: 
         parameter = xi[i]
         old = parameter.value
 
-        # Calculate the reflectance for each model for the first data point.
+        # Calculate the reflectance for each model for the first side of the gradient.
         x1 = parameter.value = old*(1-step)
         y1 = np.concatenate([model(q) for q, model in list(zip(qs, models))])
 
-        # Calculate the reflectance for each model for the second data point.
+        # Calculate the reflectance for each model for the second side of the gradient.
         x2 = parameter.value = old*(1+step)
         y2 = np.concatenate([model(q) for q, model in list(zip(qs, models))])
 
@@ -334,7 +336,7 @@ def fisher_multiple_contrasts(qs: List[ArrayLike], xi: List[Parameter], counts: 
 
         J[:,i] = (y2-y1) / (x2-x1) # Calculate the gradient.
 
-    # Calculate the reflectance for each model for the measured/simulated Q values.
+    # Calculate the reflectance for each model for the given Q values.
     r = np.concatenate([model(q) for q, model in list(zip(qs, models))])
 
     # Calculate the FIM matrix using the equations from the paper.
@@ -342,13 +344,13 @@ def fisher_multiple_contrasts(qs: List[ArrayLike], xi: List[Parameter], counts: 
     return np.dot(np.dot(J.T, M), J)
 
 def get_ground_truths(structure: Structure) -> ArrayLike:
-    """Gets the `stucture`'s true values for the layers' thicknesses and SLDs.
+    """Gets the stucture's true layers' thicknesses and SLDs.
 
     Args:
-        structure (refnx.reflect.Structure): structure to get true values from.
+        structure (refnx.reflect.Structure): structure to get values from.
 
     Returns:
-        numpy.ndarray: thickness and SLDs of each layer of the structure.
+        (numpy.ndarray): thickness and SLDs of each layer of the structure.
 
     """
     # Get the true values of the layers' thicknesses and SLDs.
@@ -398,7 +400,7 @@ def select_model(dataset: ReflectDataset, counts: ArrayLike,
     """
     generator = ModelGenerator()
 
-    # Iterate over the layers to consider for the model.
+    # Iterate over the possible number of layers to consider for the model.
     objectives, logls, AICs, BICs, KICs = [], [], [], [], []
     for layer in range(layers[0], layers[1]+1):
         # Display progress.
@@ -437,7 +439,7 @@ def select_model(dataset: ReflectDataset, counts: ArrayLike,
     print('BIC: {}-layer'.format(np.argmin(BICs)+1))
     print('KIC: {}-layer'.format(np.argmin(KICs)+1))
 
-    return objectives[np.argmin(AICs)] # Return best model given by AIC.
+    return objectives[np.argmin(AICs)] # Return best model given by AIC by default.
 
 if __name__ == '__main__':
     from structures import thin_layer_sample_1, thin_layer_sample_2
@@ -454,7 +456,7 @@ if __name__ == '__main__':
     model = select_model(dataset, counts, layers=(1,4))
     print()
 
-    # Calculate the usefulness of all structures in the structures file.
+    # Calculate the usefulness of all structures in the structures.py file.
     print('----------- Usefulness Metrics -----------')
     for structure in STRUCTURES:
         model, data = simulate(structure(), angle_times)

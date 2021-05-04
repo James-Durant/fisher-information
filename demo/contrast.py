@@ -61,15 +61,15 @@ class Bilayer():
            contrast of given `contrast_sld`.
 
         Args:
-            contrast_sld (float): SLD of contrast to use.
+            contrast_sld (float): SLD of contrast to simulate.
 
         Returns:
-            refnx.reflect.Structure: structure in contrast of given SLD.
+            refnx.reflect.Structure: structure in given contrast.
 
         """
+        # Rescales the H2O to D2O scale from 0 to 1.
+        contrast_point = (contrast_sld + 0.56) / (6.35 + 0.56)
         # Calculate core SLD with the given contrast SLD.
-        contrast_point = (contrast_sld + 0.56) / (6.35 + 0.56) # Essentially rescaling the H2O to D2O scale to 0 --> 1
-
         core_sld = contrast_point*self.core_D2O + (1-contrast_point)*self.core_H2O
 
         substrate = SLD(self.si_sld)
@@ -86,7 +86,7 @@ class Bilayer():
     def __str__(self) -> str:
         return 'asymmetric_bilayer'
 
-# Number of points and time to simulate for each angle.
+# Number of points and times to simulate for each angle.
 angle_times = {0.7: (70, 10),
                2.0: (70, 40)} # Angle: (Points, Time)
 

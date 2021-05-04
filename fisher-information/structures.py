@@ -21,7 +21,7 @@ class Bilayer:
         """Fits the bilayer model using measured data.
 
         Args:
-            fit_bkg (bool): whether to fit the model's backgrounds.
+            fit_bkg (bool): whether to fit the models' backgrounds.
 
         """
         # Create a global objective containing objectives for each contrast.
@@ -128,7 +128,7 @@ class SymmetricBilayer(Bilayer):
         bilayer_rough (refnx.analysis.Parameter): bilayer roughness.
         bilayer_solv (refnx.analysis.Parameter): bilayer hydration.
         hg_waters (refnx.analysis.Parameter): headgroup bound waters.
-        parameters (list): all free parameters of the model.
+        parameters (list): varying model parameters.
         structures (list): structure for each measured contrast.
         models (list): model for each measured contrast.
         datasets (list): dataset for each measured contrast.
@@ -143,6 +143,7 @@ class SymmetricBilayer(Bilayer):
         self.names = ['Si-D2O', 'Si-DMPC-D2O', 'Si-DMPC-H2O']
         self.distances = np.linspace(-20, 95, 500)
 
+        # Define known values.
         self.si_sld      = 2.073
         self.sio2_sld    = 3.41
         self.dmpc_hg_vol = 320.9
@@ -154,7 +155,7 @@ class SymmetricBilayer(Bilayer):
         # Calculate the SLD of the tails.
         self.tg_sld = (self.dmpc_tg_sl / self.dmpc_tg_vol) * 1e6
 
-        # Define the parameters of the model.
+        # Define the varying parameters of the model.
         self.si_rough      = Parameter(2,     'Si/SiO2 Roughness',      (1,8))
         self.sio2_thick    = Parameter(14.7,  'SiO2 Thickness',         (5,20))
         self.sio2_rough    = Parameter(2,     'SiO2/DMPC Roughness',    (1,8))
@@ -185,8 +186,7 @@ class SymmetricBilayer(Bilayer):
     def create_objectives(self) -> None:
         """Creates objectives corresponding to each measured contrast."""
 
-        # Define the known scattering lengths and scattering length densities
-        # of the two measured contrasts: D2O and H2O.
+        # Define scattering lengths and densities of D2O and H2O.
         d2o_sl  = 2e-4
         d2o_sld = 6.19
         h2o_sl  = -1.64e-5
@@ -258,12 +258,13 @@ class SymmetricBilayer(Bilayer):
             contrast_sld (float): SLD of contrast to simulate.
 
         Returns:
-            refnx.reflect.Structure: structure in contrast of given SLD.
+            (refnx.reflect.Structure): structure in given contrast.
 
         """
         # Calculate the SLD of the headgroup with the given contrast SLD.
         hg_sld = contrast_sld*0.27 + 1.98*0.73
 
+        # Calculate the headgroup and tailgroup thicknesses with the given contrast SLD.
         vol_hg = self.dmpc_hg_vol + self.hg_waters*self.water_vol
         hg_thick = vol_hg / self.dmpc_apm
         tg_thick = self.dmpc_tg_vol / self.dmpc_apm
@@ -283,7 +284,7 @@ class SymmetricBilayer(Bilayer):
 class AsymmetricBilayer(Bilayer):
     """Defines a model describing an asymmetric bilayer. This model can either
        be defined using single or double asymmetry: the implementation for
-       which is provided in those classes that inherit from this.
+       which is provided in the classes that inherit from this parent class.
 
     Attributes:
         data_path (str): path to directory containing measured data.
@@ -312,7 +313,7 @@ class AsymmetricBilayer(Bilayer):
         tg_solv (refnx.analysis.Parameter): tailgroup hydration.
         core_thick (refnx.analysis.Parameter): core thickness.
         core_solv (refnx.analysis.Parameter): core hydration.
-        parameters (list): free parameters of the model.
+        parameters (list): varying model parameters.
         structures (list): structure for each measured contrast.
         models (list): model for each measured contrast.
         datasets (list): dataset for each measured contrast.
@@ -328,6 +329,7 @@ class AsymmetricBilayer(Bilayer):
         self.names = ['dPC_RaLPS_D2O', 'dPC_RaLPS_SMW', 'dPC_RaLPS_H2O']
         self.distances = np.linspace(-30, 110, 500)
 
+        # Define known values.
         self.si_sld    =  2.07
         self.sio2_sld  =  3.41
         self.pc_hg_sld =  1.98
@@ -336,6 +338,7 @@ class AsymmetricBilayer(Bilayer):
         self.core_D2O  =  4.2
         self.core_H2O  =  2.01
 
+        # Define the varying parameters of the model.
         self.si_rough       = Parameter(5.5,    'Si/SiO2 Roughness',         (3,8))
         self.sio2_thick     = Parameter(13.4,   'SiO2 Thickness',            (10,30))
         self.sio2_rough     = Parameter(3.2,    'SiO2/Bilayer Roughness',    (2,5))
@@ -349,7 +352,6 @@ class AsymmetricBilayer(Bilayer):
         self.core_thick     = Parameter(28.7,   'Core Thickness',            (0,50))
         self.core_solv      = Parameter(0.26,   'Core Hydration',            (0,1))
 
-        # Define the parameters of the model.
         self.parameters = [self.si_rough,
                            self.sio2_thick,
                            self.sio2_rough,
@@ -378,7 +380,7 @@ class AsymmetricBilayer(Bilayer):
         self.models = [ReflectModel(structure, scale=self.scale, bkg=bkg, dq=self.dq)
                        for structure, bkg in list(zip(self.structures, self.bkgs))]
 
-        # Load the data for each measured contrast.
+        # Load the measured data for each contrast.
         self.datasets = [ReflectDataset(os.path.join(self.data_path, '{}.dat'.format(name)))
                          for name in self.names]
 
@@ -394,12 +396,11 @@ class AsymmetricBilayer(Bilayer):
             name (str): label for structure.
 
         Returns:
-            refnx.reflect.Structure: structure in water contrast of given SLD.
+            (refnx.reflect.Structure): structure in given contrast.
 
         """
         # Calculate core SLD with the given contrast SLD.
         contrast_point = (contrast_sld + 0.56) / (6.35 + 0.56)
-
         core_sld = contrast_point*self.core_D2O + (1-contrast_point)*self.core_H2O
 
         substrate = SLD(self.si_sld)
@@ -424,18 +425,19 @@ class SingleAsymmetricBilayer(AsymmetricBilayer):
        asymmetry value. Inherits all of the attributes of the parent class.
 
     Attributes:
-        asym_value (refnx.analysis.Parameter): asymmetry of the bilayer.
+        asym_value (refnx.analysis.Parameter): bilayer asymmetry.
         inner_tg_sld (refnx.reflect.SLD): inner tailgroup SLD.
         outer_tg_sld (refnx.reflect.SLD): outer tailgroup SLD.
 
     """
     def __init__(self) -> None:
-        super().__init__()
+        super().__init__() # Call parent class constructor.
 
         # Define the single asymmetry parameter.
         self.asym_value = Parameter(0.95, 'Asymmetry Value', (0,1), True)
         self.parameters.append(self.asym_value)
 
+        # Use asymmetry to define inner and outer tailgroup SLDs.
         self.inner_tg_sld = SLD(self.asym_value*self.dPC_tg  + (1-self.asym_value)*self.hLPS_tg)
         self.outer_tg_sld = SLD(self.asym_value*self.hLPS_tg + (1-self.asym_value)*self.dPC_tg)
 
@@ -449,14 +451,14 @@ class DoubleAsymmetricBilayer(AsymmetricBilayer):
        asymmetry values. Inherits all of the attributes of the parent class.
 
     Attributes:
-        inner_tg_pc (refnx.analysis.Parameter): 1st asymmetry of the bilayer.
-        outer_tg_pc (refnx.analysis.Parameter): 2nd asymmetry of the bilayer.
+        inner_tg_pc (refnx.analysis.Parameter): 1st bilayer asymmetry.
+        outer_tg_pc (refnx.analysis.Parameter): 2nd bilayer asymmetry.
         inner_tg_sld (refnx.reflect.SLD): inner tailgroup SLD.
         outer_tg_sld (refnx.reflect.SLD): outer tailgroup SLD.
 
     """
     def __init__(self) -> None:
-        super().__init__()
+        super().__init__() # Call parent class constructor.
 
         # Define the two asymmetry parameters.
         self.inner_tg_pc = Parameter(0.95, 'Inner Tailgroup PC', (0,1), True)
@@ -464,6 +466,7 @@ class DoubleAsymmetricBilayer(AsymmetricBilayer):
         self.parameters.append(self.inner_tg_pc)
         self.parameters.append(self.outer_tg_pc)
 
+        # Use the asymmetry parameters to define inner and outer tailgroup SLDs.
         self.inner_tg_sld = SLD(self.inner_tg_pc*self.dPC_tg + (1-self.inner_tg_pc)*self.hLPS_tg)
         self.outer_tg_sld = SLD(self.outer_tg_pc*self.dPC_tg + (1-self.outer_tg_pc)*self.hLPS_tg)
 
@@ -476,7 +479,7 @@ def QCS_sample() -> Structure:
     """Creates the QCS (quartz, copper, silicon) sample.
 
     Returns:
-        refnx.reflect.Structure: refnx representation of the measured sample.
+        (refnx.reflect.Structure): refnx representation of the measured sample.
 
     """
     air = SLD(0, name='Air')
@@ -541,7 +544,7 @@ BILAYERS = [SymmetricBilayer, SingleAsymmetricBilayer, DoubleAsymmetricBilayer]
 if __name__ == '__main__':
     save_path = './results'
 
-    # Plot the SLD profiles and model reflectivity curves for all structures.
+    # Plot the SLD profiles and model reflectivity curves for all structures in this file.
     for structure in STRUCTURES:
         fig, _ = plot_sld_profile(structure())
         save_plot(fig, os.path.join(save_path, structure.__name__), 'sld_profile')
@@ -549,7 +552,7 @@ if __name__ == '__main__':
         fig, _ = plot_reflectivity_curve(structure())
         save_plot(fig, os.path.join(save_path, structure.__name__), 'model_reflectivity')
 
-    # Define contrasts and measurement times / angles for corner plots.
+    # Define contrasts, measurement times and angles for sampling.
     D2O, SMW, H2O = 6.36, 2.07, -0.56
     angle_times = {0.7: (70, 10),
                    2.0: (70, 40)}

@@ -1,6 +1,6 @@
 import numpy as np
 import os, time, sys
-sys.path.append('./') # MCMC sampling cannot find structures without this?
+sys.path.append('./') # MCMC sampling cannot find structures without this.
 
 from typing import List, Tuple
 from refnx.analysis import Objective
@@ -20,7 +20,7 @@ def benchmark(layers: int, num_samples: int) -> Tuple[List[float], List[float], 
     Returns:
         times_MCMC (list): calculation times for MCMC sampling.
         times_nested (list): calculation times for nested sampling.
-        times_FIM (list): calculation times for the FIM approach.
+        times_FIM (list): calculation times for FIM approach.
 
     """
     print('-------- {}-Layer Samples --------'.format(layers))
@@ -55,7 +55,7 @@ def benchmark(layers: int, num_samples: int) -> Tuple[List[float], List[float], 
         xi = objective.varying_parameters()
         start = time.time()
         g = fisher(data.x, xi, counts, model)
-        1 / np.sqrt(np.diag(g)) # Calculate parameter uncertainties.
+        np.sqrt(np.diag(g))
         end = time.time()
         times_FIM.append(end-start)
 
@@ -68,7 +68,7 @@ if __name__ == '__main__':
 
     # Run the benchmark for 10 samples for layers in interval [1,6] (excluding substrate).
     with open(os.path.join(save_path, 'benchmark.txt'), 'w') as file:
-        for layer in range(2,7):
+        for layer in range(1,7):
             times_MCMC, times_nested, times_FIM = benchmark(layer, num_samples=num_samples)
             file.write('------------------ {}-Layer Samples ------------------\n'.format(layer))
             file.write('MCMC Sampling:   {}\n'.format(times_MCMC))

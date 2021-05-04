@@ -22,7 +22,7 @@ def simulate_single_contrast(structure: Structure, angle_times: AngleTimes, scal
     """Simulates a single contrast experiment measured over a number of angles.
 
     Args:
-        structure (refnx.reflect.Structure): structure to simulate on.
+        structure (refnx.reflect.Structure): structure to simulate data for.
         angle_times (dict): points and simulation times for each angle.
         scale (float): experimental scale factor.
         bkg (float): level of the background to add.
@@ -32,7 +32,7 @@ def simulate_single_contrast(structure: Structure, angle_times: AngleTimes, scal
         file_name (str): file name to use when saving reflectivity data.
 
     Returns:
-        model (refnx.reflect.ReflectModel): model for the given structure.
+        model (refnx.reflect.ReflectModel): model for given structure.
         dataset (refnx.reflect.ReflectDataset): simulated reflectivity data.
         counts (np.ndarray, optional): neutron counts for each Q value.
 
@@ -145,8 +145,8 @@ def run_experiment(model: ReflectModel, angle: float, points: int,
     Returns:
         q_binned (list): Q values in equally log-spaced bins.
         r (list): noisy reflectivity for each Q bin.
-        r_errors (list): errors in each reflectivity value.
-        counts (list): total number of incident neutrons for each Q bin.
+        r_errors (list): uncertainty in each reflectivity value.
+        counts (list): incident neutrons for each Q bin.
 
     """
     # Load the directbeam_wavelength.dat file.
@@ -159,9 +159,8 @@ def run_experiment(model: ReflectModel, angle: float, points: int,
     theta = angle*np.pi / 180 # Convert angle from degrees to radians.
     q = 4*np.pi*np.sin(theta) / wavelengths # Calculate Q values.
 
-    # If Q bins are not provided
+    # If Q bins are not provided, bin Q values in equally log-spaced bins using flux as weighting.
     if q_bin_edges is None:
-        # Bin Q values in equally log-spaced bins using flux as weighting.
         q_bin_edges = np.logspace(np.log10(np.min(q)), np.log10(np.max(q)), points+1)
 
     flux_binned, _ = np.histogram(q, q_bin_edges, weights=direct_flux)
@@ -173,8 +172,7 @@ def run_experiment(model: ReflectModel, angle: float, points: int,
     # Iterate over the desired number of points (bins).
     r, r_errors, counts = [], [], []
     for i in range(points):
-        flux_point = flux_binned[i]
-        r_point = reflectance[i]
+        flux_point, r_point = flux_binned[i], reflectance[i]
         count_incident = flux_point * time
 
         # Get the measured reflected count for the bin.
@@ -210,7 +208,7 @@ def difference_plots(structure: Structure, angle_times: AngleTimes) -> None:
     # Plot reflectivity curve.
     fig1, ax1 = plot_objective(objective)
 
-    # Get the simulated and model reflecitivty.
+    # Get the simulated and model reflectivity.
     data_sim = objective.data.y
     data_true = objective.model(objective.data.x)
 
@@ -239,4 +237,5 @@ if __name__ == '__main__':
     angle_times = {0.7: (70, 5),
                    2.0: (70, 20)}
 
+    # Display the difference plot between the model and simulated reflectivity.
     difference_plots(structure, angle_times)

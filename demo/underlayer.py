@@ -19,7 +19,7 @@ class Bilayer:
         self.dmpc_tg_sl  = -3.08e-4
         self.water_vol   = 30.4
 
-        # Calculate the SLD of the tails
+        # Calculate the SLD of the tailgroup.
         self.tg_sld = (self.dmpc_tg_sl / self.dmpc_tg_vol) * 1e6
 
         # Define the parameters of the model.
@@ -50,10 +50,10 @@ class Bilayer:
            contrast of given `contrast_sld`.
 
         Args:
-            contrast_sld (float): SLD of contrast to use.
+            contrast_sld (float): SLD of contrast to simulate.
 
         Returns:
-            refnx.reflect.Structure: structure in contrast of given SLD.
+            refnx.reflect.Structure: structure in given contrast.
 
         """
         # Calculate the SLD of the headgroup with the given contrast SLD.
@@ -78,9 +78,8 @@ class Bilayer:
     def __str__(self) -> str:
         return 'symmetric_bilayer'
 
-# Number of points and time to simulate for each angle.
+# Number of points and times to simulate for each angle.
 angle_times = {2.3: (70, 4)} # Angle: (Points, Time)
-
 contrast_sld = 6.35 # SLD of contrast being simulated.
 
 # Underlayer thicknesses to calculate the FIM over.

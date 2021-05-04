@@ -197,7 +197,7 @@ def contrast_biases(bilayer: Bilayer, initial_contrast: float, new_contrasts: Ar
 
 def plot_biases(x: ArrayLike, biases: ArrayLike, xi: List[Parameter],
                 x_label: str, save_path: str, file_name: str) -> None:
-    """Plots `biases` against either measurement time or contrast choice (`x`).
+    """Plots `biases` against either measurement time or contrast choice.
 
     Args:
         x (numpy.ndarray): either measurement times or contrast SLDs.

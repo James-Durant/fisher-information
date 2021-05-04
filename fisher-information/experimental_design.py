@@ -101,9 +101,9 @@ def first_angle_choice(structure: Callable, angles: ArrayLike, points: int,
 
     Args:
         structure (function): structure to calculate FIM with.
-        angles (numpy.ndarray): measurement angles to calculate FIM with.
-        points (int): number of points to simulate for each angle.
-        time (float): measurement time to use when simulating each angle.
+        angles (numpy.ndarray): angles to calculate FIM with.
+        points (int): points to simulate for each angle.
+        time (float): time to use when simulating each angle.
         save_path (str): path to directory to save FIM plot to.
 
     """
@@ -141,9 +141,9 @@ def second_angle_choice(structure: Callable, initial_angle_times: AngleTimes,
     Args:
         structure (function): structure to calculate the FIM with.
         initial_angle_times (dict): angles initially measured.
-        angles (numpy.ndarray): measurement angles to calculate FIM with.
-        points (int): number of points to simulate for each angle.
-        time (float): measurement time to use when simulating each angle.
+        angles (numpy.ndarray): angles to calculate FIM with.
+        points (int): points to simulate for each second angle.
+        time (float): time to use when simulating each second angle.
         save_path (str): path to directory to save FIM plot to.
 
     """
@@ -158,7 +158,7 @@ def second_angle_choice(structure: Callable, initial_angle_times: AngleTimes,
     # Iterate over each angle in the given array.
     information = []
     for i, angle in enumerate(angles):
-        # Simulate using the points and time for the new angle.
+        # Simulate an experiment for the new angle using the given points and time.
         new_angle_times = {angle: (points, time)}
         model_new, data_new, counts_new = simulate(sample, new_angle_times, include_counts=True)
 
@@ -230,7 +230,7 @@ def plot_information(x: ArrayLike, information: ArrayLike, xi: List[Parameter],
         information (numpy.ndarray): FIM for each parameter.
         xi (list): model parameters.
         save_path (str): path to directory to save FIM plot to.
-        x_lable (str): either 'contrast', 'angle' or 'thickness'.
+        x_label (str): either 'contrast', 'angle' or 'thickness'.
         normalise (bool): whether to normalise FIM to [0,1].
 
     """
@@ -311,7 +311,7 @@ def confidence_gain(bilayer: Bilayer, initial_contrast: float, new_contrasts: Ar
         counts = [counts_init, counts_new]
         models = [model_init, model_new]
 
-        # Calculate the Fisher information matrix calculate and calculate the new confidence ellipse sizes.
+        # Calculate the FIM matrix and new confidence ellipse sizes.
         # Record the difference in size between the initial and new ellipse sizes for each parameter pair.
         g = fisher_multiple_contrasts(qs, xi, counts, models)
         for i, param in enumerate(xi):
@@ -328,7 +328,7 @@ def confidence_gain(bilayer: Bilayer, initial_contrast: float, new_contrasts: Ar
 
 def ellipse_height(g: ArrayLike, i: int, j: int, k: int=1) -> float:
     """Calculates the size of the semi-minor axis of the confidence ellipse
-       between two given parameters.
+       between two given parameters with indicies `i` and `j`.
 
     Args:
         g (numpy.ndarray): FIM matrix to calculate ellipses with.
@@ -337,10 +337,10 @@ def ellipse_height(g: ArrayLike, i: int, j: int, k: int=1) -> float:
         k (int): size of confidence ellipse in number of standard deviations.
 
     Returns:
-        float: confidence ellipse semi-minor axis.
+        (float): confidence ellipse semi-minor axis.
 
     """
-    # Get the relevant values from the Fisher information matrix.
+    # Get the relevant values from the FIM matrix.
     g_params = [[g[i,i], g[i,j]], [g[j,i], g[j,j]]]
 
     # Initialise min and max variables.
@@ -372,7 +372,7 @@ def plot_confidences(contrasts: ArrayLike, confidence_gains: ArrayLike, save_pat
 
     Args:
         contrasts (numpy.ndarray): second contrast SLDs.
-        confidence_gains (numpy.ndarray): reduction in ellipse sizes.
+        confidence_gains (numpy.ndarray): reduction in confidence ellipse sizes.
         save_path (string): path to directory to save plots to.
 
     """
@@ -386,7 +386,7 @@ def plot_confidences(contrasts: ArrayLike, confidence_gains: ArrayLike, save_pat
         gain = np.array(confidence_gains[param])
         for j in range(gain.shape[1]):
             # Plot the confidence gain as a function of contrast SLD for the parameter pair.
-            if i != j:
+            if i != j: # Do not plot a parameter against itself.
                 ax.plot(contrasts, gain[:,j], label=labels[j])
 
         # Set the plot title to the first parameter in each parameter pair.

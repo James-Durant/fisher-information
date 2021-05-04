@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import os, sys
-sys.path.append("./") # MCMC sampling cannot find structures code without this?
+sys.path.append("./") # MCMC sampling cannot find structures code without this.
 
 from typing import List, Callable
 from numpy.typing import ArrayLike
@@ -30,8 +30,8 @@ def compare_ellipses(structure: Callable, angle_times: AngleTimes, save_path: st
     save_path = os.path.join(save_path, structure.__name__)
 
     # Simulate an experiment using the given angles, numbers of points and times.
-    model, data, counts = simulate(vary_structure(structure()), angle_times,
-                                   include_counts=True, save_path=save_path)
+    sample = vary_structure(structure())
+    model, data, counts = simulate(sample, angle_times, include_counts=True, save_path=save_path)
 
     # Get the parameters of the structure.
     objective = Objective(model, data)
@@ -63,7 +63,7 @@ def plot_ellipses(g: ArrayLike, xi: List[Parameter], fig: plt.Figure) -> None:
        MCMC or nested sampling.
 
     Args:
-        g (numpy.ndarray): Fisher information metric matrix.
+        g (numpy.ndarray): FIM matrix.
         xi (list): varying parameters.
         fig (matplotlib.pyplot.figure): sampling corner plot.
 
@@ -87,7 +87,7 @@ def confidence_ellipse(g: ArrayLike, i: int, j: int, param1: Parameter, param2: 
     """Plots the confidence ellipse between `param1` and `param2`.
 
     Args:
-        g (numpy.ndarray): Fisher information metric matrix.
+        g (numpy.ndarray): FIM matrix.
         i (int): index of `param1` in FIM matrix.
         j (int): index of `param2` in FIM matrix.
         param1 (refnx.analysis.Parameter): 1st parameter corresponding to `i`.
@@ -131,5 +131,5 @@ if __name__ == '__main__':
     angle_times = {0.7: (70, 5), # Angle: (Points, Time)
                    2.0: (70, 20)}
 
-    # Overlay FIM confidence ellipises on MCMC and nested sampling corner plots.
+    # Overlay FIM confidence ellipses on MCMC and nested sampling corner plots.
     compare_ellipses(structure, angle_times, save_path)
