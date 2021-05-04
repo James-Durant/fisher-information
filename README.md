@@ -13,14 +13,14 @@ Please cite the following article if you intend on including elements of this wo
 Or with BibTeX as:
 ```
 @misc{Durant2021,
-author        = {Durant, J. H. and Wilkins, L. and Butler, K. and Cooper F. K. J.},
-month         = {March},
-title         = {Determining the maximum information gain and optimising experimental design in neutron reflectometry using the Fisher information},
-url           = {https://arxiv.org/abs/2103.08973}
-year          = {2021},
-eprint        = {2103.08973},
-archivePrefix = {arXiv},
-primaryClass  = {physics.data-an}
+   author        = {Durant, J. H. and Wilkins, L. and Butler, K. and Cooper F. K. J.},
+   month         = {March},
+   title         = {Determining the maximum information gain and optimising experimental design in neutron reflectometry using the Fisher information},
+   url           = {https://arxiv.org/abs/2103.08973}
+   year          = {2021},
+   eprint        = {2103.08973},
+   archivePrefix = {arXiv},
+   primaryClass  = {physics.data-an}
 }
 ```
 
