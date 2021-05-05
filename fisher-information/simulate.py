@@ -40,14 +40,13 @@ def simulate_single_contrast(structure: Structure, angle_times: AngleTimes, scal
     # Define the model.
     model = ReflectModel(structure, scale=scale, bkg=bkg, dq=dq)
 
-    q, r, r_error, counts = [], [], [], []
+    q, r, dr, counts = [], [], [], []
     total_points = 0
     for angle in angle_times:
         # Simulate the experiment for the angle.
         points, time = angle_times[angle]
         total_points += points
-        simulated = run_experiment(model, angle, points, time)
-        q_angle, r_angle, r_error_angle, counts_angle = simulated
+        q_angle, r_angle, dr_angle, counts_angle = run_experiment(model, angle, points, time)
 
         # Save combined dataset to .dat file if requested.
         str_angle = str(angle).replace('.', '')
@@ -63,20 +62,20 @@ def simulate_single_contrast(structure: Structure, angle_times: AngleTimes, scal
             save_data = np.zeros((points, 3))
             save_data[:,0] = q_angle
             save_data[:,1] = r_angle
-            save_data[:,2] = r_error_angle
+            save_data[:,2] = dr_angle
             np.savetxt(file_path, save_data, delimiter=',')
 
         # Combine the data for the angle with the data from other angles.
-        q += q_angle
-        r += r_angle
-        r_error += r_error_angle
-        counts += counts_angle
+        q.append(q_angle)
+        r.append(r_angle)
+        dr.append(dr_angle)
+        counts.append(counts_angle)
 
     data = np.zeros((total_points, 4))
-    data[:,0] = q
-    data[:,1] = r
-    data[:,2] = r_error
-    data[:,3] = counts
+    data[:,0] = np.concatenate(q)
+    data[:,1] = np.concatenate(r)
+    data[:,2] = np.concatenate(dr)
+    data[:,3] = np.concatenate(counts)
 
     data = data[(data != 0).all(1)] # Remove points of zero reflectivity.
     data = data[data[:,0].argsort()] # Sort by Q.
@@ -140,13 +139,13 @@ def run_experiment(model: ReflectModel, angle: float, points: int,
         angle (float): angle for simulation.
         points (int): number of points to use when binning.
         time (float): time to count during simulation.
-        q_bin_edges (np.ndarray): edges of Q bins to use for simulation.
+        q_bin_edges (numpy.ndarray): edges of Q bins to use for simulation.
 
     Returns:
-        q_binned (list): Q values in equally log-spaced bins.
-        r (list): noisy reflectivity for each Q bin.
-        r_errors (list): uncertainty in each reflectivity value.
-        counts (list): incident neutrons for each Q bin.
+        q_binned (numpy.ndarray): Q values in equally log-spaced bins.
+        r_noisy (numpy.ndarray): noisy reflectivity for each Q bin.
+        r_error (numpy.ndarray): uncertainty in each reflectivity value.
+        counts_incident (numpy.ndarray): incident neutrons for each Q bin.
 
     """
     # Load the directbeam_wavelength.dat file.
@@ -166,32 +165,24 @@ def run_experiment(model: ReflectModel, angle: float, points: int,
     flux_binned, _ = np.histogram(q, q_bin_edges, weights=direct_flux)
 
     # Get the bin centres and calculate model reflectivity.
-    q_binned = [(q_bin_edges[i] + q_bin_edges[i+1]) / 2 for i in range(points)]
-    reflectance = model(q_binned)
+    q_binned = np.asarray([(q_bin_edges[i] + q_bin_edges[i+1]) / 2 for i in range(points)])
+    r_model = model(q_binned)
 
-    # Iterate over the desired number of points (bins).
-    r, r_errors, counts = [], [], []
-    for i in range(points):
-        flux_point, r_point = flux_binned[i], reflectance[i]
-        count_incident = flux_point * time
+    # Calculate the number of incident neutrons for each bin.
+    counts_incident = flux_binned*time
 
-        # Get the measured reflected count for the bin.
-        # r_point accounts for background.
-        count_reflected = np.random.poisson(r_point*flux_point*time)
+    # Get the measured reflected count for each bin (r_model accounts for background).
+    counts_reflected = np.random.poisson(r_model*counts_incident).astype(float)
 
-        # Convert from count space to reflectivity space.
-        # Point has zero reflectivity if there is no flux.
-        r_noisy = np.divide(count_reflected, count_incident,
-                            out=np.zeros_like(count_incident), where=count_incident!=0)
+    # Convert from count space to reflectivity space.
+    # Point has zero reflectivity if there is no flux.
+    r_noisy = np.divide(counts_reflected, counts_incident,
+                        out=np.zeros_like(counts_reflected), where=counts_incident!=0)
 
-        r_error = np.divide(np.sqrt(count_reflected), count_incident,
-                            out=np.zeros_like(count_incident), where=count_incident!=0)
+    r_error = np.divide(np.sqrt(counts_reflected), counts_incident,
+                        out=np.zeros_like(counts_reflected), where=counts_incident!=0)
 
-        r.append(r_noisy)
-        r_errors.append(r_error)
-        counts.append(count_incident) # Incident neutrons in the bin.
-
-    return q_binned, r, r_errors, counts
+    return q_binned, r_noisy, r_error, counts_incident
 
 def difference_plots(structure: Structure, angle_times: AngleTimes) -> None:
     """Plots the fractional difference in ground truth reflectivity and
