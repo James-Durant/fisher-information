@@ -17,12 +17,12 @@ def similar_sld_sample() -> Structure:
 points = 70 # Number of data points to simulate.
 time = 1 # Time to use for simulation.
 
-# Angles (in degrees) to calculate the FIM over.
+# Angles (in degrees) to calculate the FI over.
 angles = np.arange(0.25, 2.5, 0.01)
 
-# Investigate how the FIM changes with first angle choice.
+# Investigate how the FI changes with first angle choice.
 first_angle_choice(similar_sld_sample, angles, points, time, './results')
 
-# Investigate how the FIM changes with second angle choice.
+# Investigate how the FI changes with second angle choice.
 initial_angle_times = {0.7: (70, 1)} # Angle: (Points, Time) for first angle.
 second_angle_choice(similar_sld_sample, initial_angle_times, angles, points, time, './results')

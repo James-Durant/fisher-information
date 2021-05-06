@@ -260,7 +260,7 @@ def vary_structure(structure: Structure, random_init: bool=False, bound_size: fl
 
 def fisher_single_contrast(q: ArrayLike, xi: List[Parameter], counts: ArrayLike,
                            model: ReflectModel, step: float=0.005) -> ArrayLike:
-    """Calculates the FIM matrix for a single `model`.
+    """Calculates the FI matrix for a single `model`.
 
     Args:
         q (numpy.ndarray): momentum transfer values.
@@ -270,7 +270,7 @@ def fisher_single_contrast(q: ArrayLike, xi: List[Parameter], counts: ArrayLike,
         step (float): step size to take when calculating gradient.
 
     Returns:
-        (numpy.ndarray): FIM matrix for the given model and data.
+        (numpy.ndarray): FI matrix for the given model and data.
 
     """
     n = len(q) # Number of data points.
@@ -295,13 +295,13 @@ def fisher_single_contrast(q: ArrayLike, xi: List[Parameter], counts: ArrayLike,
 
         J[:,i] = (y2-y1) / (x2-x1) # Calculate the gradient.
 
-    # Calculate the FIM matrix using the equations from the paper.
+    # Calculate the FI matrix using the equations from the paper.
     M = np.diag(counts / model(q), k=0)
     return np.dot(np.dot(J.T, M), J)
 
 def fisher_multiple_contrasts(qs: List[ArrayLike], xi: List[Parameter], counts: List[ArrayLike],
                               models: List[ReflectModel], step: float=0.005) -> ArrayLike:
-    """Calculates the FIM matrix for multiple `models` containing parameters, `xi`.
+    """Calculates the FI matrix for multiple `models` containing parameters, `xi`.
 
     Args:
         qs (list): momentum transfer values for each model.
@@ -311,7 +311,7 @@ def fisher_multiple_contrasts(qs: List[ArrayLike], xi: List[Parameter], counts: 
         step (float): step size to take when calculating gradient.
 
     Returns:
-        (numpy.ndarray): FIM matrix for the given models and data.
+        (numpy.ndarray): FI matrix for the given models and data.
 
     """
     n = sum(len(q) for q in qs) # Number of data points.
@@ -339,7 +339,7 @@ def fisher_multiple_contrasts(qs: List[ArrayLike], xi: List[Parameter], counts: 
     # Calculate the reflectance for each model for the given Q values.
     r = np.concatenate([model(q) for q, model in list(zip(qs, models))])
 
-    # Calculate the FIM matrix using the equations from the paper.
+    # Calculate the FI matrix using the equations from the paper.
     M = np.diag(np.concatenate(counts) / r, k=0)
     return np.dot(np.dot(J.T, M), J)
 
@@ -363,7 +363,7 @@ def get_ground_truths(structure: Structure) -> ArrayLike:
 
 def usefulness(objective: Objective) -> float:
     """Calculate a usefulness metric for a given `objective`. This metric is
-       intended to provide a measure of how closely the FIM results will
+       intended to provide a measure of how closely the FI results will
        match established fitting methods.
 
     Args:

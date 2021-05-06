@@ -82,8 +82,8 @@ class Bilayer:
 angle_times = {2.3: (70, 4)} # Angle: (Points, Time)
 contrast_sld = 6.35 # SLD of contrast being simulated.
 
-# Underlayer thicknesses to calculate the FIM over.
+# Underlayer thicknesses to calculate the FI over.
 thicknesses = np.arange(2, 150, 1)
 
-# Investigate how the FIM changes with underlayer thickness.
+# Investigate how the FI changes with underlayer thickness.
 underlayer_choice(Bilayer(), thicknesses, contrast_sld, angle_times, './results')

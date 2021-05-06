@@ -153,7 +153,7 @@ def plot_projections(multipliers: ArrayLike, uncertainties: ArrayLike,
 
 def compare_uncertainties(structure: Callable, angle_times: AngleTimes,
                           multipliers: ArrayLike, save_path: str) -> None:
-    """Compares fitting uncertainties and FIM uncertainties with time.
+    """Compares fitting uncertainties and FI uncertainties with time.
 
     Args:
         structure (function): structure to simulate experiment on.
@@ -163,10 +163,10 @@ def compare_uncertainties(structure: Callable, angle_times: AngleTimes,
 
     """
     # Iterate over the given time `multipliers`.
-    fit_uncertainties, FIM_uncertainties, errors = [], [], []
+    fit_uncertainties, fisher_uncertainties, errors = [], [], []
     for i, multiplier in enumerate(multipliers, 1):
-        # Calculate fit and FIM uncertainties for 10 simulations using same measurement time.
-        fit_uncertainties_time, FIM_uncertainties_time, fit_values = [], [], []
+        # Calculate fit and FI uncertainties for 10 simulations using same measurement time.
+        fit_uncertainties_time, fisher_uncertainties_time, fit_values = [], [], []
         for _ in range(10):
             # Multiply the initial times, for each angle, by the current multiplier.
             new_angle_times = {angle: (angle_times[angle][0], angle_times[angle][1]*multiplier)
@@ -181,9 +181,9 @@ def compare_uncertainties(structure: Callable, angle_times: AngleTimes,
             xi = objective.varying_parameters()
             true = np.asarray([param.value for param in xi])
 
-            # Calculate the FIM matrix and retrieve the FIM uncertainties.
+            # Calculate the FI matrix and retrieve the FI uncertainties.
             g = fisher(data.x, xi, counts, model)
-            FIM_uncertainties_time.append(1 / np.sqrt(np.diag(g)))
+            fisher_uncertainties_time.append(1 / np.sqrt(np.diag(g)))
 
             # Fit using differential evolution and record the uncertainties.
             CurveFitter(objective).fit('differential_evolution', verbose=False)
@@ -194,7 +194,7 @@ def compare_uncertainties(structure: Callable, angle_times: AngleTimes,
 
         # Use the mean of the 10 uncertainties for the time point.
         fit_uncertainties.append(np.mean(fit_uncertainties_time, axis=0))
-        FIM_uncertainties.append(np.mean(FIM_uncertainties_time, axis=0))
+        fisher_uncertainties.append(np.mean(fisher_uncertainties_time, axis=0))
 
         # Calculate the mean absolute error in the 10 fits.
         errors.append(np.mean(abs(np.array(fit_values) - true), axis=0))
@@ -205,23 +205,23 @@ def compare_uncertainties(structure: Callable, angle_times: AngleTimes,
     names = [param.name for param in xi]
     save_path = os.path.join(save_path, structure.__name__)
 
-    # Plot the mean fit and FIM uncertainties vs. time.
+    # Plot the mean fit and FI uncertainties vs. time.
     plot_uncertainties(multipliers, np.array(fit_uncertainties),
-                       np.asarray(FIM_uncertainties), names, save_path)
+                       np.asarray(fisher_uncertainties), names, save_path)
 
     # Plot the mean absolute error vs. time.
     plot_fitting_error(multipliers, np.asarray(errors), names, save_path)
 
 def plot_uncertainties(multipliers: ArrayLike, fit_uncertainties: ArrayLike,
-                       FIM_uncertainties: ArrayLike, names: List[str], save_path: str) -> None:
-    """Plots log fitting uncertainties and log FIM uncertainties vs. log time
+                       fisher_uncertainties: ArrayLike, names: List[str], save_path: str) -> None:
+    """Plots log fitting uncertainties and log FI uncertainties vs. log time
        multiplier for each parameter and performs linear regression for an
        approximation of the gradient in each case.
 
     Args:
         multipliers (numpy.ndarray): time multipliers.
         fit_uncertainties (numpy.ndarray): fitting uncertainties for each time.
-        FIM_uncertainties (numpy.ndarray): FIM uncertainties for each time.
+        fisher_uncertainties (numpy.ndarray): FI uncertainties for each time.
         names (list): parameter names.
         save_path (str): path to directory to save figures to.
 
@@ -232,38 +232,38 @@ def plot_uncertainties(multipliers: ArrayLike, fit_uncertainties: ArrayLike,
     fit_ax.set_xlabel('Log Time Multiplier', weight='bold')
     fit_ax.set_ylabel('Log Fitting Uncertainty', weight='bold')
 
-    # Create the plot of log FIM uncertainties vs. log time multipliers.
-    FIM_fig = plt.figure(figsize=[7,5], num=2, dpi=600)
-    FIM_ax = FIM_fig.add_subplot(111)
-    FIM_ax.set_xlabel('Log Time Multiplier', weight='bold')
-    FIM_ax.set_ylabel('Log FIM Uncertainty', weight='bold')
+    # Create the plot of log FI uncertainties vs. log time multipliers.
+    FI_fig = plt.figure(figsize=[7,5], num=2, dpi=600)
+    FI_ax = FI_fig.add_subplot(111)
+    FI_ax.set_xlabel('Log Time Multiplier', weight='bold')
+    FI_ax.set_ylabel('Log Fisher Information Uncertainty', weight='bold')
 
     # Reshape for linear regression.
     log_time = np.log(multipliers).reshape(-1, 1)
 
     # Iterate over each parameter.
     for i in range(len(names)):
-        # Take the log of the fitting and FIM uncertainties and reshape for linear regression.
+        # Take the log of the fitting and FI uncertainties and reshape for linear regression.
         log_fit = np.log(fit_uncertainties[:,i]).reshape(-1,1)
-        log_FIM = np.log(FIM_uncertainties[:,i]).reshape(-1,1)
+        log_FI = np.log(fisher_uncertainties[:,i]).reshape(-1,1)
 
         # Create linear regressors to calculate the gradient of the lines.
         fit_reg = LinearRegression().fit(log_time, log_fit)
-        FIM_reg = LinearRegression().fit(log_time, log_FIM)
+        FI_reg = LinearRegression().fit(log_time, log_FI)
 
         # Round the gradients to 3dp.
         fit_m = np.format_float_positional(fit_reg.coef_[0][0], precision=3, unique=False, trim='k')
-        FIM_m = np.format_float_positional(FIM_reg.coef_[0][0], precision=3, unique=False, trim='k')
+        FI_m = np.format_float_positional(FI_reg.coef_[0][0], precision=3, unique=False, trim='k')
 
         # Plot log time multipliers against log uncertainty for the parameter.
         fit_ax.plot(log_time, log_fit, label=names[i]+', m='+fit_m)
-        FIM_ax.plot(log_time, log_FIM, label=names[i]+', m='+FIM_m)
+        FI_ax.plot(log_time, log_FI, label=names[i]+', m='+FI_m)
 
     fit_ax.legend(loc='upper right')
-    FIM_ax.legend(loc='upper right')
+    FI_ax.legend(loc='upper right')
 
     save_plot(fit_fig, save_path, 'fitting_uncertainties_vs_time')
-    save_plot(FIM_fig, save_path, 'FIM_uncertainties_vs_time')
+    save_plot(FI_fig, save_path, 'fisher_uncertainties_vs_time')
 
 def plot_fitting_error(multipliers: ArrayLike, errors: ArrayLike, names: List[str], save_path: str) -> None:
     """Plots mean absolute error vs. log time multiplier for each parameter.
@@ -302,7 +302,7 @@ if __name__ == '__main__':
     angle_times = {0.7: (70, 5), # Angle: (Points, Time)
                    2.0: (70, 20)}
 
-    # Investigates how FIM and fitting uncertainties change with time.
+    # Investigates how FI and fitting uncertainties change with time.
     multipliers = 10**np.arange(0, 3, 0.01, dtype=float)
     compare_uncertainties(structure, angle_times, multipliers, save_path)
 

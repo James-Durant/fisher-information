@@ -12,18 +12,18 @@ from utils import fisher_single_contrast as fisher
 
 def compare_fit_variance(structure: Callable, angle_times: AngleTimes,
                          save_path: str, n: int=500) -> None:
-    """Compares the inverse FIM with the variance in parameter estimation
+    """Compares the inverse FI with the variance in parameter estimation
        using established fitting algorithms for `n` fits.
 
     Args:
         structure (function): structure to simulate experiment on.
         angle_times (dict): points and simulation times for each angle.
-        save_path (str): path to directory to save FIM and fit variances.
+        save_path (str): path to directory to save FI and fit variances.
         n (int): number of fits to run.
 
     """
     # Fit `n` times
-    param_estimates, inv_FIM = [], []
+    param_estimates, inv_fisher = [], []
     for i in range(n):
         # Simulate the experiment using the given angles, number of points and times.
         model, data, counts = simulate(structure(), angle_times, include_counts=True)
@@ -39,9 +39,9 @@ def compare_fit_variance(structure: Callable, angle_times: AngleTimes,
         xi = objective.varying_parameters()
         param_estimates.append([param.value for param in xi])
 
-        # Calculate the FIM matrix and FIM parameter variances.
+        # Calculate the FI matrix and FI parameter variances.
         g = fisher(data.x, xi, counts, model)
-        inv_FIM.append(1 / np.diag(g))
+        inv_fisher.append(1 / np.diag(g))
 
         # Display progress every 10 fits.
         if i % 10 == 0:
@@ -49,8 +49,8 @@ def compare_fit_variance(structure: Callable, angle_times: AngleTimes,
 
     # Calculate the variances in parameter estimates from the `n` fits.
     param_vars = np.var(np.array(param_estimates), axis=0)
-    # Calculate the mean inverse FIM for each parameter.
-    mean_inv_FIM = np.mean(np.array(inv_FIM), axis=0)
+    # Calculate the mean inverse FI for each parameter.
+    mean_inv_fisher = np.mean(np.array(inv_fisher), axis=0)
 
     # Create directory to save to if not present.
     file_path = os.path.join(save_path, structure.__name__)
@@ -61,8 +61,8 @@ def compare_fit_variance(structure: Callable, angle_times: AngleTimes,
     with open(os.path.join(file_path, 'variances.txt'), 'w') as file:
         file.write('Variance in Parameter Estimation:\n')
         file.write(str(param_vars)+'\n'*2)
-        file.write('Mean Inverse FIM:\n')
-        file.write(str(mean_inv_FIM))
+        file.write('Mean Inverse FI:\n')
+        file.write(str(mean_inv_fisher))
 
 if __name__ == '__main__':
     from structures import similar_sld_sample_1, similar_sld_sample_2

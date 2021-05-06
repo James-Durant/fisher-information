@@ -18,7 +18,7 @@ from simulate import simulate_single_contrast as simulate
 
 def compare_ellipses(structure: Callable, angle_times: AngleTimes, save_path: str) -> None:
     """Calculates parameter uncertainties for a given `structure` using MCMC
-       and nested sampling, calculates the FIM and plots the FIM confidence
+       and nested sampling, calculates the FI and plots the FI confidence
        ellipses on the sampling corner plots.
 
     Args:
@@ -43,7 +43,7 @@ def compare_ellipses(structure: Callable, angle_times: AngleTimes, save_path: st
     fig1 = sampler.sample_MCMC(verbose=True)
     fig2, _ = plot_objective(objective)
 
-    # Calculate the FIM matrix and plot confidence ellipses on corner plots.
+    # Calculate the FI matrix and plot confidence ellipses on corner plots.
     g = fisher(data.x, xi, counts, model)
     plot_ellipses(g, xi, fig1)
     save_plot(fig1, save_path, 'confidence_ellipses_MCMC')
@@ -59,11 +59,11 @@ def compare_ellipses(structure: Callable, angle_times: AngleTimes, save_path: st
     save_plot(fig4, save_path, 'fit_nested')
 
 def plot_ellipses(g: ArrayLike, xi: List[Parameter], fig: plt.Figure) -> None:
-    """Overlays the FIM confidence ellipses on the corner plot from either
+    """Overlays the FI confidence ellipses on the corner plot from either
        MCMC or nested sampling.
 
     Args:
-        g (numpy.ndarray): FIM matrix.
+        g (numpy.ndarray): FI matrix.
         xi (list): varying parameters.
         fig (matplotlib.pyplot.figure): sampling corner plot.
 
@@ -87,9 +87,9 @@ def confidence_ellipse(g: ArrayLike, i: int, j: int, param1: Parameter, param2: 
     """Plots the confidence ellipse between `param1` and `param2`.
 
     Args:
-        g (numpy.ndarray): FIM matrix.
-        i (int): index of `param1` in FIM matrix.
-        j (int): index of `param2` in FIM matrix.
+        g (numpy.ndarray): FI matrix.
+        i (int): index of `param1` in FI matrix.
+        j (int): index of `param2` in FI matrix.
         param1 (refnx.analysis.Parameter): 1st parameter corresponding to `i`.
         param2 (refnx.analysis.Parameter): 2nd parameter corresponding to `j`.
         axis (matplotlib.pyplot.Axes): subplot of corner plot to plot on.
@@ -97,7 +97,7 @@ def confidence_ellipse(g: ArrayLike, i: int, j: int, param1: Parameter, param2: 
         show_ylabel (bool): whether to display y-axis label.
 
     """
-    # Retrieve the elements of the FIM for the given parameters.
+    # Retrieve the elements of the FI for the given parameters.
     g_params = [[g[i,i], g[i,j]], [g[j,i], g[j,j]]]
 
     # Iterative over k: the number of standard deviations.
@@ -131,5 +131,5 @@ if __name__ == '__main__':
     angle_times = {0.7: (70, 5), # Angle: (Points, Time)
                    2.0: (70, 20)}
 
-    # Overlay FIM confidence ellipses on MCMC and nested sampling corner plots.
+    # Overlay FI confidence ellipses on MCMC and nested sampling corner plots.
     compare_ellipses(structure, angle_times, save_path)

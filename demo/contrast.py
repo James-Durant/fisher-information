@@ -90,12 +90,12 @@ class Bilayer():
 angle_times = {0.7: (70, 10),
                2.0: (70, 40)} # Angle: (Points, Time)
 
-# Contrast SLDs to calculate the FIM over.
+# Contrast SLDs to calculate the FI over.
 contrasts = np.arange(-0.56, 6.35, 0.05)
 
-# Investigate how the FIM changes with initial contrast SLD.
+# Investigate how the FI changes with initial contrast SLD.
 first_contrast_choice(Bilayer(), contrasts, angle_times, './results')
 
-# Investigate how the FIM changes with second contrast SLD.
+# Investigate how the FI changes with second contrast SLD.
 initial_contrast = 6.36 # First contrast SLD choice.
 second_contrast_choice(Bilayer(), initial_contrast, contrasts, angle_times, './results')
