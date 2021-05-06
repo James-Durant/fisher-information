@@ -272,7 +272,6 @@ def plot_information(x: ArrayLike, information: ArrayLike, xi: List[Parameter],
         save_plot(fig, save_path, '{}_choice_linear'.format(x_label))
 
         ax.set_yscale('log')
-        ax.legend(loc='upper right')
         save_plot(fig, save_path, '{}_choice_log'.format(x_label))
 
 def confidence_gain(bilayer: Bilayer, initial_contrast: float, new_contrasts: ArrayLike,
@@ -416,7 +415,7 @@ if __name__ == '__main__':
     second_contrast_choice(bilayer, initial_contrast, contrasts, angle_times, save_path)
 
     # Investigate how the FI changes with SiO2 underlayer thickness.
-    thicknesses = np.arange(2, 200, 0.5)
+    thicknesses = np.arange(1, 500, 0.5)
     underlayer_choice(bilayer, thicknesses, initial_contrast, angle_times, save_path)
 
     from structures import similar_sld_sample_1, similar_sld_sample_2

@@ -56,7 +56,7 @@ def plot_sld_profiles(structures: List[Structure], distances: ArrayLike=None,
         ax.plot(*structure.sld_profile(distances), label=structure.name if label else None)
 
     if label: # If labelling, create the legend.
-        ax.legend(loc='upper right')
+        ax.legend()
 
     return fig, ax
 
@@ -110,7 +110,7 @@ def plot_objectives(objectives: List[Objective], label: bool=True) -> Tuple[plt.
         ax.plot(q, objective.model(q), color='red', zorder=20)
 
     if label: # If labelling, create the legend.
-        ax.legend(loc='upper right')
+        ax.legend()
 
     return fig, ax
 
