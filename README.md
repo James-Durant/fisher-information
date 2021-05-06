@@ -25,9 +25,9 @@ Or with BibTeX as:
 ```
 
 ## Installation
-1. To replicate the development environment with the [`Anaconda`](https://www.anaconda.com/products/individual) distribution, first create an empty conda environment by running: <br /> ```conda create --name FIM python=3.8.3```
+1. To replicate the development environment with the [`Anaconda`](https://www.anaconda.com/products/individual) distribution, first create an empty conda environment by running: <br /> ```conda create --name fisher-information python=3.8.3```
 
-2. To activate the environment, run: ```conda activate FIM```
+2. To activate the environment, run: ```conda activate fisher-information```
 
 3. Install pip by running: ```conda install pip```
 
