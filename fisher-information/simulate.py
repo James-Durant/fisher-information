@@ -15,7 +15,7 @@ DIRECTBEAM_PATH = '../fisher-information/data/directbeam/directbeam_wavelength.d
 AngleTimes = Dict[float, Tuple[int, float]]
 
 def simulate_single_contrast(structure: Structure, angle_times: AngleTimes, scale: float=1,
-                             bkg: float=1e-7, dq: float=2, include_counts: bool=False,
+                             bkg: float=1e-6, dq: float=2, include_counts: bool=False,
                              save_path: str=None, file_name: str=None) -> Tuple[ReflectModel,
                                                                                 ReflectDataset,
                                                                                 Optional[ArrayLike]]:

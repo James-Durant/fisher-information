@@ -7,7 +7,7 @@ The Fisher information confidence ellipses for k=1,2,3 (red) overlaid on the cor
 <img src="https://github.com/James-Durant/fisher-information/blob/main/figures/figure_2.png" width="900">
 
 ### Figure 3
-Log Fisher information uncertainties (top), log fitting uncertainties (middle) and mean absolute error (bottom) vs. log time multiplier for each parameter of the mostly uncorrelated parameter sample (left) and correlated parameter sample (right); the uncertainties are taken as the mean from 10 simulated experiments for a given time multiplier. Included in the legends of the uncertainty time dependence plots are approximations of the gradients of the lines, m, as given by linear regression.
+Log Fisher information uncertainty (top), log fitting uncertainty (middle) and mean absolute error (bottom) vs. log time multiplier for each parameter of the mostly uncorrelated parameter sample (left) and correlated parameter sample (right); the uncertainties are taken as the mean from 10 simulated experiments for a given time multiplier. Included in the legends of the uncertainty time dependence plots are approximations of the gradients of the lines, m, as given by linear regression.
 <img src="https://github.com/James-Durant/fisher-information/blob/main/figures/figure_3.png" width="900">
 
 ### Figure 4
