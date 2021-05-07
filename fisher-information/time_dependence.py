@@ -287,6 +287,7 @@ def plot_fitting_error(multipliers: ArrayLike, errors: ArrayLike, names: List[st
 
     ax.set_xlabel('Log Time Multiplier', weight='bold')
     ax.set_ylabel('Mean Absolute Error', weight='bold')
+    ax.set_yscale('log')
     ax.legend(loc='upper right')
 
     save_plot(fig, save_path, 'fitting_error_vs_time')
@@ -303,7 +304,7 @@ if __name__ == '__main__':
                    2.0: (70, 20)}
 
     # Investigates how FI and fitting uncertainties change with time.
-    multipliers = 10**np.arange(0, 3, 0.01, dtype=float)
+    multipliers = 10**np.arange(0, 3, 0.05, dtype=float)
     compare_uncertainties(structure, angle_times, multipliers, save_path)
 
     # Investigates how the time dependence relationship holds in practice.
