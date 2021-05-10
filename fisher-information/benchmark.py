@@ -55,7 +55,7 @@ def benchmark(layers: int, num_samples: int) -> Tuple[List[float], List[float], 
         xi = objective.varying_parameters()
         start = time.time()
         g = fisher(data.x, xi, counts, model)
-        np.sqrt(np.diag(g))
+        np.sqrt(np.diag(np.linalg.inv(g)))
         end = time.time()
         times_fisher.append(end-start)
 

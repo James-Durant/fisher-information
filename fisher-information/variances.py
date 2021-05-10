@@ -41,7 +41,7 @@ def compare_fit_variance(structure: Callable, angle_times: AngleTimes,
 
         # Calculate the FI matrix and FI parameter variances.
         g = fisher(data.x, xi, counts, model)
-        inv_fisher.append(1 / np.diag(g))
+        inv_fisher.append(np.diag(np.linalg.inv(g)))
 
         # Display progress every 10 fits.
         if i % 10 == 0:

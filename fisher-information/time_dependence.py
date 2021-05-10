@@ -183,7 +183,7 @@ def compare_uncertainties(structure: Callable, angle_times: AngleTimes,
 
             # Calculate the FI matrix and retrieve the FI uncertainties.
             g = fisher(data.x, xi, counts, model)
-            fisher_uncertainties_time.append(1 / np.sqrt(np.diag(g)))
+            fisher_uncertainties_time.append(np.sqrt(np.diag(np.linalg.inv(g))))
 
             # Fit using differential evolution and record the uncertainties.
             CurveFitter(objective).fit('differential_evolution', verbose=False)
