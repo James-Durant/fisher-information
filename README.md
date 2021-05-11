@@ -1,5 +1,5 @@
 # fisher-information
-**For the most up-to-date working using this framework, and if you are interested in applying the framework to experimental design problems of your own, see the [experimental-design](https://github.com/James-Durant/experimental-design) repository**.
+**For the most up-to-date work using this framework, and if you are interested in applying the framework to experimental design problems of your own, see the [experimental-design](https://github.com/James-Durant/experimental-design) repository**.
 
 ## About the Project
 This repository contains the [code](/fisher-information), [data](/fisher-information/data) and [results](/fisher-information/results) for a framework for determining the maximum information gain and optimising experimental design in neutron reflectometry experiments using the Fisher information (FI).
