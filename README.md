@@ -16,7 +16,7 @@ Or with BibTeX as:
    author        = {Durant, J. H. and Wilkins, L. and Butler, K. and Cooper J. F. K.},
    month         = {May},
    title         = {Determining the maximum information gain and optimising experimental design in neutron reflectometry using the Fisher information},
-   url           = {https://arxiv.org/abs/2103.08973}
+   url           = {https://arxiv.org/abs/2103.08973},
    year          = {2021},
    eprint        = {2103.08973},
    archivePrefix = {arXiv},
