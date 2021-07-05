@@ -141,7 +141,7 @@ def plot_refdata(data: ReflectDataset, colour: str='black', label: bool=None) ->
     return fig, ax
 
 def plot_reflectivity_curve(structure: Structure, q_min: float=0.005, q_max: float=0.3,
-                            points: int=500, dq: float=2, bkg: float=1e-7) -> Tuple[plt.Figure, plt.Axes]:
+                            points: int=500, bkg: float=1e-7, dq: float=2) -> Tuple[plt.Figure, plt.Axes]:
     """Plots the model reflectivity curve of a given `structure`.
 
     Args:
@@ -149,8 +149,8 @@ def plot_reflectivity_curve(structure: Structure, q_min: float=0.005, q_max: flo
         q_min (float): minimum Q value for plot.
         q_max (float): maximum Q value for plot.
         points (int): number of reflectivity points to use.
-        dq (float): instrument resolution.
         bkg (float): experimental background.
+        dq (float): instrument resolution.
 
     Returns:
         fig (matplotlib.pyplot.Figure): figure containing reflectivity curve.
@@ -198,25 +198,25 @@ if __name__ == '__main__':
 
     #Plot Si-D2O
     model, data = bilayer.models[0], bilayer.datasets[0]
-    ax.plot(data.x, model(data.x), color="red", zorder=20)
-    ax.errorbar(data.x, data.y, data.y_err, color=None, label="Si/D2O Interface",
-                marker="o", ms=3, lw=0, elinewidth=1, capsize=1.5)
+    ax.plot(data.x, model(data.x), color='red', zorder=20)
+    ax.errorbar(data.x, data.y, data.y_err, color=None, label='Si/D2O Interface',
+                marker='o', ms=3, lw=0, elinewidth=1, capsize=1.5)
 
     #Plot Si-DMPC-D2O
     model, data = bilayer.models[1], bilayer.datasets[1]
     offset = 1e-2
-    ax.plot(data.x, model(data.x)*offset, color="red", zorder=20)
-    ax.errorbar(data.x, data.y*offset, data.y_err*offset, marker="o", ms=3, lw=0, elinewidth=1,
-                capsize=1.5, label="DMPC Bilayer in D2O $\mathregular{(x10^{-2})}$",)
+    ax.plot(data.x, model(data.x)*offset, color='red', zorder=20)
+    ax.errorbar(data.x, data.y*offset, data.y_err*offset, marker='o', ms=3, lw=0, elinewidth=1,
+                capsize=1.5, label='DMPC Bilayer in D2O $\mathregular{(x10^{-2})}$')
 
     #Plot Si-DMPC-H2O
     model, data = bilayer.models[2], bilayer.datasets[2]
     offset = 1e-3
-    ax.plot(data.x, model(data.x)*offset, color="red", zorder=20)
-    ax.errorbar(data.x, data.y*offset, data.y_err*offset, marker="o", ms=3, lw=0, elinewidth=1,
-                capsize=1.5, label="DMPC Bilayer in H2O $\mathregular{(x10^{-3})}$")
+    ax.plot(data.x, model(data.x)*offset, color='red', zorder=20)
+    ax.errorbar(data.x, data.y*offset, data.y_err*offset, marker='o', ms=3, lw=0, elinewidth=1,
+                capsize=1.5, label='DMPC Bilayer in H2O $\mathregular{(x10^{-3})}$')
 
-    ax.set_xlabel("$\mathregular{Q\ (Å^{-1})}$", fontsize=11, weight='bold')
+    ax.set_xlabel('$\mathregular{Q\ (Å^{-1})}$', fontsize=11, weight='bold')
     ax.set_ylabel('Reflectivity (arb.)', fontsize=11, weight='bold')
     ax.set_xscale('log')
     ax.set_yscale('log')
