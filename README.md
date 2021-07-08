@@ -13,16 +13,16 @@ Please cite the following article if you intend on including elements of this wo
 Or with BibTeX as:
 ```
 @article{Durant2021,
-author  = {Durant, J. H. and Wilkins, L. and Butler, K. and Cooper, J. F. K.},
-doi     = {10.1107/S160057672100563X},
-journal = {Journal of Applied Crystallography},
-month   = {Aug},
-number  = {4},
-pages   = {},
-title   = {{Determining the maximum information gain and optimizing experimental design in neutron reflectometry using the Fisher information}},
-url     = {https://doi.org/10.1107/S160057672100563X},
-volume  = {54},
-year    = {2021}
+   author  = {Durant, J. H. and Wilkins, L. and Butler, K. and Cooper, J. F. K.},
+   doi     = {10.1107/S160057672100563X},
+   journal = {Journal of Applied Crystallography},
+   month   = {Aug},
+   number  = {4},
+   pages   = {},
+   title   = {{Determining the maximum information gain and optimizing experimental design in neutron reflectometry using the Fisher information}},
+   url     = {https://doi.org/10.1107/S160057672100563X},
+   volume  = {54},
+   year    = {2021}
 }
 ```
 
