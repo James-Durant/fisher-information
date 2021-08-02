@@ -1,4 +1,4 @@
-# Guide
+## Code
 * [benchmark.py](/fisher-information/benchmark.py) - Benchmarks parameter uncertainty calculation using MCMC sampling, nested sampling and the FI approach.
 * [biases.py](/fisher-information/biases.py) - Investigates biases in fitting, and determines how these biases change with measurement time and contrast choice.
 * [ellipses.py](/fisher-information/ellipses.py) - Compares FI confidence ellipses to MCMC and nested sampling corner plots.
