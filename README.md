@@ -8,7 +8,7 @@ In neutron reflectometry experiments, the FI can be analytically calculated and 
 
 ### Citation
 Please cite the following article if you intend on including elements of this work in your own publications:
-> J. H. Durant, L. Wilkins, K. Butler and J. F. K. Cooper.  Determining the maximum information gain and optimizing experimental design in neutron reflectometry using the Fisher information. _J. Appl. Cryst_. **54**, 1100-1110 (2021).
+> Durant, J. H. and Wilkins, L. and Butler, K. and Cooper, J. F. K. Determining the maximum information gain and optimizing experimental design in neutron reflectometry using the Fisher information. _J. Appl. Cryst_. **54**, 1100-1110 (2021).
 
 Or with BibTeX as:
 ```
